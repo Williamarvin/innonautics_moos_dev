@@ -3,6 +3,9 @@
 # Author(s):                                   Blake Cole                             
 #--------------------------------------------------------
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
+
 SET(SRC
   M300.cpp
   M300_Info.cpp

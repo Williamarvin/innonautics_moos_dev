@@ -1,0 +1,18 @@
+//------------------------------------------------
+// iVehX config block
+
+ProcessConfig = iVehX
+{
+  AppTick   = 10
+  CommsTick = 10
+
+  comms_type     = client
+  ip_addr        = 192.168.0.217      // frontseat IP address
+  port           = 29500          //
+
+  MAX_RUDDER     =  30.0          // Example
+  MAX_THRUST     = 100.0          // Example
+
+  max_appcast_events = 8          //default=8
+}
+

@@ -1,0 +1,11 @@
+time,data,src
+34594337911.76568,vname=henry|bhv_name=waypt_survey|linear_dist=25.6|odo_dist=26.5|efficiency_dist=0.968|linear_time=21.4|odo_time=22.2|efficiency_time=0.961,pHelmIvP:339:waypt_survey
+34594337929.199,vname=henry|bhv_name=waypt_survey|linear_dist=20.4|odo_dist=20.9|efficiency_dist=0.979|linear_time=17|odo_time=17.4|efficiency_time=0.976,pHelmIvP:428:waypt_survey
+34594337956.79522,vname=henry|bhv_name=waypt_survey|linear_dist=31.6|odo_dist=33.2|efficiency_dist=0.953|linear_time=26.3|odo_time=27.6|efficiency_time=0.954,pHelmIvP:569:waypt_survey
+34594337989.029915,vname=henry|bhv_name=waypt_survey|linear_dist=37|odo_dist=38.9|efficiency_dist=0.951|linear_time=30.8|odo_time=32.2|efficiency_time=0.956,pHelmIvP:733:waypt_survey
+34594337989.029915,vname=henry|bhv_name=waypt_survey|linear_dist=37|odo_dist=38.9|efficiency_dist=0.951|linear_time=30.8|odo_time=32.2|efficiency_time=0.956,pHelmIvP:733:waypt_survey
+34594338020.64167,vname=henry|bhv_name=waypt_survey|linear_dist=35.3|odo_dist=37.9|efficiency_dist=0.93|linear_time=29.4|odo_time=31.6|efficiency_time=0.93,pHelmIvP:892:waypt_survey
+34594338043.19743,vname=henry|bhv_name=waypt_survey|linear_dist=25|odo_dist=26.9|efficiency_dist=0.929|linear_time=20.8|odo_time=22.6|efficiency_time=0.922,pHelmIvP:1006:waypt_survey
+34594338060.44387,vname=henry|bhv_name=waypt_survey|linear_dist=20.2|odo_dist=20.7|efficiency_dist=0.976|linear_time=16.8|odo_time=17.3|efficiency_time=0.974,pHelmIvP:1094:waypt_survey
+34594338087.877075,vname=henry|bhv_name=waypt_survey|linear_dist=31.5|odo_dist=33.1|efficiency_dist=0.953|linear_time=26.2|odo_time=27.4|efficiency_time=0.957,pHelmIvP:1234:waypt_survey
+34594338120.6456,vname=henry|bhv_name=waypt_survey|linear_dist=37.2|odo_dist=39.2|efficiency_dist=0.949|linear_time=31|odo_time=32.8|efficiency_time=0.947,pHelmIvP:1401:waypt_survey

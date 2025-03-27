@@ -1,0 +1,10 @@
+//------------------------------------------------
+// iHydroLink config block
+
+ProcessConfig = iHydroLink
+{
+   AppTick   = 4
+   CommsTick = 4
+   gps_filter_time_constant = 0.5
+}
+

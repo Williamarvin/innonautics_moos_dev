@@ -1,0 +1,9 @@
+//------------------------------------------------
+// pRoutePlan config block
+
+ProcessConfig = pRoutePlan
+{
+   AppTick   = 4
+   CommsTick = 4
+}
+

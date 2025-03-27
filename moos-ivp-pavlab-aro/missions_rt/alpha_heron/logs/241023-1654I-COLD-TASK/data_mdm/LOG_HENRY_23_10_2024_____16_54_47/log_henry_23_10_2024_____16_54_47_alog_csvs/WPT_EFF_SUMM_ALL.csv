@@ -1,0 +1,11 @@
+time,data,src
+34594337911.7658,vname=henry|bhv_name=waypt_survey|linear_dist=25.6|odo_dist=26.5|efficiency_dist=0.968|linear_time=21.4|odo_time=22.2|efficiency_time=0.961,pHelmIvP:339:waypt_survey
+34594337929.19904,vname=henry|bhv_name=waypt_survey|linear_dist=46|odo_dist=47.3|efficiency_dist=0.973|linear_time=38.4|odo_time=39.7|efficiency_time=0.967,pHelmIvP:428:waypt_survey
+34594337956.7953,vname=henry|bhv_name=waypt_survey|linear_dist=77.6|odo_dist=80.5|efficiency_dist=0.965|linear_time=64.7|odo_time=67.3|efficiency_time=0.962,pHelmIvP:569:waypt_survey
+34594337989.030045,vname=henry|bhv_name=waypt_survey|linear_dist=114.6|odo_dist=119.4|efficiency_dist=0.96|linear_time=95.5|odo_time=99.5|efficiency_time=0.96,pHelmIvP:733:waypt_survey
+34594337989.030045,vname=henry|bhv_name=waypt_survey|linear_dist=114.6|odo_dist=119.4|efficiency_dist=0.96|linear_time=95.5|odo_time=99.5|efficiency_time=0.96,pHelmIvP:733:waypt_survey
+34594338020.64178,vname=henry|bhv_name=waypt_survey|linear_dist=149.9|odo_dist=157.3|efficiency_dist=0.953|linear_time=124.9|odo_time=131.1|efficiency_time=0.953,pHelmIvP:892:waypt_survey
+34594338043.19754,vname=henry|bhv_name=waypt_survey|linear_dist=174.9|odo_dist=184.2|efficiency_dist=0.949|linear_time=145.7|odo_time=153.6|efficiency_time=0.949,pHelmIvP:1006:waypt_survey
+34594338060.44389,vname=henry|bhv_name=waypt_survey|linear_dist=195|odo_dist=204.9|efficiency_dist=0.952|linear_time=162.5|odo_time=170.9|efficiency_time=0.951,pHelmIvP:1094:waypt_survey
+34594338087.87716,vname=henry|bhv_name=waypt_survey|linear_dist=226.5|odo_dist=237.9|efficiency_dist=0.952|linear_time=188.8|odo_time=198.3|efficiency_time=0.952,pHelmIvP:1234:waypt_survey
+34594338120.6457,vname=henry|bhv_name=waypt_survey|linear_dist=263.8|odo_dist=277.1|efficiency_dist=0.952|linear_time=219.8|odo_time=231.1|efficiency_time=0.951,pHelmIvP:1401:waypt_survey

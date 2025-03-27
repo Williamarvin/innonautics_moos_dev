@@ -1,0 +1,189 @@
+//*******************************************************
+// ShoreSide Configuration File
+
+ServerHost = localhost
+ServerPort = 9000
+Community  = shoreside
+
+MOOSTimeWarp = 1
+//LatOrigin  = 43.823550
+//LongOrigin = -70.331700
+LatOrigin  = 42.35500
+LongOrigin = -71.089000
+
+
+//--------------------------------------------------------
+Processconfig = ANTLER
+{
+  MSBetweenLaunches = 100
+
+  Run = MOOSDB          @ NewConsole = false
+  //Run = pRealm        @ NewConsole = false
+  Run = pMarineViewer   @ NewConsole = false
+  Run = pLogger         @ NewConsole = false
+  Run = pShare          @ NewConsole = false
+  Run = pHostInfo       @ NewConsole = false
+  Run = uFldShoreBroker @ NewConsole = false
+  Run = uFldNodeComms   @ NewConsole = false
+	Run = uXMS            @ NewConsole = false
+  Run = uTimerScript    @ NewConsole = false
+  Run = pIITCHS         @ NewConsole = false
+
+
+}
+
+//---------------------------------------------------------
+// pShare Config Block  (Created from Plugin)
+
+ProcessConfig = pShare
+{
+  AppTick    = 2
+  CommsTick  = 2
+
+  input = route =  localhost:9300
+}
+
+
+//--------------------------------------------------
+// pHostInfo configuration block from plugin
+
+ProcessConfig = pHostInfo
+{
+  AppTick 	= 1
+  CommsTick 	= 1
+
+  DEFAULT_HOSTIP_FORCE = localhost
+}
+
+
+//--------------------------------------------------
+// pLogger Configuration Block (Created from Plugin)
+
+ProcessConfig = pLogger
+{
+  AppTick 	= 10
+  CommsTick 	= 10
+  
+  File		= LOG_SHORESIDE
+  PATH		= ./
+  AsyncLog 	= true
+  FileTimeStamp = true
+  // Log it all!!!!!
+  LogAuxSrc       = true
+  WildCardLogging = true 
+
+  WildCardOmitPattern = *_STATUS
+
+  CompressAlogs = false
+}
+
+ProcessConfig = uXMS
+{
+    VAR = AGENT_1_SCHEDULE
+    VAR = RUN_CS_RUN
+    VAR = SCHEDULE
+    VAR = VIEW_POLYGON
+    VAR = Q1
+    VAR = UPDATES_VAR_LIST
+    VAR = UP_LOITER
+}
+
+//#include plug_pPathProduce.moos
+ProcessConfig = uTimerScript                                    
+{
+	AppTick      = 2
+	CommsTick    = 2
+	paused        = false
+
+	event = var=RUN_CS_RUN, val="true" , time=5
+}  
+
+ProcessConfig = pIITCHS
+{
+	AppTick = 4
+	CommsTick = 4
+
+	AGENT_TOPIC_PREFIX = AGENT_
+
+	PYTHON_APPEND_PATHS = /home/craig/iitchs_MOOS/src:/home/craig/iitchs_MOOS/src/catl_planning/examples
+	CASEFILE = two_agent_swap
+	IITCHS_PATH = /home/craig/iitchs_MOOS
+	SOLVER = SCIP
+}
+//--------------------------------------------------
+// uFldShoreBroker Configuration Block
+
+ProcessConfig = uFldShoreBroker
+{
+  AppTick       = 1
+  CommsTick     = 1
+
+  qbridge  = DEPLOY, NODE_REPORT
+  qbridge  = STATION_KEEP, APPCAST_REQ
+  qbridge  = MOOS_MANUAL_OVERRIDE
+
+  bridge   = src=RETURN_ALL, alias=RETURN
+  bridge   = src=PATH_ORIGIN_$V,  alias=PATH_ORIGIN
+  bridge   = src=$V_SCHEDULE, alias=SCHEDULE
+  bridge   = src=Q3
+  bridge   = src=Q2
+  bridge   = src=Q1
+  bridge   = src=Q4
+  bridge   = src=Q5
+  bridge   = src=Q6
+  bridge   = src=Q7
+  bridge   = src=Q8
+  bridge   = src=Q9
+  bridge   = src=Q0
+}
+
+//--------------------------------------------------------
+ProcessConfig = pMarineViewer
+{
+  AppTick    = 4
+  CommsTick  = 4
+
+  tiff_file            = MIT_SP.tif
+  set_pan_x            = -90
+  set_pan_y            = -280
+  zoom                 = 0.65
+  vehicles_shape_scale = 1.5
+  vehicles_name_mode   = names
+
+	nodes_font_size = xlarge
+	procs_font_size = xlarge
+	appcast_font_size = large
+
+  point_viewable_labels   = false
+  polygon_viewable_labels = true
+  appcast_viewable     = true
+  appcast_color_scheme = indigo
+  hash_delta           = 50
+  hash_viewable        = true
+  hash_shade           = 0.35
+
+  scope = PHI_HOST_INFO
+
+  button_one   = DEPLOY  # DEPLOY_ALL=true
+  button_one   = MOOS_MANUAL_OVERRIDE_ALL=false
+  button_one   = RETURN_ALL=false # STATION_KEEP_ALL=false
+
+  button_two   = RETURN  # RETURN_ALL=true
+  button_two   = STATION_KEEP_ALL=false
+
+  button_three = STATION  # STATION_KEEP_ALL=true
+	button_four  = REFUEL # REFUEL_NEEDED_ALL=true
+}
+ProcessConfig = uFldNodeComms
+{
+	AppTick   = 2
+	CommsTick = 2
+
+	comms_range      = 200
+	critical_range   = 25
+	min_msg_interval = 0
+	max_msg_length   = 48000
+	groups           = true
+	view_node_rpt_pulses = false
+}
+

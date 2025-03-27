@@ -1,0 +1,39 @@
+//--------------------------------------------------------
+// pKayakEvalEngine Example MOOS Configuration
+
+ProcessConfig = pKayakEvalEngine
+{
+
+// Engine Configuration Parameters
+      AppTick = 10
+    CommsTick = 10
+
+        debug = false
+
+// Kernel-specific configuration parameters
+
+//    > xCounter1 (default values as shown)
+          pub_to_var_1 = X_COUNTER
+        var_to_count_1 = NAV_X
+//    > xCounter2 (default values as shown)
+          pub_to_var_2 = X_COUNTER
+        var_to_count_2 = NAV_X
+//    > xStateTimer (default values as shown)
+           pub_nresets_to_var = XSTATETIMER_NRESETS
+              pub_time_to_var = XSTATETIMER_TIME
+         timer_is_cummulative = true
+        timer_reset_condition = XSTATETIMER_RESET
+                var_condition = TRUE
+                  var_to_time = DEPLOY
+//    > xSurfaceOdometry (default values as shown)
+                  conversion_factor = 1.000000
+              display_sample_points = true
+                           identity = xSurfaceOdometry
+                        input_x_var = NAV_X
+                        input_y_var = NAV_Y
+                         output_var = ODOMETRY
+        sample_points_seglist_label = odometry_sample_points
+                     seglist_output = VIEW_SEGLIST
+                              units = meters
+
+}

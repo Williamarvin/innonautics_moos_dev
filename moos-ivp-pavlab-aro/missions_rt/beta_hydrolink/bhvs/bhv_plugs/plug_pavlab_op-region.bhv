@@ -1,0 +1,14 @@
+//----------------------------------------------
+Behavior = BHV_OpRegionRecover
+{
+  name         = recover
+  pwt          = 300
+  updates      = RECOVER_UPDATES
+  activeflag   = RECOVER = true
+  inactiveflag = RECOVER = false
+
+  //polygon = pts={-82,-55: -45,-149 : 122,-71 : 83,24}
+            polygon = pts={96,45 : -131,-65 : -87,-230 : 180,-125}
+	trigger_entry_time = 1
+  trigger_exit_time  = 1
+}

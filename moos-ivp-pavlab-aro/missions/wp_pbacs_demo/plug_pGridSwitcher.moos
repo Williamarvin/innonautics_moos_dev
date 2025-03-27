@@ -1,0 +1,21 @@
+//------------------------------------------------
+// pGridSwitcher config block
+
+ProcessConfig = pGridSwitcher
+{
+   AppTick   = 4
+   CommsTick = 4
+
+   // These are the expected grids,  the deltas are expected to have the same
+   // name with an added _DELTA at the end.
+   input_grid_vars = VIEW_GRID_CONS_LOCAL, VIEW_GRID_GPR_LOCAL, VIEW_GRID_PSG_LOCAL, VIEW_GRID_OBS_LOCAL
+
+   // This name is also appended with _DELTA when sending deltas
+   output_var = VIEW_GRID
+   
+   switching_var = GRID_SWITCH
+   mode = $(XMODE)    // MODE = SIM will load the ground truth
+   filename = popolopen_sim2.grd	
+   mirror_grid = $(MIRROR)
+}
+

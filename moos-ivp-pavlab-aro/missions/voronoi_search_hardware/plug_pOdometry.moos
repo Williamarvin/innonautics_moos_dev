@@ -1,0 +1,6 @@
+//-----------------------------------------------------------
+ProcessConfig = pOdometry
+{
+  AppTick   = 1
+  CommsTick = 1
+}

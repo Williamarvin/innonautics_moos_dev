@@ -1,0 +1,49 @@
+#!/bin/bash
+
+#-------------------------------------------------------------- 
+#   Script: thin_logdirs
+#   Author: Raymond Turrisi
+#   LastEd: Nov 25 2023
+# Useage: 
+#   Pass a directory which ONLY contains a collection of log directories
+#   i.e. $ thin_logdir logs
+#  
+# Where: 
+# logs/
+#   LOG_ABE_25_11_2023_____23_02_51/
+#       LOG_ABE_25_11_2023_____23_02_51.alog
+#       ...
+#   LOG_BEN_25_11_2023_____23_02_51/
+#   LOG_CAL_25_11_2023_____23_02_51/
+#   LOG_DEB_25_11_2023_____23_02_51/
+#   LOG_SHORESIDE_25_11_2023_____23_02_51/
+# 
+#-------------------------------------------------------------- 
+
+# Check if the argument is provided
+if [ "$#" -ne 1 ]; then
+    echo "<thin_logdirs> Usage: $0 <parent-directory>"
+    exit 1
+fi
+
+parent_directory=$1
+
+# Check if the parent directory exists
+if [ ! -d "$parent_directory" ]; then
+    echo "<thin_logdirs> Error: Directory $parent_directory does not exist."
+    exit 1
+fi
+
+# Iterate over each subdirectory in the parent directory
+for subdir in "$parent_directory"/*; do
+    # Check if it's a directory
+    if [ -d "$subdir" ]; then
+        # Check if there are any *.alog files in the directory
+        if ls "$subdir"/*.alog 1> /dev/null 2>&1; then
+            echo "<thin_logdirs> Processing $subdir"
+            thin_logdir "$subdir"
+        else
+            echo "<thin_logdirs> Skipping $subdir (no *.alog files)"
+        fi
+    fi
+done

@@ -1,0 +1,71 @@
+ServerHost = localhost
+ServerPort = $(MOOS_PORT)
+Community  = $(VNAME)
+
+#include plug_origin_warp.moos
+
+//------------------------------------------------------------
+ProcessConfig = ANTLER
+{
+  MSBetweenLaunches = 100
+
+  Run = MOOSDB              @ NewConsole = false
+  Run = uProcessWatch       @ NewConsole = false
+  Run = pShare              @ NewConsole = false
+  Run = pLogger             @ NewConsole = false
+  Run = pNodeReporter       @ NewConsole = false
+  Run = pMarinePID          @ NewConsole = false
+  Run = pHelmIvP            @ NewConsole = false
+  Run = pContactMgrV20      @ NewConsole = false
+  Run = pHostInfo           @ NewConsole = false
+  Run = uFldNodeBroker      @ NewConsole = false
+  Run = pDeadManPost        @ NewConsole = false
+  Run = uFldMessageHandler  @ NewConsole = false
+  Run = iHydroMAN_IvPExtend @ NewConsole = false
+  Run = iM300               @ NewConsole = false
+  Run = iM300Health         @ NewConsole = false
+  //Run = uTimerScript       @ NewConsole = false
+  Run = pDynamLearning     @ NewConsole = false	
+}
+
+#include plug_iM300.moos
+#include plug_iM300Health.moos
+
+#include plug_pShare.moos
+#include plug_pMarinePID.moos
+
+#include plug_pDeadManPost.moos
+#include plug_pLogger.moos
+#include plug_pNodeReporter.moos
+#include plug_pHelmIvP.moos
+#include plug_pHostInfo.moos
+#include plug_uFldNodeBroker.moos
+#include plug_uFldMessageHandler.moos
+#include plug_uProcessWatch.moos
+#include plug_pContactMgrV20.moos
+#include plug_iHydroMAN_IvPExtend.moos
+#include plug_pDynamLearning.moos
+
+//------------------------------------------------------------
+// uTimerScript configuration block
+  
+ProcessConfig = uTimerScript
+  {
+    AppTick   = 4
+    CommsTick = 4
+  
+    paused      = false
+    reset_max   = unlimited
+    reset_time  = end
+
+    condition = RETURN = false
+    condition = STATION_KEEP = false
+    condition = DEPLOY = true
+
+    script_name = SPEED_CHANGER_SCRIPT
+
+    rand_var = varname=RAND_SPEED, min=0.1, max = 2.0, key=at_post, snap=0.01
+
+    event = var=WPT_UPDATE, val="speed=$[RAND_SPEED]", time=30
+  }
+

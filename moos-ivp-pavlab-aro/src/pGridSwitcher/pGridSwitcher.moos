@@ -1,0 +1,13 @@
+//------------------------------------------------
+// pGridSwitcher config block
+
+ProcessConfig = pGridSwitcher
+{
+   AppTick   = 4
+   CommsTick = 4
+
+   input_var = VIEW_GRID_LOCAL
+   output_var = VIEW_GRID
+   swtiching_var = GRID_SWITCH
+}
+

@@ -1,0 +1,319 @@
+//*******************************************************
+// Vehicle behavior configuration file
+
+initialize   DEPLOY = false
+initialize   RETURN = false
+initialize   STATION_KEEP = false
+initialize   MISSION_COMPLETE = false
+initialize   SURVEY = false
+initialize   TRANSIT = true
+initialize   EXPLORE = false
+initialize   GRID_READY = false
+initialize   BORDER = false
+
+//----------------------------------------------
+ 
+set MODE = ACTIVE {
+  DEPLOY = true
+  GRID_READY = true
+} INACTIVE
+
+set MODE = TRANSIT_MODE {
+  MODE = ACTIVE
+  RETURN = false
+  STATION_KEEP = false
+  MISSION_COMPLETE = false
+  SURVEY = false
+  TRANSIT = true
+  EXPLORE = false
+  BORDER = false
+} 
+
+set MODE = EXPLORE_MODE {
+  MODE = ACTIVE
+  RETURN = false
+  STATION_KEEP = false
+  MISSION_COMPLETE = false
+  SURVEY = false
+  TRANSIT = false
+  EXPLORE = true
+  BORDER = false
+} 
+
+set MODE = SURVEY_MODE {
+  MODE = ACTIVE
+  RETURN = false
+  STATION_KEEP = false
+  MISSION_COMPLETE = false
+  SURVEY = true
+  TRANSIT = false
+  EXPLORE = false
+  BORDER = false
+} 
+
+set MODE = RETURN_MODE {
+  MODE = ACTIVE
+  RETURN = true
+  //STATION_KEEP = false
+  //MISSION_COMPLETE = false
+  //SURVEY = false
+  //TRANSIT = false
+  //EXPLORE = false
+} 
+
+
+//----------------------------------------------
+ 
+Behavior = BHV_AvoidCollision
+ {
+   // General Behavior Parameters
+   // ---------------------------
+   name         = avdcollision_                     // example
+   pwt          = 900                               // example
+   condition    = MODE == ACTIVE                    // example
+   updates      = CONTACT_INFO                      // example
+   endflag = CONTACT_RESOLVED = $[CONTACT]          // example 
+   templating   = spawn                             // example
+
+
+   // General Contact Behavior Parameters
+   // -----------------------------------
+       bearing_lines = white:0, green:0.65, yellow:0.8, red:1.0   // example
+
+               decay = 15,30            // default (seconds)
+         extrapolate = true             // default
+    on_no_contact_ok = true             // default
+         time_on_leg = 60               // default (seconds)
+
+
+   // Parameters specific to this behavior
+   // ------------------------------------
+      completed_dist = 60              // default
+   max_util_cpa_dist = 10              // default
+   min_util_cpa_dist = 6               // default
+    no_alert_request = false           // default
+           pwt_grade = linear          // default
+      pwt_inner_dist = 25              // default
+      pwt_outer_dist = 50              // default
+}
+
+//----------------------------------------------
+Behavior = BHV_Waypoint
+{
+  name      = waypt_transit
+  pwt       = 100
+
+  condition    = MODE == TRANSIT_MODE
+  
+#ifdef PATHMODE OTHER
+  endflag      = EXPLORE = true
+#else
+  endflag      = SURVEY = true
+#endif       
+  endflag      = TRANSIT = false
+  
+  activeflag   = TRANSITING = true
+  inactiveflag = TRANSITING = false
+  updates      = TRANSIT_UPDATES
+
+  perpetual = false
+
+                lead = 8
+         lead_damper = 1
+       lead_to_start = true
+               speed = $(SPEED)
+        capture_line = true
+      capture_radius = 5
+         slip_radius = 15
+	efficiency_measure = all
+	order = $(ORDER)
+
+  points = pts={$(GRID_START)}
+
+
+    visual_hints = nextpt_color=yellow
+    visual_hints = nextpt_vertex_size=8
+    visual_hints = nextpt_lcolor=gray70
+    visual_hints = vertex_color=dodger_blue, edge_color=white
+    visual_hints = vertex_size=5, edge_size=1
+}
+
+//----------------------------------------------
+Behavior = BHV_Waypoint
+{
+  name      = waypt_explore
+  pwt       = 100
+  
+  condition    = MODE == EXPLORE_MODE
+  
+  endflag      = SURVEY = true
+  endflag      = EXPLORE = false
+  
+  activeflag   = EXPLORING = true
+  inactiveflag = EXPLORING = false
+  updates      = PATH_UPDATES
+
+  perpetual = false
+
+	        lead = 8
+         lead_damper = 1
+       lead_to_start = true
+               speed = $(SPEED)
+        capture_line = true
+      capture_radius = 5
+         slip_radius = 15
+	efficiency_measure = all
+	order = $(ORDER)
+
+#ifdef PATHMODE OTHER
+
+    points = pts={$(GRID_START):$(EXPLORE_END)}
+
+#endif
+
+
+    visual_hints = nextpt_color=yellow
+    visual_hints = nextpt_vertex_size=8
+    visual_hints = nextpt_lcolor=gray70
+    visual_hints = vertex_color=dodger_blue, edge_color=white
+    visual_hints = vertex_size=5, edge_size=1
+}
+
+//----------------------------------------------
+Behavior = BHV_Waypoint
+{
+  name      = waypt_survey
+  pwt       = 100
+
+  condition = MODE == SURVEY_MODE
+  
+  //endflag      = RETURN = true
+  
+  activeflag   = SURVEYING = true
+  inactiveflag = SURVEYING = false
+  updates      = PATH_UPDATES
+
+#ifdef PATHMODE LAWN
+  endflag = BORDER = true
+#else
+  perpetual = true
+  repeat = forever
+#endif
+	        lead = 8
+         lead_damper = 1
+       lead_to_start = true
+               speed = $(SPEED)
+        capture_line = true
+      capture_radius = 5
+         slip_radius = 15
+	efficiency_measure = all
+	order = $(ORDER)
+
+
+    points = pts={$(GRID_START)}	
+
+//points = format=lawnmower, label=foxtrot, x=55, y=-130, height=150, width=255, lane_width=50, rows=$(ORIENTATION), startx=$[X], starty=$[Y], degs=156
+
+
+    visual_hints = nextpt_color=yellow
+    visual_hints = nextpt_vertex_size=8
+    visual_hints = nextpt_lcolor=gray70
+    visual_hints = vertex_color=dodger_blue, edge_color=white
+    visual_hints = vertex_size=5, edge_size=1
+}
+
+//----------------------------------------------
+Behavior = BHV_Waypoint
+{
+  name      = waypt_border
+  pwt       = 100
+
+  condition = BORDER = true
+  
+  endflag      = RETURN = true
+  
+  activeflag   = BORDERING = true
+  inactiveflag = BORDERING = false
+  updates      = BORDER_UPDATES
+
+	        lead = 8
+         lead_damper = 1
+       lead_to_start = true
+               speed = $(SPEED)
+        capture_line = true
+      capture_radius = 5
+         slip_radius = 15
+	efficiency_measure = all
+	order = $(ORDER)
+
+
+    points = pts={420,-110:500,-360:10,-530:-80,-290:420,-110}
+
+    visual_hints = nextpt_color=yellow
+    visual_hints = nextpt_vertex_size=8
+    visual_hints = nextpt_lcolor=gray70
+    visual_hints = vertex_color=dodger_blue, edge_color=white
+    visual_hints = vertex_size=5, edge_size=1
+}
+
+
+//----------------------------------------------                                               
+Behavior = BHV_OpRegion
+{
+  name       = opregion
+  pwt        = 100
+  condition  = MODE==ACTIVE
+
+#ifdef GRIDSIZE SMALL
+      polygon = pts={-165,-65: 140,75: 280,-210: -45,-325}
+#elseifdef GRIDSIZE FULL
+      polygon = pts={-315,-130:-120,-640:625,-355:422,192}
+#endif
+
+  trigger_entry_time = 1
+  trigger_exit_time  = 1
+        visual_hints = edge_size=1, vertex_size=2, label_color=invisible
+}
+
+
+//----------------------------------------------
+Behavior=BHV_Waypoint
+{
+  name       = waypt_return
+  pwt        = 100
+  
+  condition  = MODE == RETURN_MODE
+  
+  perpetual  = true
+  
+  updates    = RETURN_UPDATE
+  endflag    = DEPLOY = false
+  endflag    = MISSION_COMPLETE = true
+
+           speed = 2
+  capture_radius = 2.0
+     slip_radius = 8.0
+          points = 0,-10
+ }
+
+//----------------------------------------------                                          
+Behavior = BHV_StationKeep
+{
+  name         = station-keep
+  pwt          = 100
+  condition    = STATION_KEEP = true
+  condition    = DEPLOY = true
+
+     center_activate = true
+        inner_radius = 5
+        outer_radius = 10
+         outer_speed = 1.0
+
+       transit_speed = 0.5
+          swing_time = 7
+        visual_hints = vertex_size=0, edge_color=gray50
+}
+
+
+
+

@@ -1,0 +1,209 @@
+//-------------------------------------------------
+//  NAME: Michael Benjamin, MIT
+//  FILE: meta_payload.moos
+//-------------------------------------------------
+ServerHost   = localhost
+ServerPort   = $(MPORT)
+Community    = payload
+MOOSTimeWarp = $(WARP)
+
+// Forest Lake, Maine
+LatOrigin  = 43.825300
+LongOrigin = -70.330400
+	
+//------------------------------------------
+// Antler configuration  block
+
+ProcessConfig = ANTLER
+{
+  MSBetweenLaunches = 400
+
+  Run = MOOSDB        @ NewConsole = false
+  Run = pLogger       @ NewConsole = false
+  Run = pMarinePID    @ NewConsole = false
+  Run = pHelmIvP      @ NewConsole = false
+  Run = iM300         @ NewConsole = false
+  Run = uProcessWatch @ NewConsole = false
+  Run = pNodeReporter @ NewConsole = false
+  Run = pMarineViewer @ NewConsole = false
+  Run = uXMS          @ NewConsole = false
+}
+
+//------------------------------------------
+// iM300 config block
+
+ProcessConfig = iM300
+{
+  AppTick    = 4
+  CommsTick  = 4
+
+	comms_type = $(COMMS_TYPE)
+  port       = $(PORT)
+	ip_addr    = $(IP_ADDR)
+
+	stale_thresh = 15
+	
+	max_rudder  = 100
+	max_thrust  = 100
+	drive_mode  = normal
+}
+
+//------------------------------------------
+// pHelmIvP config block
+
+ProcessConfig = pHelmIvP
+{
+  AppTick    = 4
+  CommsTick  = 4
+
+  behaviors    = payload.bhv
+  verbose      = false
+  domain       = course:0:359:360
+  domain       = speed:0:4.5:26
+}
+
+//------------------------------------------                                    
+// uProcessWatch config block                                                   
+
+ProcessConfig = uProcessWatch
+{
+  AppTick   = 4
+  CommsTick = 4
+
+  summary_wait = 5
+
+  nowatch   = uXMS*
+  nowatch   = uMAC*
+  nowatch   = uPokeDB*
+  watch_all = true
+}
+
+	
+//-----------------------------------------
+ProcessConfig = pMarinePID
+{
+  AppTick    = 10
+  CommsTick  = 10
+
+  VERBOSE       = true
+  DEPTH_CONTROL = false
+  ACTIVE_START  = true
+
+  // Yaw PID controller (Set for M300)
+  YAW_PID_KP             = 2.0
+  YAW_PID_KD             = 2.0
+  YAW_PID_KI             = 0.0
+  YAW_PID_INTEGRAL_LIMIT = 0.3
+
+  // Speed PID controller      
+  SPEED_PID_KP           = 1.0
+  SPEED_PID_KD           = 0.0
+  SPEED_PID_KI           = 0.0
+  SPEED_PID_INTEGRAL_LIMIT = 0.07
+
+  // Maximums             
+  MAXRUDDER  = 100                                                       
+  MAXTHRUST  = 100
+
+  // A non-zero SPEED_FACTOR overrides use of SPEED_PID                         
+  // Will set DESIRED_THRUST = DESIRED_SPEED * SPEED_FACTOR                     
+  //SPEED_FACTOR = 20                                                           
+}
+
+	
+//------------------------------------------
+// pLogger config block
+
+ProcessConfig = pLogger
+{
+  AppTick    = 4
+  CommsTick  = 4
+
+	AsyncLog = true
+
+  Log = M300_RAW_NMEA @ 0 NOSYNC
+
+  file = payload
+
+  LogAuxSrc = true
+  WildCardLogging = true
+  WildCardOmitPattern = *_STATUS
+}
+
+//------------------------------------------
+// pMarineViewer config block
+
+ProcessConfig = pMarineViewer
+{
+  AppTick    = 4
+  CommsTick  = 4
+
+  tiff_file            = forrest19.tif
+
+  set_pan_x            = -90
+  set_pan_y            = -280
+  zoom                 = 0.65
+  vehicle_shape_scale  = 1.5
+  hash_delta           = 50
+  hash_shade           = 0.4
+  hash_viewable        = true
+
+  trails_point_size   = 1
+
+  stale_report_thresh = 10
+  stale_remove_thresh = 20
+
+  // Appcast configuration
+  appcast_height       = 75
+  appcast_width        = 30
+  appcast_viewable     = true
+  appcast_color_scheme = indigo
+  nodes_font_size      = medium
+  procs_font_size      = medium
+  appcast_font_size    = medium
+  
+  scope = PHELMIVP_PID
+  scope = DB_UPTIME
+
+  button_one = DEPLOY # DEPLOY=true
+  button_one = MOOS_MANUAL_OVERRIDE=false # RETURN=false
+  button_two = STATION:T # STATION=true
+  button_three = STATION:F # STATION=falSE
+
+  button_four = REVERSE # WPT_UPDATE=order=toggle
+}
+
+//------------------------------------------
+// uXMS config block
+
+ProcessConfig = uXMS
+{
+  AppTick    = 4
+  CommsTick  = 4
+
+  display_source = true
+	display_time = true
+	
+  VAR = DB_CLIENTS, NAV_X, NAV_Y, NAV_HEADING, NAV_SPEED
+  VAR = PYDIR_THRUST_L, PYDIR_THRUST_R
+  VAR = IM300_RAW_NMEA, IM300_ALL_NMEA
+	VAR = DESIRED_THRUST, DESIRED_RUDDER
+
+	source = iM300
+}
+
+//------------------------------------------ 
+// pNodeReporter config block
+
+ProcessConfig = pNodeReporter
+{
+  AppTick   = 2
+  CommsTick = 2
+	
+  platform_type   = KAYAK
+  platform_length = 4
+}
+
+	
+
+	

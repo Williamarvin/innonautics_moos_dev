@@ -1,0 +1,21 @@
+//--------------------------------------------------
+// uFldShoreBroker Configuration Block
+
+ProcessConfig = uFldShoreBroker
+{
+  AppTick       = 1
+  CommsTick     = 1
+
+  qbridge  = DEPLOY, RETURN, STATION_KEEP, NODE_REPORT, NODE_MESSAGE
+  qbridge  = MOOS_MANUAL_OVERRIDE, APPCAST_REQ, AVOID
+  qbridge  = SAY_MOOS
+
+  bridge   = src=HEARTBEAT, alias=HEARTBEAT
+  bridge   = src=ADD_START, alias=ADD_START
+  bridge   = src=CLEAR_START, alias=CLEAR_START
+  bridge   = src=ADD_END, alias=ADD_END
+  bridge   = src=CLEAR_END, alias=CLEAR_END
+
+  bridge   = src=HELM_MAP_CLEAR, alias=HELM_MAP_CLEAR
+  bridge   = src=GRID_SWITCH, alias=GRID_SWITCH
+}

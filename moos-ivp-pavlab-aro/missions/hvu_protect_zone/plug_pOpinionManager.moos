@@ -1,0 +1,38 @@
+//------------------------------------------------
+// pOpinionManager config block
+
+ProcessConfig = pOpinionManager
+{
+   AppTick   = 10
+   CommsTick = 10
+   SocialTick = 1
+
+   group = leader    // leader, follower
+
+   option_file = hvu_protect.opt
+
+   node_message_color = white  //light_blue
+   node_message_dest_group = blue_team
+
+
+   satFunOrder = 2.0
+   u_th  = 30.0
+   tau_u = 10.0
+
+   min_attention = 0.50
+   max_attention = 0.50
+ 
+   opinion_thresh = 0.1
+
+   neighbor_msg_stale_thresh = 2.0 // seconds
+   // set sensitivity_g  and tau_u internally
+
+   // Example messages:
+   // OPINION_MESSAGE=VNAME,GROUP,OPTION1_NAME,OPTION1_OPINION,OPTION2_NAME,OPTION2_OPINION
+   // PROPOSAL_MESSAGE=VNAME,OPTIONX_NAME,VALUE_PROPOSITION
+
+
+   app_logging = log
+   
+}
+

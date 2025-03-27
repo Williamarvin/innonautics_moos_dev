@@ -1,0 +1,9 @@
+//------------------------------------------------
+// pRequestPoints config block
+
+ProcessConfig = pRequestPoints
+{
+   AppTick   = 4
+   CommsTick = 4
+}
+

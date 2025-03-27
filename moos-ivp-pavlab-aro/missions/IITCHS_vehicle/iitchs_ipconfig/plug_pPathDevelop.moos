@@ -1,0 +1,11 @@
+ProcessConfig = pPathDevelop                                   
+{
+    AppTick	=1
+    CommsTick	= 1
+    NAME=$(VNAME)
+    OFFSET=$(ROTATION_ANGLE)
+    TIME_SCALE=$(TIMESCALE)
+    RASTER_ROWS=$(RASTER_ROWS_NUM)
+    AVOID_REGION=Q8
+    LOITER_RADIUS=$(RADIUS)
+} 

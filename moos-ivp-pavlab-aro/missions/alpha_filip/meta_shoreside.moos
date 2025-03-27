@@ -1,0 +1,171 @@
+//*******************************************************
+// ShoreSide Configuration File
+
+ServerHost = localhost
+ServerPort = $(MOOS_PORT)
+Community  = shoreside
+
+#include plug_origin_warp.moos
+
+//--------------------------------------------------------
+Processconfig = ANTLER
+{
+  MSBetweenLaunches = 100
+
+  Run = MOOSDB          @ NewConsole = false
+  Run = pRealm          @ NewConsole = false
+  Run = pMarineViewer   @ NewConsole = false
+  Run = pLogger         @ NewConsole = false
+
+  Run = pShare          @ NewConsole = false
+  Run = pHostInfo       @ NewConsole = false
+  Run = uFldShoreBroker @ NewConsole = false
+
+  Run = uProcessWatch   @ NewConsole = false
+  Run = uFldNodeComms   @ NewConsole = false
+}
+
+#include plug_pShare.moos
+#include plug_pHostInfo.moos
+
+//--------------------------------------------------
+// ufldnodecomms Configuration Block
+
+ProcessConfig = uFldNodeComms
+{
+  AppTick       = 2
+  CommsTick     = 2
+
+  comms_range      = 5000
+  critical_range   = 25
+
+  min_msg_interval = 0
+  max_msg_length   = 10000
+  groups           = false
+
+  view_node_rpt_pulses = false
+}
+
+//--------------------------------------------------
+// uFldShoreBroker Configuration Block
+
+ProcessConfig = uFldShoreBroker
+{
+  AppTick       = 1
+  CommsTick     = 1
+
+  qbridge  = DEPLOY, RETURN, STATION_KEEP, NODE_REPORT, NODE_MESSAGE
+  qbridge  = MOOS_MANUAL_OVERRIDE, APPCAST_REQ, AVOID
+  qbridge  = SAY_MOOS
+  qbridge  = WPT_UPDATE
+
+	bridge   = src=HEARTBEAT
+
+  bridge   = src=HELM_MAP_CLEAR, alias=HELM_MAP_CLEAR
+  bridge   = src=SIM_THR_FAULT_L
+  bridge   = src=SIM_THR_FAULT_R
+
+}
+
+//--------------------------------------------------
+// pLogger Configuration Block
+
+ProcessConfig = pLogger
+{
+  AppTick       = 10
+  CommsTick     = 10
+
+  File          = LOG_SHORESIDE
+  PATH          = ./
+  SyncLog       = true @ 0.2
+  AsyncLog      = true
+  FileTimeStamp = true
+
+  LogAuxSrc     = true
+
+  // Log it all!!!!!
+  WildCardLogging = true
+  WildCardOmitPattern = *_STATUS
+  WildCardOmitPattern = DB_VARSUMMARY
+  WildCardOmitPattern = DB_RWSUMMARY
+}
+
+//--------------------------------------------------------
+ProcessConfig = pMarineViewer
+{
+  AppTick    = 4
+  CommsTick  = 4
+
+  //tiff_file            = forrest19.tif
+  tiff_file            = MIT_SP.tif
+  tiff_file            = mit_sp_osm18.tif
+  set_pan_x            = 129
+  set_pan_y            = -364
+  zoom                 = 2.5
+  vehicles_shape_scale = 2
+  vehicles_name_mode   = names
+
+  circle_viewable_all = true
+
+	beat_flag = HEARTBEAT=true
+	
+  appcast_viewable = true
+  appcast_color_scheme = indigo
+
+  scope  = DEPLOY_ALL
+
+  action = STATION_KEEP_ALL = false
+  action = STATION_KEEP_ALL = true
+  action = SIM_THR_FAULT_L = 0.0
+  action = SIM_THR_FAULT_L = 0.25
+  action = SIM_THR_FAULT_L = 0.5
+  action = SIM_THR_FAULT_L = 0.75
+  action = SIM_THR_FAULT_L = 1.0
+  action = SIM_THR_FAULT_R = 0.0
+  action = SIM_THR_FAULT_R = 0.25
+  action = SIM_THR_FAULT_R = 0.5
+  action = SIM_THR_FAULT_R = 0.75
+  action = SIM_THR_FAULT_R = 1.0
+
+  button_one   = DEPLOY  # DEPLOY_ALL=true
+  button_one   = MOOS_MANUAL_OVERRIDE_ALL=false
+  button_one   = RETURN_ALL=false # STATION_KEEP_ALL=false
+
+  button_two   = RETURN  # RETURN_ALL=true
+  button_two   = RETURN  # STATION_KEEP_ALL=false
+
+	button_three = ALLSTOP # DEPLOY_ALL=false
+
+	button_four  = STATION # STATION_KEEP_ALL=true
+
+  // Spacing 10, 3 points, dist_origo 20, devi in meters = 1, 1.5, 2 and 3
+  button_five     = PATTERN_1 # WPT_UPDATE_ALL = points = pts={-40.4472,-69.1056:-19.5528,-60.8944:-0.44721,-49.1056:20.4472,-40.8944:39.5528,-29.1056:60.4472,-20.8944:79.5528,-9.1056:60.4472,-20.8944:39.5528,-29.1056:20.4472,-40.8944:-0.44721,-49.1056:-19.5528,-60.8944}
+  button_six      = PATTERN_2 # WPT_UPDATE_ALL = points = pts={-40.6708,-68.6584:-19.3292,-61.3416:-0.67082,-48.6584:20.6708,-41.3416:39.3292,-28.6584:60.6708,-21.3416:79.3292,-8.6584:60.6708,-21.3416:39.3292,-28.6584:20.6708,-41.3416:-0.67082,-48.6584:-19.3292,-61.3416}
+  button_seven    = PATTERN_3 # WPT_UPDATE_ALL = points = pts={-40.8944,-68.2111:-19.1056,-61.7889:-0.89443,-48.2111:20.8944,-41.7889:39.1056,-28.2111:60.8944,-21.7889:79.1056,-8.2111:60.8944,-21.7889:39.1056,-28.2111:20.8944,-41.7889:-0.89443,-48.2111:-19.1056,-61.7889}
+  button_eight    = PATTERN_4 # WPT_UPDATE_ALL = points = pts={-41.3416,-67.3167:-18.6584,-62.6833:-1.3416,-47.3167:21.3416,-42.6833:38.6584,-27.3167:61.3416,-22.6833:78.6584,-7.3167:61.3416,-22.6833:38.6584,-27.3167:21.3416,-42.6833:-1.3416,-47.3167:-18.6584,-62.6833}
+  button_nine     = PATTERN_5 # WPT_UPDATE_ALL = points = pts={-41.7889,-66.4223:-18.2111,-63.5777:-1.7889,-46.4223:21.7889,-43.5777:38.2111,-26.4223:61.7889,-23.5777:78.2111,-6.4223:61.7889,-23.5777:38.2111,-26.4223:21.7889,-43.5777:-1.7889,-46.4223:-18.2111,-63.5777}
+  // Spacing 15, 3 points, dist_origo 20, devi in meters = 5, 7 and 10
+  button_ten      = PATTERN_6 # WPT_UPDATE_ALL = points = pts={-72.2361,-80.5279:-37.7639,-74.4721:-12.2361,-50.5279:22.2361,-44.4721:47.7639,-20.5279:82.2361,-14.4721:107.7639,9.4721:82.2361,-14.4721:47.7639,-20.5279:22.2361,-44.4721:-12.2361,-50.5279:-37.7639,-74.4721}
+  button_eleven   = PATTERN_7 # WPT_UPDATE_ALL = points = pts={-73.1305,-78.739:-36.8695,-76.261:-13.1305,-48.739:23.1305,-46.261:46.8695,-18.739:83.1305,-16.261:106.8695,11.261:83.1305,-16.261:46.8695,-18.739:23.1305,-46.261:-13.1305,-48.739:-36.8695,-76.261}
+  button_twelve   = PATTERN_8 # WPT_UPDATE_ALL = points = pts={-74.4721,-76.0557:-35.5279,-78.9443:-14.4721,-46.0557:24.4721,-48.9443:45.5279,-16.0557:84.4721,-18.9443:105.5279,13.9443:84.4721,-18.9443:45.5279,-16.0557:24.4721,-48.9443:-14.4721,-46.0557:-35.5279,-78.9443}
+  button_fourteen = SPEED_UP # WPT_UPDATE_ALL = speed = 1
+
+}
+
+//--------------------------------------------------------
+// uProcessWatch Configuration Block
+
+ProcessConfig = uProcessWatch
+{
+  AppTick   = 1
+  CommsTick = 1
+
+  allow_retractions = true
+
+  watch_all = true      // default is true
+
+  nowatch = uXMS*
+  nowatch = uPokeDB*
+
+  summary_wait = 10
+}

@@ -1,0 +1,25 @@
+
+ProcessConfig = pIITCHS
+{
+	AppTick = 4
+	CommsTick = 4
+
+	AGENT_TOPIC_PREFIX = AGENT_
+	PYTHON_APPEND_PATHS = /Users/craig/iitchs_base/src:/Users/craig/iitchs_base/src/catl_planning/examples
+	CASEFILE = $(CASE_FILE)
+	//CASEFILE = case1
+	IITCHS_PATH = /Users/craig/iitchs_base
+	SOLVER = GUROBI
+	STATE_ROTATION_ANGLE = $(ROTATION_ANGLE)
+	STATE_ROTATION_IN_DEGREES = TRUE
+	STATE_ROTATION_POINT = 0,0
+	//STATE_SCALE for sailing pavilion
+	STATE_SCALE = 2
+	//STATE_SCALE for two agent swap
+	//STATE_SCALE = 4
+	//two agent offset
+	//STATE_OFFSET = 120,320
+	//sailing offset
+	STATE_OFFSET = -120,-220
+	//STATE_OFFSET = 10,
+}

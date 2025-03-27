@@ -1,0 +1,188 @@
+//*******************************************************
+// ShoreSide Configuration File
+
+ServerHost = localhost
+ServerPort = $(MOOS_PORT)
+Community  = shoreside
+
+#include plug_origin_warp.moos
+
+//--------------------------------------------------------
+Processconfig = ANTLER
+{
+  MSBetweenLaunches = 100
+
+  Run = MOOSDB          @ NewConsole = false
+  Run = pRealm          @ NewConsole = false
+  Run = pMarineViewer   @ NewConsole = false
+  Run = pLogger         @ NewConsole = false
+
+  Run = pShare          @ NewConsole = false
+  Run = pHostInfo       @ NewConsole = false
+  Run = uFldShoreBroker @ NewConsole = false
+
+  Run = uProcessWatch   @ NewConsole = false
+  Run = uFldNodeComms   @ NewConsole = false
+
+#ifdef RND_SPD YES
+  Run = uTimerScript    @ NewConsole = false
+#endif
+
+}
+
+#include plug_pShare.moos
+#include plug_pHostInfo.moos
+
+//--------------------------------------------------
+// ufldnodecomms Configuration Block
+
+ProcessConfig = uFldNodeComms
+{
+  AppTick       = 2
+  CommsTick     = 2
+
+  comms_range      = 5000
+  critical_range   = 25
+
+  min_msg_interval = 0
+  max_msg_length   = 10000
+  groups           = false
+
+  view_node_rpt_pulses = false
+}
+
+//--------------------------------------------------
+// uFldShoreBroker Configuration Block
+
+ProcessConfig = uFldShoreBroker
+{
+  AppTick       = 1
+  CommsTick     = 1
+
+  qbridge  = DEPLOY, RETURN, STATION_KEEP, NODE_REPORT, NODE_MESSAGE
+  qbridge  = MOOS_MANUAL_OVERRIDE, APPCAST_REQ, AVOID
+  qbridge  = SAY_MOOS
+
+  bridge   = src=HEARTBEAT
+
+  bridge   = src=HELM_MAP_CLEAR, alias=HELM_MAP_CLEAR
+  bridge   = src=WPT_UPDATE, alias=WPT_UPDATE
+  bridge   = src=HEADING_ID, alias=HEADING_ID
+  bridge   = src=START_LINE_DONE, alias=START_LINE_DONE
+  bridge   = src=STRAIGHT_LINE_DONE, alias=STRAIGHT_LINE_DONE
+  bridge   = src=CONST_HDG_UPDATES, alias=CONST_HDG_UPDATES
+}
+
+//--------------------------------------------------
+// pLogger Configuration Block
+
+ProcessConfig = pLogger
+{
+  AppTick       = 10
+  CommsTick     = 10
+
+  File          = LOG_SHORESIDE
+  PATH          = ./
+  SyncLog       = true @ 0.2
+  AsyncLog      = true
+  FileTimeStamp = true
+
+  LogAuxSrc     = true
+
+  // Log it all!!!!!
+  WildCardLogging = true
+  WildCardOmitPattern = *_STATUS
+  WildCardOmitPattern = DB_VARSUMMARY
+  WildCardOmitPattern = DB_RWSUMMARY
+}
+
+//--------------------------------------------------------
+ProcessConfig = pMarineViewer
+{
+    AppTick    = 4
+  CommsTick  = 4
+
+  //tiff_file            = forrest19.tif
+  tiff_file            = MIT_SP.tif
+  set_pan_x            = 129
+  set_pan_y            = -364
+  zoom                 = 2.5
+  vehicles_shape_scale = 1.5
+  vehicles_name_mode   = names
+
+  circle_viewable_all = true
+
+	beat_flag = HEARTBEAT=true
+	
+  appcast_viewable = true
+  appcast_color_scheme = indigo
+
+  scope  = DEPLOY_ALL
+
+  action = STATION_KEEP_ALL = false
+  action = STATION_KEEP_ALL = true
+  action = WPT_UPDATE = speed=0.0
+  action = WPT_UPDATE = speed=0.25
+  action = WPT_UPDATE = speed=0.5
+  action = WPT_UPDATE = speed=0.75
+  action = WPT_UPDATE = speed=1.0
+  action = WPT_UPDATE = speed=1.25
+  action = WPT_UPDATE = speed=1.5
+  action = WPT_UPDATE = speed=1.75
+
+  button_one   = DEPLOY  # DEPLOY_ALL=true
+  button_one   = MOOS_MANUAL_OVERRIDE_ALL=false
+  button_one   = RETURN_ALL=false # STATION_KEEP_ALL=false
+
+  button_two   = RETURN  # RETURN_ALL=true
+  button_two   = RETURN  # STATION_KEEP_ALL=false
+
+  button_three = ALLSTOP # DEPLOY_ALL=false
+
+  button_four  = STATION # STATION_KEEP_ALL=true
+
+  button_five  = HEADING_ID:T # HEADING_ID=true
+  button_five  = START_LINE_DONE=false
+  
+  button_six   = HEADING_ID:F # HEADING_ID=false
+
+  button_seven = HDG_112.5 # CONST_HDG_UPDATES= heading=112.5
+  button_eight = HDG_67.5 # CONST_HDG_UPDATES= heading=67.5
+  button_nine  = HDG_90 # CONST_HDG_UPDATES= heading=90.0
+
+  button_ten    = HDG_135 # CONST_HDG_UPDATES= heading=135
+  button_eleven = HDG_45 # CONST_HDG_UPDATES= heading=45
+
+	
+
+	}
+
+//--------------------------------------------------------
+// uProcessWatch Configuration Block
+
+ProcessConfig = uProcessWatch
+{
+  AppTick   = 1
+  CommsTick = 1
+
+  allow_retractions = true
+
+  watch_all = true      // default is true
+
+  nowatch = uXMS*
+  nowatch = uPokeDB*
+
+  summary_wait = 10
+}
+
+
+#ifdef RND_SPD YES
+ProcessConfig = uTimerScript
+{
+      paused = false
+   reset_max = unlimited
+  reset_time = end
+    rand_var = varname=RND_VAL, min=0.2, max=2.0, key=at_post
+       event = var=CLOVER_UPDATE, val="speed=$[RND_VAL]", time=30
+}
+#endif

@@ -1,0 +1,86 @@
+//--------    FILE: meta_vehicle.bhv   -------------
+
+initialize   DEPLOY = false
+initialize   RETURN = false
+initialize   AVOIDING = idle
+//initialize   DRIFT_X = 0.5
+//initialize   DRIFT_Y = 0.7
+
+//----------------------------------------------
+Behavior = BHV_SailMax2
+{ 
+  name      = sailmax2
+  pwt       = 100
+  condition = RETURN = false
+  condition = DEPLOY = true
+	endflag   = RETURN = true
+  updates   = SAIL_UPDATE
+  perpetual = true
+
+                   speed = 2.0      // m/s
+          capture_radius = 10       // m from waypoint
+      close_hauled_angle = 60       // ° closest sail angle from true wind direction
+     dead_downwind_angle = 15        // ° from 180
+      wind_filter_length = 180      // sec
+             m_course_kp = 0        // not implemented yet (0 has no effect)
+                  repeat = 0        // number of times to repeat points
+               turn_mode = jibe_preferred  // dont_care (default), jibe_preferred
+               jibe_rate = 45       // °/s
+
+#ifdef SHAPE tri       
+      points = pts={50,-50:150,-100:150,-50:50,-50}
+#elseifdef SHAPE rect
+      //points = pts={25,-25:75,-25:75,-125:25,-125:25,-25}
+      points = pts={-25,-45:50,-80:100,-80:175,-45:175,-120:100,-80:50,-80:-25,-120:-25,-45}
+#elseifdef SHAPE oct
+      points = pts={48,-25:102,-25:140,-63:140,-117:102,-155:48,-155:10,-117:10,-63:48,-25}
+#endif          
+#ifdef ORDER
+                   order = $(ORDER)
+#endif
+#ifdef REPEAT                 
+                  repeat = $(REPEAT)
+#endif
+
+#include plug_boundary.moos
+#include plug_polar.moos		
+}
+
+//----------------------------------------------
+Behavior = BHV_SailMax2
+{ 
+  name      = return
+  pwt       = 100
+  condition  = RETURN = true
+  condition  = DEPLOY = true
+  perpetual  = true
+  updates    = RETURN_UPDATE
+  endflag    = RETURN = false
+  endflag    = DEPLOY = false
+  endflag    = MISSION = complete
+  
+               speed = 2.0      // m/s
+      capture_radius = 5       // m from waypoint
+  close_hauled_angle = 60       // ° closest sail angle from true wind direction
+  wind_filter_length = 180      // sec
+         m_course_kp = 0        // not implemented yet (0 has no effect)
+              repeat = 0        // number of times to repeat points
+           turn_mode = jibe_preferred  // dont_care (default), jibe_preferred
+           jibe_rate = 45       // °/s
+
+#ifdef ORDER
+               order = $(ORDER)
+#endif
+#ifdef REPEAT                 
+               repeat = $(REPEAT)
+#endif
+
+#ifdef REGION pavlab    
+      points = pts={0,-20}
+#else
+      points = pts={0, 0}
+#endif  
+
+#include plug_polar.moos    
+}
+

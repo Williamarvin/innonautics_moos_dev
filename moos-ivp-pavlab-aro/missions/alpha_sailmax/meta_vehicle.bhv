@@ -1,0 +1,78 @@
+//--------    FILE: meta_vehicle.bhv   -------------
+
+initialize   DEPLOY = false
+initialize   RETURN = false
+initialize   AVOIDING = idle
+//initialize   DRIFT_X = 0.5
+//initialize   DRIFT_Y = 0.7
+
+//----------------------------------------------
+Behavior = BHV_SailMax
+{ 
+  name      = sailmax
+  pwt       = 100
+  condition = RETURN = false
+  condition = DEPLOY = true
+	endflag   = RETURN = true
+	endflag   = SAIL_TRIAL = complete
+
+  updates    = SAIL_UPDATE
+  perpetual  = true
+
+            lead       = 30
+     lead_damper       = 10
+           speed       = 2.0   // meters per second
+    capture_line       = true
+  capture_radius       = 5
+     slip_radius       = 15
+   channel_width       = 80    // m
+upwind_threshold       = 50    // degrees
+prop_timer_trigger     = 120   // sec
+windir_filter_length   = 120   // sec
+//windir_shift_threshold = 7     // +/- degrees
+
+      //points = pts={50,-50:150,0:250,-15:190,-75:225,-100:50,-180}
+      //points = pts={50,-50:150,0:225,-100:50,-180}          
+      //points = pts={10,-40:80,-150:140,-90:-130,-120:70,0:30,-130}          
+      //points = pts={-50,-100:150,-100:300,-250:-50,-250:-50,-100} 
+      //points = pts={50,-100:200,-50:250,-200:100,-250}  
+      points = pts={50,-100:250,-25:300,-175:100,-250}         
+      repeat = 0     // number of _additional_ repeats or 'forever'
+#include plug_polar.moos		
+
+   visual_hints = nextpt_color=yellow
+   visual_hints = nextpt_vertex_size=8
+   visual_hints = nextpt_lcolor=gray70
+   visual_hints = vertex_color=dodger_blue, edge_color=white
+   visual_hints = vertex_size=6, edge_size=1
+}
+
+//----------------------------------------------
+Behavior=BHV_Waypoint
+{
+  name       = waypt_return
+  pwt        = 100
+  condition  = RETURN = true
+  condition  = DEPLOY = true
+  perpetual  = true
+  updates    = RETURN_UPDATE
+  endflag    = RETURN = false
+  endflag    = DEPLOY = false
+  endflag    = MISSION = complete
+
+	endflag   = EFLAG  = r_endings=$[CTR_02]
+	cycleflag = CFLAG  = r_cyles=$[CTR_01]
+	wptflag   = WFLAG  = r_waypoints=$[CTR]
+
+      lead_condition = AVOIDING != active
+
+                lead = 8
+         lead_damper = 1
+       lead_to_start = true
+
+           speed = 2.0
+  capture_radius = 2.0
+     slip_radius = 8.0
+          point = 0,-20
+ }
+

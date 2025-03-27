@@ -1,0 +1,9 @@
+
+To run:
+
+In terminal 1:
+  ./launch_payload.sh
+
+In terminal 2: 
+  ./launch_heron.sh
+

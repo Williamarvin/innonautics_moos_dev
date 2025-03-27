@@ -1,0 +1,288 @@
+//*******************************************************
+// ShoreSide Configuration File
+
+ServerHost = localhost
+ServerPort = 9000
+Community  = shoreside
+
+#include plugs.moos <origin_warp>
+
+#define REGION1 x=40,y=-70
+#define REGION2 x=126.6,y=-220.0
+#define REGION3 x=-46.6,y=-220.0
+
+#define REGION1_COLOR red
+#define REGION2_COLOR green
+#define REGION3_COLOR yellow
+
+  
+//--------------------------------------------------------
+Processconfig = ANTLER
+{
+  MSBetweenLaunches = 100
+
+  Run = MOOSDB          @ NewConsole = false
+#ifdef LAUNCH_GUI yes
+  Run = pMarineViewer   @ NewConsole = false
+#endif
+
+  Run = pLogger         @ NewConsole = false
+  Run = pShare          @ NewConsole = false
+  Run = pHostInfo       @ NewConsole = false
+  Run = uFldShoreBroker @ NewConsole = false
+  Run = uFldNodeComms   @ NewConsole = false
+  Run = uProcessWatch   @ NewConsole = false
+  Run = pRealm          @ NewConsole = false
+  Run = uTimerScript    @ NewConsole = false
+  Run = uTimerScript    @ NewConsole = false ~uTimerScript_reset
+  Run = uFldEvalOption  @ NewConsole = false
+}
+
+#include plugs.moos <pShare>
+#include plugs.moos <pHostInfo>
+#include plugs.moos <uProcessWatch>
+
+
+
+//--------------------------------------------------
+// uFldNodeComms Config Block
+
+ProcessConfig = uFldNodeComms
+{
+  AppTick   = 2
+  CommsTick = 2
+
+           comms_range = 27
+        critical_range = 27
+      min_msg_interval = 0
+        max_msg_length = 10000
+  view_node_rpt_pulses = true
+    	        groups = false
+      fixed_beam_width = 0.7
+        pulse_duration = 1
+       beam_opaqueness = 0.0
+       post_percentage = 100.0
+}
+
+//--------------------------------------------------
+// uFldShoreBroker Config Block
+
+ProcessConfig = uFldShoreBroker
+{
+  AppTick   = 1
+  CommsTick = 1
+
+  qbridge = DEPLOY, NODE_REPORT, NODE_MESSAGE
+  qbridge = STATION_KEEP, APPCAST_REQ, LR_UPDATE, RETURN_UPDATES
+  qbridge = MOOS_MANUAL_OVERIDE, LOITER, WPT_UPDATE, LOITER_UPDATE
+
+  bridge  = src=AVOID, alias=AVOID
+ 
+  bridge  = src=RETURN_ALL, alias=RETURN
+  bridge  = src=RETURN_$V,  alias=RETURN
+  qbridge = RESET_OPINIONS, OPTIONS_ACTIVE, REGROUP
+  qbridge = OPT_INPUT_RESET, SHOW_MARKER
+  qbridge = BIAS_REGION1, BIAS_REGION2, BIAS_REGION3
+}
+
+//--------------------------------------------------
+// pLogger Configuration Block
+
+ProcessConfig = pLogger
+{
+  AppTick   = 10
+  CommsTick = 10
+  
+  File          = XLOG_SHORESIDE
+  PATH          = ./
+  AsyncLog      = true
+  FileTimeStamp = true
+
+  Log = GIVEN_OBSTACLE @ 0 nosync
+
+  // Log it all!!!!!
+  WildCardLogging = true 
+  WildCardOmitPattern = *_STATUS
+  WildCardOmitPattern = *_ITER_GAP
+  WildCardOmitPattern = *_ITER_LEN
+  WildCardOmitPattern = APPCAST
+  WildCardOmitPattern = DB_VARSUMMARY
+  WildCardOmitPattern = DB_RWSUMMARY
+}
+
+
+//--------------------------------------------------------
+ProcessConfig = pMarineViewer
+{
+  AppTick   = 4
+  CommsTick = 4
+
+  tiff_file            = MIT_SP.tif
+  set_pan_x            = -120
+  set_pan_y            = -180
+  zoom                 = 1.04
+  vehicles_shape_scale = 1.5
+  vehicles_name_mode   = names+shortmode
+
+  polygon_viewable_all    = true
+  polygon_viewable_labels = false
+  seglist_viewable_all    = true
+  seglist_viewable_labels = false
+  point_viewable_all    = true
+  point_viewable_labels = false
+
+  appcast_viewable     = true
+  appcast_color_scheme = indigo
+
+  action = AVOID="true"
+  action = LR_UPDATE_ALL="speed=1.5"
+  action = LR_UPDATE_ALL="speed=1.6"
+  action = LR_UPDATE_ALL="speed=1.7"
+  action = LR_UPDATE_ALL="speed=1.8"
+  action = LR_UPDATE_ALL="speed=1.9"
+  action = LR_UPDATE_ALL="speed=2.0"
+
+  comms_pulse_viewable_all = true
+  range_pulse_viewable_all = false
+  node_pulse_viewable_all  = false
+
+  vehicles_name_mode = names
+
+  stale_report_thresh = 2
+  stale_remove_thresh = 20000
+  
+  scope = UFJ_ARRIVALS
+
+  //left_context[return] = RETURN_UPDATES_$[UP_VNAME_CLOSEST] = point=$[X],$[Y]
+  //left_context[return] = RETURN_$[UP_VNAME_CLOSEST] = true
+  //left_context[return] = STATION_KEEP_$[UP_VNAME_CLOSEST] = false
+	
+  button_1 = DEPLOY  # DEPLOY_ALL=true 
+  button_1 = DEPLOY  # MOOS_MANUAL_OVERIDE_ALL=false 
+  button_1 = RETURN_ALL=false #
+  button_1 = STATION_KEEP_ALL=false #
+
+  button_2 = STATION  # DEPLOY_ALL=true 
+  button_2 = MOOS_MANUAL_OVERIDE_ALL=false 
+  button_2 = RETURN_ALL=false #
+  button_2 = STATION_KEEP_ALL=true
+
+  button_3 = RETURN  # RETURN_ALL=true # LOITER_ALL=false
+
+  button_4 = RESET # RESET_OPINIONS_ALL=true
+  
+  button_5 = REGROUP # REGROUP_ALL=true
+  button_6 = DISPERSE # REGROUP_ALL=false
+
+  button_7 = INC_BIAS_1 # BIAS_REGION1_ABE=1
+  button_7 = BIAS_REGION1_BEN=1
+  button_7 = BIAS_REGION1_CAL=1
+  button_7 = BIAS_REGION1_DEB=1		
+  
+  button_8 = RES_BIAS_1 # BIAS_REGION1_ABE=0
+  button_8 = BIAS_REGION1_BEN=0
+  button_8 = BIAS_REGION1_CAL=0
+  button_8 = BIAS_REGION1_DEB=0
+
+  button_9 = INC_BIAS_2 # BIAS_REGION2_ABE=1
+  button_9 = BIAS_REGION2_BEN=1
+  button_9 = BIAS_REGION2_CAL=1
+  button_9 = BIAS_REGION2_DEB=1
+  
+  button_10 = RES_BIAS_2 # BIAS_REGION2_ABE=0
+  button_10 = BIAS_REGION2_BEN=0
+  button_10 = BIAS_REGION2_CAL=0
+  button_10 = BIAS_REGION2_DEB=0
+
+  button_11 = INC_BIAS_3 # BIAS_REGION3_ABE=1
+  button_11 = BIAS_REGION3_BEN=1
+  button_11 = BIAS_REGION3_CAL=1
+  button_11 = BIAS_REGION3_DEB=1
+  
+  button_12 = RES_BIAS_3 # BIAS_REGION3_ABE=0
+  button_12 = BIAS_REGION3_BEN=0
+  button_12 = BIAS_REGION3_CAL=0
+  button_12 = BIAS_REGION3_DEB=0
+
+}
+
+
+
+//------------------------------------------
+// uTimerScript configuration  block
+   
+  ProcessConfig = uTimerScript
+  {
+    AppTick   = 2
+    CommsTick = 2
+ 
+    paused        = false
+    reset_max     = 5
+    reset_time    = end
+    delay_reset   = 3
+    script_name   = PLOT_LABELS
+    script_atomic = true
+    
+
+  event = var=VIEW_TEXTBOX, val="$(REGION1),msg=REGION 1,fsize=20,mcolor=$(REGION1_COLOR)", time=0   
+  event = var=VIEW_TEXTBOX, val="$(REGION2),msg=REGION 2,fsize=20,mcolor=$(REGION2_COLOR)", time=1
+  event = var=VIEW_TEXTBOX, val="$(REGION3),msg=REGION 3,fsize=20,mcolor=$(REGION3_COLOR)", time=2
+  
+ }
+
+
+
+//------------------------------------------
+// uTimerScript configuration  block
+   
+ProcessConfig = uTimerScript_reset
+{
+    AppTick   = 2
+    CommsTick = 2
+
+   paused        = false
+    reset_max     = unlimited
+    reset_time    = end
+    delay_reset   = 60    // time of executing group choice
+    script_name   = RESET_OPINIONS
+    script_atomic = true
+
+  event = var=REGROUP_ALL, val="true", time=0
+  event = var=SHOW_MARKER_ALL, val="false", time=0	
+  event = var=OPT_INPUT_RESET_ALL, val="true", time=0
+  
+  event = var=SHOW_MARKER_ALL, val="true", time=40
+  event = var=RESET_OPINIONS_ALL, val="true", time=40
+  event = var=OPTIONS_ACTIVE_ALL, val="true", time=40
+#ifdef OPT_MODE consensus
+  event = var=REGROUP_ALL, val="false", time= 65 
+  event = var=OPTIONS_ACTIVE_ALL, val="false", time= 65 
+#elseifdef OPT_MODE dissensus
+  event = var=REGROUP_ALL, val="false", time= 100 
+  event = var=OPTIONS_ACTIVE_ALL, val="false", time= 100
+#endif
+
+}
+
+
+//------------------------------------------
+// uFldEvalOption configuration  block
+   
+ProcessConfig = uFldEvalOption
+{
+    AppTick   = 2
+    CommsTick = 2
+
+    // Assumes option messages will come in as
+    // OPTION_vname
+
+    // Assumes input values will come in as
+    // INPUT_VAR_vname
+    input_var = TOTAL_UTILITY_REGION1
+    input_var = TOTAL_UTILITY_REGION2
+    input_var = TOTAL_UTILITY_REGION3
+
+    text_x = 130
+    text_y = -60
+    text_font_size = 10
+}

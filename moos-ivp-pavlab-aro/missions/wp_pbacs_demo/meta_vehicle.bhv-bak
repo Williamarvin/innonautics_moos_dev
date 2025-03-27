@@ -1,0 +1,143 @@
+//*******************************************************
+// Vehicle behavior configuration file
+
+initialize   DEPLOY = false
+initialize   RETURN = false
+initialize   STATION_KEEP = false
+initialize   MISSION_COMPLETE = false
+
+set MODE = ACTIVE {
+  DEPLOY = true
+} INACTIVE
+
+
+Behavior = BHV_AvoidCollision
+ {
+   // General Behavior Parameters
+   // ---------------------------
+   name         = avdcollision_                     // example
+   pwt          = 600                               // example
+   condition    = DEPLOY = true                     // example
+   updates      = CONTACT_INFO                      // example
+   endflag = CONTACT_RESOLVED = $[CONTACT]          // example 
+   templating   = spawn                             // example
+
+
+   // General Contact Behavior Parameters
+   // -----------------------------------
+       bearing_lines = white:0, green:0.65, yellow:0.8, red:1.0   // example
+
+               decay = 15,30            // default (seconds)
+         extrapolate = true             // default
+    on_no_contact_ok = true             // default
+         time_on_leg = 60               // default (seconds)
+
+
+   // Parameters specific to this behavior
+   // ------------------------------------
+      completed_dist = 10              // default
+   max_util_cpa_dist = 8               // default
+   min_util_cpa_dist = 4               // default
+    no_alert_request = false            // default
+           pwt_grade = quasi            // default
+      pwt_inner_dist = 15               // default
+      pwt_outer_dist = 40              // default
+}
+
+//----------------------------------------------
+Behavior = BHV_Waypoint
+{
+  name      = waypt_survey
+  pwt       = 100
+  condition = RETURN = false
+  condition = STATION_KEEP = false
+  condition = DEPLOY = true
+  condition = MISSION_COMPLETE = false
+  endflag      = RETURN = true
+  activeflag   = SURVEYING = true
+  inactiveflag = SURVEYING = false
+  updates      = WPT_UPDATE
+
+  perpetual = false
+
+                lead = 8
+         lead_damper = 1
+       lead_to_start = true
+               speed = $(SPEED)
+        capture_line = true
+      capture_radius = 5
+         slip_radius = 15
+	efficiency_measure = all
+	order = $(ORDER)
+
+	// Lawnmower for system ID
+  //points = format=lawnmower, label=foxtrot, x=17, y=-122, height=250, width=150, lane_width=15, rows=$(ORIENTATION), startx=$[X], starty=$[Y], degs=65
+
+
+  points = format=lawnmower, label=foxtrot, x=55, y=-140, height=150, width=255, lane_width=15, rows=$(ORIENTATION), startx=$[X], starty=$[Y], degs=0
+
+
+    visual_hints = nextpt_color=yellow
+    visual_hints = nextpt_vertex_size=8
+    visual_hints = nextpt_lcolor=gray70
+    visual_hints = vertex_color=dodger_blue, edge_color=white
+    visual_hints = vertex_size=5, edge_size=1
+}
+
+
+//----------------------------------------------                                               
+Behavior = BHV_OpRegion
+{
+  name       = opregion
+  pwt        = 100
+  condition  = MODE==ACTIVE
+//  condition  = OPREGION=true
+
+             polygon = pts={-165,-65: 140,75: 280,-210: -45,-325}
+  trigger_entry_time = 1
+  trigger_exit_time  = 1
+        visual_hints = edge_size=1, vertex_size=2, label_color=invisible
+}
+
+
+//----------------------------------------------
+Behavior=BHV_Waypoint
+{
+  name       = waypt_return
+  pwt        = 100
+  condition  = RETURN = true
+  condition  = STATION_KEEP = false
+  condition  = DEPLOY = true
+  condition  = MISSION_COMPLETE = false
+  perpetual  = true
+  updates    = RETURN_UPDATE
+  endflag    = DEPLOY = false
+  endflag    = MISSION_COMPLETE = true
+
+           speed = 2
+  capture_radius = 2.0
+     slip_radius = 8.0
+          points = 0,-10
+ }
+
+//----------------------------------------------                                          
+Behavior = BHV_StationKeep
+{
+  name         = station-keep
+  pwt          = 100
+  condition    = STATION_KEEP = true
+  condition    = DEPLOY = true
+
+     center_activate = true
+        inner_radius = 5
+        outer_radius = 10
+         outer_speed = 1.0
+
+       transit_speed = 0.5
+          swing_time = 7
+        visual_hints = vertex_size=0, edge_color=gray50
+}
+
+
+
+

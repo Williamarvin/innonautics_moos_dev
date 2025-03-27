@@ -1,0 +1,388 @@
+//--------    FILE: meta_vehicle.bhv  -------------
+
+
+#define SPD 5.0
+
+#define REGION0_COLOR white
+#define REGION1_COLOR red
+#define REGION2_COLOR green
+#define REGION3_COLOR yellow
+
+//---------Consensus-------------------------//
+#ifdef OPT_MODE consensus
+
+       // in consensus params
+
+       #define REGION0 x=40,y=-170
+       #define REGION1 x=40,y=-70
+       #define REGION2 x=126.6,y=-220.0
+       #define REGION3 x=-46.6,y=-220.0
+
+       #define RADIUS0 60
+       #define RADIUS1 50
+       #define RADIUS2 50
+       #define RADIUS3 50
+
+       #define SEGLIST0 pts={17,-115:-15,-147:-15,-193:17,-225:63,-225:95,-193:95,-147:63,-115}
+       #define SEGLIST1 pts={21,-24:-6,-51:-6,-89:21,-116:59,-116:86,-89:86,-51:59,-24}
+       #define SEGLIST2 pts={107,-174:80,-201:80,-239:107,-266:146,-266:173,-239:173,-201:146,-174}
+       #define SEGLIST3 pts={-66,-174:-93,-201:-93,-239:-66,-266:-27,-266:0,-239:0,-201:-27,-174}
+#endif
+
+//---------Dissensus-------------------------//
+#ifdef OPT_MODE dissensus
+
+       // in dissensus params
+
+       #define REGION0 x=40,y=-170
+       #define REGION1 x=40,y=-70
+       #define REGION2 x=126.6,y=-220.0
+       #define REGION3 x=-46.6,y=-220.0
+
+       #define RADIUS0 60
+       #define RADIUS1 40
+       #define RADIUS2 40
+       #define RADIUS3 40
+       
+       #define SEGLIST0 pts={17,-115:-15,-147:-15,-193:17,-225:63,-225:95,-193:95,-147:63,-115}
+       #define SEGLIST1 pts={25,-33:3,-55:3,-85:25,-107:55,-107:77,-85:77,-55:55,-33}
+       #define SEGLIST2 pts={111,-183:90,-205:90,-235:111,-257:142,-257:164,-235:164,-205:142,-183}
+       #define SEGLIST3 pts={-62,-183:-84,-205:-84,-235:-62,-257:-31,-257:-10,-235:-10,-205:-31,-183}
+
+#endif
+
+initialize   DEPLOY  = false
+initialize   RETURN  = false
+initialize   TRANSIT = true
+initialize   AVOID   = true
+initialize   STATION_KEEP = false
+initialize   OPTION = LOITER1
+initialize   OPTIONS_ACTIVE=true
+initialize   REGROUP = false
+
+initialize   REGROUP_REGION = $(SEGLIST0)
+initialize   SCOUT1_REGION = $(SEGLIST1)
+initialize   SCOUT2_REGION = $(SEGLIST2)
+initialize   SCOUT3_REGION = $(SEGLIST3)
+
+initialize   BIAS_REGION1 = 0.0
+initialize   BIAS_REGION2 = 0.0
+initialize   BIAS_REGION3 = 0.0
+
+
+  
+set MODE = ACTIVE {
+  DEPLOY = true
+} INACTIVE
+
+set MODE = STATION_KEEPING {
+  MODE = ACTIVE
+  STATION_KEEP = true
+}
+
+set MODE = REGROUPING {
+  MODE = ACTIVE
+  RETURN != true
+  REGROUP = true
+}
+
+set MODE = LOITERING1 {
+  MODE = ACTIVE
+  RETURN != true
+  OPTION = LOITER1
+  REGROUP = false	
+}
+
+set MODE = LOITERING2 {
+  MODE = ACTIVE
+  RETURN != true
+  OPTION = LOITER2
+  REGROUP = false
+}
+
+set MODE = LOITERING3 {
+  MODE = ACTIVE
+  RETURN != true
+  OPTION = LOITER3	
+  REGROUP = false
+}
+
+set MODE = LOITERING4 {
+  MODE = ACTIVE
+  RETURN != true
+  OPTION = LOITER4	
+  REGROUP = false
+}
+
+set MODE = LOITERING5 {
+  MODE = ACTIVE
+  RETURN != true
+  OPTION = LOITER5
+  REGROUP = false
+} 
+
+set MODE = RETURNING {
+  MODE = ACTIVE
+  RETURN = true
+} 
+
+
+//-------------------------------
+Behavior = BHV_Random_Survey2
+{
+  name       = scout_regroup
+  pwt        = 100
+  updates    = SCOUTBASE_UPDATE
+  condition  = MODE==REGROUPING
+  perpetual  = true
+
+  capture_radius = 10
+  desired_speed = $(SPD)
+  region_update_var = REGROUP_REGION
+  edge_color = $(REGION0_COLOR)
+  vertex_color = white
+  point_color = invisible
+  label_prefix  = regroup	
+}
+
+
+//-------------------------------
+Behavior = BHV_Random_Survey2
+{
+  name       = scout_region1
+  pwt        = 100
+  updates    = SCOUT1_UPDATE
+  condition  = MODE==LOITERING1	
+  perpetual  = true
+
+  capture_radius = 15
+  desired_speed  = $(SPD)
+  region_update_var = SCOUT1_REGION
+  edge_color     = $(REGION1_COLOR)
+  vertex_color   = white
+  point_color    = invisible	
+  //point_color    = $(REGION1_COLOR)
+  label_prefix  = region1
+}
+
+
+//-------------------------------
+Behavior = BHV_Random_Survey2
+{
+  name       = scout_region2
+  pwt        = 100
+  updates    = SCOUT2_UPDATE
+  condition  = MODE==LOITERING2	
+  perpetual  = true
+
+  capture_radius = 15
+  desired_speed  = $(SPD)
+  region_update_var = SCOUT2_REGION
+  edge_color     = $(REGION2_COLOR)
+  vertex_color   = white
+  point_color    = invisible
+  //point_color    = $(REGION2_COLOR)
+  label_prefix  = region2
+}
+
+
+//-------------------------------
+Behavior = BHV_Random_Survey2
+{
+  name       = scout_region3
+  pwt        = 100
+  updates    = SCOUT3_UPDATE
+  condition  = MODE==LOITERING3
+  perpetual  = true
+
+  capture_radius = 15
+  desired_speed  = $(SPD)
+  region_update_var = SCOUT3_REGION
+  edge_color     = $(REGION3_COLOR)
+  vertex_color   = white
+  point_color    = invisible
+  //point_color    = $(REGION3_COLOR)
+  label_prefix  = region3
+}
+
+//----------------------------------------------
+//Behavior = BHV_Loiter
+{
+  name      = loiter_regroup
+  pwt       = 100
+  condition = MODE==REGROUPING
+
+   post_suffix = A
+         speed = $(SPD)
+     clockwise = false
+        radius = 8.0
+     nm_radius = 15.0
+       polygon = radial::$(REGION0), radius=$(RADIUS0), pts=8, snap=1, label=$(VNAME)_LOITER
+
+  visual_hints = nextpt_color=white, nextpt_lcolor=khaki
+  visual_hints = edge_color=$(REGION0_COLOR), vertex_color=white
+  visual_hints = edge_size=1, vertex_size=2
+}
+
+
+//----------------------------------------------
+//Behavior = BHV_Loiter
+{
+  name      = loiter1
+  pwt       = 100
+  condition = MODE==LOITERING1
+
+   post_suffix = A
+         speed = $(SPD)
+     clockwise = false
+        radius = 8.0
+     nm_radius = 15.0
+       polygon = radial::$(REGION1), radius=$(RADIUS1), pts=8, snap=1, label=$(VNAME)_LOITER
+
+  visual_hints = nextpt_color=white, nextpt_lcolor=khaki
+  visual_hints = edge_color=$(REGION1_COLOR), vertex_color=white
+  visual_hints = edge_size=1, vertex_size=2
+}
+
+//----------------------------------------------
+//Behavior = BHV_Loiter
+{
+  name      = loiter2
+  pwt       = 100
+  condition = MODE==LOITERING2
+
+   post_suffix = A
+         speed = $(SPD)
+     clockwise = false
+        radius = 8.0
+     nm_radius = 15.0
+       polygon = radial::$(REGION2), radius=$(RADIUS2), pts=8, snap=1, label=$(VNAME)_LOITER
+
+  visual_hints = nextpt_color=white, nextpt_lcolor=khaki
+  visual_hints = edge_color=$(REGION2_COLOR), vertex_color=white
+  visual_hints = edge_size=1, vertex_size=2
+}
+
+//----------------------------------------------
+//Behavior = BHV_Loiter
+{
+  name      = loiter3
+  pwt       = 100
+  condition = MODE==LOITERING3
+
+   post_suffix = A
+         speed = $(SPD)
+     clockwise = false
+        radius = 8.0
+     nm_radius = 15.0
+       polygon = radial::$(REGION3), radius=$(RADIUS3), pts=8, snap=1, label=$(VNAME)_LOITER
+
+  visual_hints = nextpt_color=white, nextpt_lcolor=khaki
+  visual_hints = edge_color=$(REGION3_COLOR), vertex_color=white
+  visual_hints = edge_size=1, vertex_size=2
+}
+
+
+
+
+
+//#include plugs.bhv <bhv_avd_colregs>
+//#include plugs.bhv <bhv_avd_cpa>
+
+
+//----------------------------------------------
+Behavior = BHV_Waypoint
+{
+  name        = waypt_return
+  pwt         = 100
+  updates     = RETURN_UPDATES
+  condition   = MODE==RETURNING
+  perpetual   = true
+  endflag     = RETURN = false
+  endflag     = STATION_KEEP=true
+	spawnx_flag = RETURN_UPDATES=point=$[OSX],$[OSY]
+
+           speed = 2.0
+  capture_radius = 2.0
+     slip_radius = 8.0
+           point = 0,0
+
+     visual_hints = vertex_size  = 4            
+     visual_hints = vertex_color = dodger_blue  
+}
+
+//----------------------------------------------
+Behavior = BHV_StationKeep
+{
+  name         = station-keep
+  pwt          = 100
+  condition    = MODE==STATION_KEEPING
+
+  center_activate = true
+     inner_radius = 5
+     outer_radius = 10 
+      outer_speed = 1.0
+    transit_speed = 1.3
+       swing_time = 7
+     visual_hints = vertex_size=0, edge_color=gray50
+}
+
+//----------------------------------------------
+//Behavior = BHV_OpRegionV24
+{
+  name      = opreg
+  pwt       = 300
+	condition = MODE==ACTIVE
+  updates   = RECOVER_UPDATES
+
+  //core_poly = pts={60,10:-75.5402,-54.2561:-36.9866,-135.58:98.5536,-71.3241}
+  core_poly = pts={120,10:-422,-247.2:-268,-572:274.4,-315.2}
+  
+
+
+  dynamic_region_var = RESCUE_REGION
+
+  visual_hints = edge_size = 1
+
+  visual_hints = save_edge_color = gray30
+  visual_hints = halt_edge_color = gray40
+
+  save_dist = 5
+  halt_dist = 10
+}
+
+
+// Our own non-standard collision avoidance
+//---------------------------------------------- 
+Behavior = BHV_AvdColregsV19
+{
+  name       = avdcol_
+  pwt        = 200
+
+  condition  = AVOID = true 
+  condition  = MODE==ACTIVE
+  condition  = MODE!=ACTIVE::STATION_KEEPING
+
+	updates    = CONTACT_INFO
+  endflag    = CONTACT_RESOLVED = $[CONTACT]
+  templating = spawn
+
+  spawnx_flag  = ENCOUNTER_START = os=$(VNAME),cn=$[CONTACT],rng=$[RANGE],rel_brg=$[OS_CN_REL_BNG],targ_ang=$[CN_OS_REL_BNG],time=$[UTC]
+  cnflag     = @cpa ENCOUNTER_END = os=$(VNAME), cn=$[CONTACT], rng=$[RANGE], rel_brg=$[OS_CN_REL_BNG], targ_ang=$[CN_OS_REL_BNG], time=$[UTC]
+
+             contact = to-be-set
+    on_no_contact_ok = true
+         extrapolate = true
+               decay = 10,20
+
+    giveway_bow_dist = 10
+        use_refinery = true
+
+      pwt_outer_dist = 15
+      pwt_inner_dist = 10
+      completed_dist = 20
+   min_util_cpa_dist = 10
+   max_util_cpa_dist = 15
+           pwt_grade = linear
+	   bearing_line_show = false
+}

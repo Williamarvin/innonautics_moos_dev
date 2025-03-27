@@ -1,0 +1,22 @@
+//------------------------------------------------
+// uFldBloomStormSim config block
+
+ProcessConfig = uFldBloomStormSim
+{
+   AppTick   = 4
+   CommsTick = 4
+
+   region1 = -262,-182:-82,-537:465,-310:251,37
+   region2 = -262,-182:-82,-537:465,-310:251,37
+
+   bloom_rad_max = 200
+   bloom_rad_min = 100
+   bloom_duration = 300
+   probability_of_new_bloom = 0.1
+   time_between_bloom_attempts = 10 // seconds
+
+   storm_speed = 1 // m/s
+   time_between_storms = 1000  // seconds
+   
+}
+

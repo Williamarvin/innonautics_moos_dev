@@ -1,0 +1,29 @@
+//--------------------------------------------------
+// pBathyPath Configuration Block
+
+ProcessConfig = pBathyPath
+{
+  AppTick       = 5
+  CommsTick     = 5
+
+  tree_depth    = 4  // depth of look ahead
+
+  use_UCB_for_reward = $(REWARD)  // if 0, then MVI will be used.
+  prob_scale_factor  = 10000      // Needed because Fast GPR and Extra
+                                  // consensus iterations skew the variance
+#ifdef PATHMODE LAWN
+
+  lawnmower = 1
+
+  number_of_vehicles = $(VNUM)  // number of vehicles deployed
+  vehicle_n = $(V_N) // vehicle's N coefficient for lawnmower calculations
+  grid_degrees = 0 // rotation of grid
+  
+#elseifdef PATHMODE GREEDY
+
+  lawnmower = 0
+
+#endif
+
+  app_logging = log
+}

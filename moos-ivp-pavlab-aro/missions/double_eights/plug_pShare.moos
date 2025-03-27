@@ -1,0 +1,30 @@
+//--------------------------------------------------------
+// pShare Config Block
+
+ProcessConfig = pShare
+{
+  AppTick    = 2
+  CommsTick  = 2
+
+  input = route =  $(IP_ADDR):$(PSHARE_PORT)
+  
+#ifdef SHARE_AUX yes
+  Output = src_name=NAV_FULL_POS, dest_name=NAV_FULL_POS_$(VNAME), route = $(AUX_SHARE_CONFIG)
+  Output = src_name=NAV_FULL_STATE, dest_name=NAV_FULL_STATE_$(VNAME), route = $(AUX_SHARE_CONFIG)
+  Output = src_name=DESIRED_FULL_STATE, dest_name=DESIRED_FULL_STATE_$(VNAME), route = $(AUX_SHARE_CONFIG)
+  Output = src_name=BHV_SETTINGS, dest_name=BHV_SETTINGS_$(VNAME), route = $(AUX_SHARE_CONFIG)
+  Output = src_name=REQ_THRUSTER_L, dest_name=REQ_THRUSTER_L_$(VNAME), route = $(AUX_SHARE_CONFIG)
+  Output = src_name=REQ_THRUSTER_R, dest_name=REQ_THRUSTER_R_$(VNAME), route = $(AUX_SHARE_CONFIG)
+  Output = src_name=VIEW_POINT, dest_name=VIEW_POINT_$(VNAME), route = $(AUX_SHARE_CONFIG)
+  Output = src_name=VIEW_SEGLIST, dest_name=VIEW_SEGLIST_$(VNAME), route = $(AUX_SHARE_CONFIG)
+#endif
+
+#ifdef SHARE_TO_VEHICLE yes
+  Output = src_name=VIEW_POLYGON, dest_name=VIEW_POLYGON_aux, route = $(VEHICLE_SHARE_CONFIG)
+  Output = src_name=VIEW_SEGLIST, dest_name=VIEW_SEGLIST_aux, route = $(VEHICLE_SHARE_CONFIG)
+  Output = src_name=MHE_BIAS_EST, dest_name=MHE_BIAS_EST_aux, route = $(VEHICLE_SHARE_CONFIG)
+  Output = src_name=MHE_BIAS_LIST, dest_name=MHE_BIAS_LIST_aux, route = $(VEHICLE_SHARE_CONFIG)
+  Output = src_name=MAX_X_REACH, dest_name=MAX_X_REACH_aux, route = $(VEHICLE_SHARE_CONFIG)
+  Output = src_name=SURGE_REACH_SETS, dest_name=SURGE_REACH_SETS_aux, route = $(VEHICLE_SHARE_CONFIG)
+#endif
+}

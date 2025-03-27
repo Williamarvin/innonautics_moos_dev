@@ -1,0 +1,9 @@
+//------------------------------------------------
+// pSendPoints config block
+
+ProcessConfig = pSendPoints
+{
+   AppTick   = 4
+   CommsTick = 4
+}
+

@@ -1,0 +1,5 @@
+#/bin/bash
+#Not implemented yet - plus we only have one system
+#Assumes you have ssh keys configured
+
+eval "ssh-copy-id student2680@$HLIP0" && echo "Success!" || echo "Failed to move key."

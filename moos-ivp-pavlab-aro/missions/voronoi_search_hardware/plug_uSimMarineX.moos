@@ -1,0 +1,45 @@
+//------------------------------------------------------
+// uSimMarineX Configuration Block (Created from plugin)
+
+ProcessConfig = uSimMarineX
+{
+  AppTick   = 4
+  CommsTick = 4
+
+  start_pos     = $(START_POS)
+  prefix        = NAV
+
+    thrust_map    = 0:0, 20:1, 40:2, 60:3, 80:4, 100:5
+    turn_rate=100
+  // Below Parameters for embedded PID control. All params
+  // similar to those for pMarinePID
+  //thrust_mode_diff=true
+  turn_spd_map_null_rate=99
+  turn_spd_map_full_rate=100
+  depth_control = false
+  //active_start  = true
+  simulation    = true
+
+  // Yaw PID controller
+  yaw_pid_kp             = 1.2
+  yaw_pid_kp             = 0.4
+  yaw_pid_kd             = 0.1
+  yaw_pid_ki             = 0.0
+  yaw_pid_integral_limit = 0.07
+  
+  // Speed PID controller
+  speed_pid_kp           = 1.0
+  speed_pid_kd           = 0.0
+  speed_pid_ki           = 0.0
+  speed_pid_integral_limit = 0.07
+  
+  // Maximums
+  maxrudder  = 100
+  maxthrust  = 100
+  //thrust_mode_reverse=true
+  
+  // A non-zero SPEED_FACTOR overrides use of SPEED_PID
+  // Will set DESIRED_THRUST = DESIRED_SPEED * SPEED_FACTOR
+  speed_factor = 20
+}
+ 

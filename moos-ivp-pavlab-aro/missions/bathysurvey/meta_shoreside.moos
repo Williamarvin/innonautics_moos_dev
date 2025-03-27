@@ -1,0 +1,279 @@
+//*******************************************************
+// ShoreSide Configuration File
+
+ServerHost = localhost
+ServerPort = $(MOOS_PORT)
+Community  = shoreside
+
+#include plug_origin_warp.moos
+
+//--------------------------------------------------------
+Processconfig = ANTLER
+{
+  MSBetweenLaunches = 200
+
+  Run = MOOSDB          @ NewConsole = false
+  
+  Run = pRealm          @ NewConsole = false
+  Run = pMarineViewer   @ NewConsole = false
+  Run = pLogger         @ NewConsole = false
+  Run = uProcessWatch   @ NewConsole = false
+
+  Run = pShare          @ NewConsole = false
+  Run = pHostInfo       @ NewConsole = false
+
+  Run = uFldNodeComms   @ NewConsole = false
+  Run = uFldShoreBroker @ NewConsole = false
+
+  Run = uTimerScript    @ NewConsole = false
+
+  Run = pMarineViewer   @ NewConsole = false ~pMarineViewerFocus_One
+
+  Run = pBathyChecker   @ NewConsole = false
+
+#ifdef VNUM 2
+  Run = pMarineViewer     @ NewConsole = false ~pMarineViewerFocus_Two
+#endif
+
+#ifdef VNUM 3
+ Run = pMarineViewer     @ NewConsole = false ~pMarineViewerFocus_Two
+ Run = pMarineViewer     @ NewConsole = false ~pMarineViewerFocus_Three
+#endif
+
+#ifdef VNUM 4
+  Run = pMarineViewer     @ NewConsole = false ~pMarineViewerFocus_Two
+  Run = pMarineViewer     @ NewConsole = false ~pMarineViewerFocus_Three
+  Run = pMarineViewer     @ NewConsole = false ~pMarineViewerFocus_Four
+#endif
+
+}
+
+#include plug_pShare.moos
+#include plug_pHostInfo.moos
+
+#include plug_uFldNodeComms.moos
+#include plug_uFldShoreBroker.moos
+//#include plug_pMarineViewerMod.moos
+
+
+//--------------------------------------------------
+// pLogger Configuration Block
+
+ProcessConfig = pLogger
+{
+  AppTick       = 10
+  CommsTick     = 10
+
+  File          = LOG_SHORESIDE
+  PATH          = ./
+  SyncLog       = true @ 0.2
+  AsyncLog      = true
+  FileTimeStamp = true
+
+  LogAuxSrc     = true
+
+  // Log it all!!!!!
+  WildCardLogging = true
+  WildCardOmitPattern = *_STATUS
+  WildCardOmitPattern = DB_VARSUMMARY
+  WildCardOmitPattern = DB_RWSUMMARY
+}
+
+//--------------------------------------------------------
+ProcessConfig = pMarineViewer
+{
+  AppTick    = 4
+  CommsTick  = 4
+
+  //tiff_file            = forrest19.tif
+  tiff_file            = MIT_SP.tif
+  set_pan_x            = 129
+  set_pan_y            = -364
+  zoom                 = 2.5
+  vehicles_shape_scale = 1.5
+  vehicles_name_mode   = names
+
+  circle_viewable_all = true
+
+  appcast_viewable = true
+  appcast_color_scheme = indigo
+
+//  left_context[view_coords] = VIEW_POINT = "x=$(XPOS),y=$(YPOS),label=$(LON):$(XPOS):$(LAT):$(YPOS)"
+//  left_context[add_start_point] = ADD_START = "$(XPOS),$(YPOS)"
+//  left_context[clear_start] = CLEAR_START = "clear"
+//  left_context[add_end_point] = ADD_END = "$(XPOS),$(YPOS)"
+//  left_context[clear_end] = CLEAR_END = "clear"
+
+  scope = DEPLOY_ALL
+
+  action = STATION_KEEP_ALL = false
+  action = STATION_KEEP_ALL = true
+
+  button_one   = DEPLOY  # DEPLOY_ALL=true
+  button_one   = MOOS_MANUAL_OVERRIDE_ALL=false
+  button_one   = RETURN_ALL=false # STATION_KEEP_ALL=false
+
+  button_two   = RETURN  # RETURN_ALL=true
+  button_two   = RETURN  # STATION_KEEP_ALL=false
+  button_two   = RETURN  # DEPLOY_ALL=true
+  button_three = ALLSTOP # DEPLOY_ALL=false
+
+  button_four  = SHOW_CONS_VAR # GRID_SWITCH=cons_var	
+  button_five  = SHOW_GT       # GRID_SWITCH=gt
+  button_six   = SHOW_GPR      # GRID_SWITCH=gpr
+  button_seven = SHOW_CONS     # GRID_SWITCH=cons
+  button_eight = SHOW_PATH     # GRID_SWITCH=psg
+  button_nine  = SHOW_OBS      # GRID_SWITCH=obs
+}
+
+//--------------------------------------------------------
+// uProcessWatch Configuration Block
+
+ProcessConfig = uProcessWatch
+{
+  AppTick   = 1
+  CommsTick = 1
+
+  allow_retractions = true
+
+  watch_all = true      // default is true
+
+  nowatch = uXMS*
+  nowatch = uPokeDB*
+  nowatch = uQueryDB*
+
+  summary_wait = 10
+}
+
+//------------------------------------------------------------
+// uTimerScript configuration block
+
+ProcessConfig = uTimerScript
+{
+  AppTick   = 4
+  CommsTick = 4
+
+  paused      = false
+  reset_max   = unlimited
+  reset_time  = end
+
+  script_name = HEARTBEAT_SCRIPT
+
+  event = var=HEARTBEAT, val="true", time=5
+}
+
+
+
+//--------------------------------------------------------
+ProcessConfig = pMarineViewerFocus_One
+{
+  AppTick    = 4
+  CommsTick  = 4
+
+  //tiff_file            = forrest19.tif
+  tiff_file            = MIT_SP.tif
+  set_pan_x            = 129
+  set_pan_y            = -364
+  zoom                 = 2.5
+  vehicles_shape_scale = 1.5
+  vehicles_name_mode   = names
+
+  circle_viewable_all = true
+
+  appcast_viewable = true
+  appcast_color_scheme = indigo
+
+  match_name = $(VNAME1)
+  full_screen=true
+
+}
+
+
+   
+//--------------------------------------------------------
+ProcessConfig = pMarineViewerFocus_Two
+{
+  AppTick    = 4
+  CommsTick  = 4
+
+  //tiff_file            = forrest19.tif
+  tiff_file            = MIT_SP.tif
+  set_pan_x            = 129
+  set_pan_y            = -364
+  zoom                 = 2.5
+  vehicles_shape_scale = 1.5
+  vehicles_name_mode   = names
+
+  circle_viewable_all = true
+
+  appcast_viewable = true
+  appcast_color_scheme = indigo
+
+  match_name = $(VNAME2)
+  full_screen=true
+
+}
+//--------------------------------------------------------
+ProcessConfig = pMarineViewerFocus_Three
+{
+  AppTick    = 4
+  CommsTick  = 4
+
+  //tiff_file            = forrest19.tif
+  tiff_file            = MIT_SP.tif
+  set_pan_x            = 129
+  set_pan_y            = -364
+  zoom                 = 2.5
+  vehicles_shape_scale = 1.5
+  vehicles_name_mode   = names
+
+  circle_viewable_all = true
+
+  appcast_viewable = true
+  appcast_color_scheme = indigo
+	
+  match_name = $(VNAME3)
+  full_screen=true
+
+}
+//--------------------------------------------------------
+ProcessConfig = pMarineViewerFocus_Four
+{
+  AppTick    = 4
+  CommsTick  = 4
+
+  //tiff_file            = forrest19.tif
+  tiff_file            = MIT_SP.tif
+  set_pan_x            = 129
+  set_pan_y            = -364
+  zoom                 = 2.5
+  vehicles_shape_scale = 1.5
+  vehicles_name_mode   = names
+
+  circle_viewable_all = true
+
+  appcast_viewable = true
+  appcast_color_scheme = indigo
+	
+  match_name = $(VNAME4)
+  full_screen=true
+
+}
+
+//--------------------------------------------------------
+ProcessConfig = uQueryDB
+{
+  AppTick    = 4
+  CommsTick  = 4
+
+  condition = COMPLETED_RECEIVED = $(VNUM)
+
+}
+
+//--------------------------------------------------------
+ProcessConfig = pBathyChecker
+{
+  AppTick    = 4
+  CommsTick  = 4
+
+}

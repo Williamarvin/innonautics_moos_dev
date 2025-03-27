@@ -1,0 +1,11 @@
+//--------------------------------------------------
+// pTestPost configuration block from plugin
+
+ProcessConfig = pTestPost
+{
+  AppTick 	= 1
+  CommsTick = 1
+
+	posting_len = 30
+}
+

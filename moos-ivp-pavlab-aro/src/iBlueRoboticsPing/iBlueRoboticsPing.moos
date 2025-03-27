@@ -1,0 +1,9 @@
+//------------------------------------------------
+// iBlueRoboticsPing config block
+
+ProcessConfig = iBlueRoboticsPing
+{
+   AppTick   = 4
+   CommsTick = 4
+}
+

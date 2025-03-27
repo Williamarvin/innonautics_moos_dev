@@ -1,0 +1,22 @@
+//--------------------------------------------------
+// ufldnodecomms Configuration Block
+
+ProcessConfig = uFldNodeComms
+{
+  AppTick       = 2
+  CommsTick     = 2
+
+
+#ifdef GRIDSIZE FULL
+  comms_range      = 800
+#else
+  comms_range      = 300	
+#endif
+  critical_range   = 25
+
+  min_msg_interval = 0
+  max_msg_length   = 50000
+  groups           = false
+
+  view_node_rpt_pulses = false
+}

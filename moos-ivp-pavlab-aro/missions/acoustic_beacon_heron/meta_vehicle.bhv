@@ -1,0 +1,131 @@
+//*******************************************************
+// Vehicle behavior configuration file
+
+initialize   DEPLOY = false
+initialize   RETURN = false
+initialize   STATION_KEEP = false
+
+set MODE = ACTIVE {
+  DEPLOY = true
+} INACTIVE
+
+set MODE = STATION-KEEPING {
+  MODE = ACTIVE
+  STATION_KEEP = true
+}
+
+set MODE = RETURNING {
+  MODE = ACTIVE
+  RETURN = true
+} TRAVERSING
+
+	
+//----------------------------------------------
+Behavior = BHV_Waypoint
+{
+  name      = waypt_survey
+  pwt       = 100
+  condition = MODE==TRAVERSING
+  endflag   = RETURN = true
+
+  updates   = WPT_UPDATE
+  perpetual = true
+
+                lead = 8
+         lead_damper = 1
+       lead_to_start = true
+              speed = $(SPEED)  // meters per second
+	      
+        capture_line = true
+      capture_radius = 2
+         slip_radius = 10
+	efficiency_measure = all
+
+         //polygon = pts={100,-100:100,-200:0,-200:0,-100:-100,-100:-100,-200}
+
+	 points = format=lawnmower, label=foxtrot, x=116, y=-125, height=100, width=200,lane_width=100, rows=north-south, startx=170, starty=-20, degs=334
+         //polygon = pts={38,-37:64,-32:77,-16:59,11:23,-3}
+
+
+    visual_hints = nextpt_color=yellow
+    visual_hints = nextpt_vertex_size=8
+    visual_hints = nextpt_lcolor=gray70
+    visual_hints = vertex_color=dodger_blue, edge_color=white
+    visual_hints = vertex_size=5, edge_size=1
+}
+
+//----------------------------------------------
+Behavior=BHV_Waypoint
+{
+  name       = waypt_return
+  pwt        = 100
+  condition  = MODE==RETURNING
+  perpetual  = true
+  updates    = RETURN_UPDATE
+  endflag    = RETURN = false
+  endflag    = DEPLOY = false
+  endflag    = MISSION = complete
+
+	   speed = $(SPEED)
+  capture_radius = 2.0
+     slip_radius = 8.0
+
+#ifdef ZONE east
+  points = 18,0
+#elseifdef ZONE west
+  points = 8,-6
+#else
+  points = 0,-10
+#endif
+
+ }
+
+//----------------------------------------------
+Behavior = BHV_StationKeep
+{
+  name         = station-keep
+  pwt          = 100
+  condition    = MODE==STATION-KEEPING
+
+     center_activate = true
+        inner_radius = 5
+        outer_radius = 10
+         outer_speed = 1.0
+
+       transit_speed = 0.5
+          swing_time = 7
+        visual_hints = vertex_size=0, edge_color=gray50
+}
+
+
+
+Behavior = BHV_OpRegion
+ {
+   // General Behavior Parameters
+   // ---------------------------
+   name         = op_region                 // example
+   pwt          = 100                       // default
+   condition    = MODE==ACTIVE              // example
+   condition    = MODE!=ACTIVE:RETURNING
+   updates      = OPREGION_UPDATES          // example
+
+   // Parameters specific to this behavior
+   // ------------------------------------
+                  max_time = 0              // default (seconds)
+                 max_depth = 0              // default (meters)
+              min_altitude = 0              // default (meters)
+                 reset_var = DEPLOY // example
+        trigger_entry_time = 1              // default (seconds)
+         trigger_exit_time = 0.5            // default (seconds) 
+
+		   polygon = pts={250,-100:250,-400:-250,-400:-250,-120:-220,-100}
+		   polygon = pts={305,67:404,-124:117,-263:27,-68}
+		   polygon = pts={347,71:434,-89:194,-208:119,-40}
+		   polygon = pts={189,-4:255,-135:37,-244:-24,-111}
+        breached_poly_flag = SAY_MOOS = Sir, the op region has been violated
+
+              visual_hints = vertex_color = brown  // default
+              visual_hints = vertex_size  = 3      // default
+              visual_hints = edge_color   = aqua   // default
+              visual_hints = edge_size    = 1      // default
+ }

@@ -1,0 +1,45 @@
+//---------------------------------------------------
+// Helm Behavior file 
+
+initialize   DEPLOY        = false
+initialize   GOGO        = false
+
+
+//  Hierachical Mode Declarations:
+//  ModeSet Hierarchy: 
+//  ---------------------------------------------- 
+//   Mode-Variable=MODE
+//   ACTIVE
+//       STATION-KEEPING
+//       RETURNING
+//       LOITERING
+//       REFUELING
+//   INACTIVE
+
+set MODE = ACTIVE {
+  DEPLOY = true
+} INACTIVE
+
+set MODE = RETURNING {
+  MODE = ACTIVE                        
+  GOGO = true
+} 
+
+//----------------------------------------------
+Behavior = BHV_Waypoint
+{
+  name      = waypt_return
+  pwt       = 100
+  updates   = RETURN_UPDATES
+  condition = MODE==RETURNING
+  //endflag   = AT_DEST = true     // changed
+  //endflag   = RETURN = false
+    perpetual=true
+    speed = $(SPEED_ENT)
+    point = $(END_POS)
+    lead = 8
+    radius = 3.0
+    nm_radius = 15.0
+}
+
+

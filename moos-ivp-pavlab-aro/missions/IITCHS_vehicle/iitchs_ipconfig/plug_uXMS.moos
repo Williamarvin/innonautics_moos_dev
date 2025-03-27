@@ -1,0 +1,19 @@
+ProcessConfig = uXMS
+{
+    VAR = AGENT_1_SCHEDULE
+    VAR = SCHEDULE_TASK
+    VAR = SCHEDULE
+    VAR = RUN_CS_RUN
+    VAR = SCHEDULE
+    VAR = VIEW_POLYGON
+    VAR = DEAD_VAR
+    VAR = IS_DEAD
+    VAR = RUN_CS_REPLAN
+    VAR = UPDATES_VAR_LIST
+    VAR = DEL_X
+    VAR = DEL_Y
+    VAR = WIDTH
+    VAR = ZZZ
+    VAR = HEIGHT
+    VAR = Q7
+}

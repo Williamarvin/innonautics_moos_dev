@@ -1,0 +1,18 @@
+//------------------------------------------------
+// uFldSearchDetect config block
+
+ProcessConfig = uFldSearchDetect
+{
+   AppTick   = 4
+   CommsTick = 4
+                                
+  encounter_range = 100  //sets the CPA monitor ignore range                                 
+  target_name = ADVERSARY  //the name of the vehicle being tracked
+  detect_range = 1:20:20  //Designates detection distance threshold
+  //1:20:20 sets 20 discrete detection distance from 1m to 20m
+  sigma=10 //The distance in m std used for width of normal probability distribution
+  //at about 5*sigma detection probability is zero
+  probability_detect=false  
+  //sets whether using discrete detection or probabilistic 
+}
+

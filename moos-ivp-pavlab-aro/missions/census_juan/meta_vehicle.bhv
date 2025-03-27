@@ -1,0 +1,260 @@
+//--------    FILE: meta_vehicle.bhv  -------------
+
+#define SPD 5.0
+
+#define REGION0_COLOR white
+#define REGION1_COLOR red
+#define REGION2_COLOR green
+#define REGION3_COLOR yellow
+#define REGION4_COLOR orange
+#define REGION5_COLOR pink
+
+
+#define LOITER_ZONE pts={89208,-5645:87485,5075:89940,8258:92065,4392:92723,-5380}
+
+initialize   DEPLOY  = false
+initialize   RETURN  = false
+initialize   TRANSIT = true
+initialize   AVOID   = true
+initialize   STATION_KEEP = false
+initialize   OPTION = LOITER
+//initialize   OPTIONS_ACTIVE=true
+  
+set MODE = ACTIVE {
+  DEPLOY = true
+} INACTIVE
+
+set MODE = STATION_KEEPING {
+  MODE = ACTIVE
+  STATION_KEEP = true
+}
+
+
+set MODE = LOITERING {
+  MODE = ACTIVE
+  RETURN != true
+  OPTION = LOITER	
+}
+
+set MODE = TRAILING {
+  MODE = ACTIVE
+  RETURN != true
+  OPTION = TRAIL
+}
+
+set MODE = RETURNING {
+  MODE = ACTIVE
+  RETURN = true
+} 
+
+
+#ifdef VTYPE AUV
+//-----------------------------
+Behavior = BHV_ConstantDepth
+{
+   // General Behavior Parameters
+   // ---------------------------
+   name         = const_dep_survey   
+   pwt          = 100
+   condition  = (MODE==LOITERING) OR (MODE==TRAILING)   
+   updates      = CONST_DEP_UPDATES  
+
+   // Parameters specific to this behavior
+   // ------------------------------------
+   duration=no-time-limit
+   depth = 50
+}
+
+
+Behavior = BHV_Trail
+{
+  // General Behavior Parameters
+  // ---------------------------
+  name         = trail_intruder        // example
+  pwt          = 100                   // default
+     condition = (MODE==TRAILING)  
+  updates      = TRAIL_INFO            // example
+  //templating   = spawn                 // example
+
+  // General Contact Behavior Parameters
+  // -----------------------------------
+            contact = intruder        // example
+	on_no_contact_ok = true
+
+  // Parameters specific to this behavior
+  // ------------------------------------
+                nm_radius = 20         // default (meters)
+         no_alert_request = false      // default
+  post_trail_dist_on_idle = true       // default
+           pwt_outer_dist = 0          // default (meters)        
+                   radius = 20         // default (meters) 
+              trail_angle = 180        // default (degrees)
+         trail_angle_type = relative   // default (or absolute)             
+              trail_range = 1000         // default (meters)
+}
+
+
+//----------------------------------------------
+Behavior = BHV_Voronoi2
+{ 
+  name      = voronoi_zone
+  pwt       = 10
+  condition  = MODE==LOITERING
+  idleflag   = PROX_POLY_VIEW = false
+  activeflag = PROX_POLY_VIEW = true
+  UPDATES   = VCOVER_UPDATE
+  perpetual = true
+  // Parameters specific to this behavior
+  // ------------------------------------
+    capture_radius  = 10
+    activate_radius = 15
+    //turn_radius = 500    
+    op_region=$(LOITER_ZONE)
+    speed = 3
+    stale_nav_thresh = 5
+    stale_poly_thresh = 10
+
+       setpt_method = center
+     allow_slipping = true
+ 
+   visual_hints = setpt_size   = 4 
+   visual_hints = setpt_color  = dodger_blue 
+   visual_hints = vertex_color  = yellow        // default
+   visual_hints = vertex_lcolor = aqua          // default
+   visual_hints = label         = zone2         // example
+}
+
+//--------------------------------------
+// A Simple cut range behavior that just spawns,
+// posts flags to kick off the group decision and
+// then completes (gives up).
+
+Behavior = BHV_CutRange
+{
+  // General Behavior Parameters
+  // ---------------------------
+  name         = detect_intruder_                         // example
+  pwt          = 100                               // example
+  condition    = MODE==ACTIVE                     // example
+  updates      = CONTACT_INFO                      // example
+  templating   = spawn                             // example
+
+  // General Contact Behavior Parameters
+  // -----------------------------------
+      bearing_lines = white:0, green:0.65, yellow:0.8, red:1.0   // example
+             contact = intruder        // example
+
+  // Parameters specific to this behavior
+  // ------------------------------------
+        giveup_dist = 1                // Meters. Default is 0, disabled
+           patience = 45               // [0,100]. Default 0 
+     pwt_inner_dist = 50               // Meters. Default is 0. 
+     pwt_outer_dist = 500              // Meters. Default is 0.
+          spawnflag = TRAIL_BIAS=1
+         pursueflag = PURSUIT=true
+         giveupflag = PURSUIT=false
+}
+
+#endif
+
+
+//#include plugs.bhv <bhv_avd_colregs>
+//#include plugs.bhv <bhv_avd_cpa>
+
+
+//----------------------------------------------
+Behavior = BHV_Waypoint
+{
+  name        = waypt_return
+  pwt         = 100
+  updates     = RETURN_UPDATES
+  condition   = MODE==RETURNING
+  perpetual   = true
+  endflag     = RETURN = false
+  endflag     = STATION_KEEP=true
+	spawnx_flag = RETURN_UPDATES=point=$[OSX],$[OSY]
+
+           speed = 2.0
+  capture_radius = 2.0
+     slip_radius = 8.0
+           point = 0,0
+
+     visual_hints = vertex_size  = 4            
+     visual_hints = vertex_color = dodger_blue  
+}
+
+//----------------------------------------------
+Behavior = BHV_StationKeep
+{
+  name         = station-keep
+  pwt          = 100
+  condition    = MODE==STATION_KEEPING
+
+  center_activate = true
+     inner_radius = 5
+     outer_radius = 10 
+      outer_speed = 1.0
+    transit_speed = 1.3
+       swing_time = 7
+     visual_hints = vertex_size=0, edge_color=gray50
+}
+
+//----------------------------------------------
+//Behavior = BHV_OpRegionV24
+{
+  name      = opreg
+  pwt       = 300
+	condition = MODE==ACTIVE
+  updates   = RECOVER_UPDATES
+
+  //core_poly = pts={60,10:-75.5402,-54.2561:-36.9866,-135.58:98.5536,-71.3241}
+  core_poly = pts={120,10:-422,-247.2:-268,-572:274.4,-315.2}
+  
+
+
+  dynamic_region_var = RESCUE_REGION
+
+  visual_hints = edge_size = 1
+
+  visual_hints = save_edge_color = gray30
+  visual_hints = halt_edge_color = gray40
+
+  save_dist = 5
+  halt_dist = 10
+}
+
+
+// Our own non-standard collision avoidance
+//---------------------------------------------- 
+Behavior = BHV_AvdColregsV19
+{
+  name       = avdcol_
+  pwt        = 200
+
+  condition  = MODE==ACTIVE
+  condition  = MODE!=ACTIVE::TRAILING
+  condition  = MODE!=ACTIVE::STATION_KEEPING
+
+  updates    = CONTACT_INFO
+  endflag    = CONTACT_RESOLVED = $[CONTACT]
+  templating = spawn
+
+  spawnx_flag  = ENCOUNTER_START = os=$(VNAME),cn=$[CONTACT],rng=$[RANGE],rel_brg=$[OS_CN_REL_BNG],targ_ang=$[CN_OS_REL_BNG],time=$[UTC]
+  cnflag     = @cpa ENCOUNTER_END = os=$(VNAME), cn=$[CONTACT], rng=$[RANGE], rel_brg=$[OS_CN_REL_BNG], targ_ang=$[CN_OS_REL_BNG], time=$[UTC]
+
+             contact = to-be-set
+    on_no_contact_ok = true
+         extrapolate = true
+               decay = 10,20
+
+    giveway_bow_dist = 10
+        use_refinery = true
+
+      pwt_outer_dist = 300
+      pwt_inner_dist = 8
+      completed_dist = 301
+   min_util_cpa_dist = 8
+   max_util_cpa_dist = 15
+           pwt_grade = linear
+ bearing_line_config = white:0, green:0.65, yellow:0.8, red:1.0
+}

@@ -1,0 +1,10 @@
+Distance to point bids - only considers the straightline distance between two 
+points to propose a bid. 
+
+To use the dynamic loading of behaviors, you need to set the following 
+environment variable (in your .cshrc file for tcsh users, or the equivalent
+for bash users):
+
+setenv IVP_BEHAVIOR_DIRS '/home/bob/moos-ivp-swarm/lib'
+
+

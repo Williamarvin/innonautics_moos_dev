@@ -1,0 +1,201 @@
+//*******************************************************
+// ShoreSide Configuration File
+
+ServerHost = localhost
+ServerPort = 9000
+Community  = shoreside
+
+#include plug_origin_warp.moos
+  
+//--------------------------------------------------------
+Processconfig = ANTLER
+{
+  MSBetweenLaunches = 100
+
+  Run = MOOSDB          @ NewConsole = false
+	Run = pMarineViewer   @ NewConsole = false
+  Run = pLogger         @ NewConsole = false
+  Run = uProcessWatch   @ NewConsole = false
+  Run = pShare          @ NewConsole = false
+  Run = pHostInfo       @ NewConsole = false
+  Run = uFldShoreBroker @ NewConsole = false
+  Run = pRealm          @ NewConsole = false
+  Run = uFldVoronoi     @ NewConsole = false
+}
+
+//--------------------------------------------------------
+// uProcessWatch Config Block
+
+ProcessConfig = uProcessWatch
+{
+  AppTick   = 1
+  CommsTick = 1
+
+  allow_retractions = true
+  
+  watch_all = true      // default is true
+
+  nowatch = uMAC*
+  nowatch = uXMS*
+  nowatch = uPokeDB*
+
+  summary_wait = 25
+}
+
+
+
+//---------------------------------------------------------
+// pShare Config Block  (Created from Plugin)
+
+ProcessConfig = pShare
+{
+  AppTick    = 2
+  CommsTick  = 2
+
+  input = route =  $(IP_ADDR):$(PSHARE_PORT)
+}
+
+//---------------------------------------------------------
+// pRealm Config Block
+
+ProcessConfig = pRealm
+{
+  AppTick    = 2
+  CommsTick  = 2
+
+	hist_var = NODE_MESSAGE
+	hist_var = NODE_MESSAGE_LOCAL
+	hist_var = MUSTER_START
+	hist_var = MUSTER_START_TEST
+	scope_set = name=task_mgr, vars=TASK_MGR_STATUS:MISSION_TASK:MISSION_TASK_ALL
+
+	msg_max_hist = 50
+
+}
+	
+//---------------------------------------------------------
+// uFldVoronoi Config Block
+
+ProcessConfig = uFldVoronoi
+{
+  AppTick    = 0.2
+  CommsTick  = 0.2
+
+//	app_logging = log
+
+	//match_group = blue_team
+	
+	prox_label_color = off
+	prox_fill_color = red
+
+  //#include plug_muster_regions.txt
+}
+
+//--------------------------------------------------
+// uFldShoreBroker Configuration Block
+
+ProcessConfig = uFldShoreBroker
+{
+  AppTick       = 1
+  CommsTick     = 1
+
+  // Note: [QBRIDGE = FOO]  is shorthand for                    
+  //       [BRIDGE = src=FOO_$V,  alias=FOO] and                
+  //       [BRIDGE = src=FOO_ALL, alias=FOO]
+
+  qbridge  = DEPLOY, RETURN, STATION, NODE_REPORT, NODE_MESSAGE
+  qbridge  = MOOS_MANUAL_OVERRIDE, APPCAST_REQ, AVOID, UP_LOITER
+  qbridge  = RETURN_UPDATES, BCM_DISPLAY_RADII, USMT_ENABLED, REALMCAST_REQ
+  qbridge  = USMT_MOD_TOWLEN, USMT_SET_TOWLEN, TOM_WELCOME, TOM_PURSUE
+  qbridge  = MISSION_TASK, UP_CONVOY, MUSTER, GATHER, ATURN_ENGAGE, LOITER
+  qbridge  = ENCIRCLE_ACTIVE, UP_MUSTER, SAY_VOLUME, ATURN, CONVOY
+  qbridge  = MEDIATED_MESSAGE, ACK_MESSAGE
+
+  bridge   = src=UP_LOITER_$N, alias=UP_LOITER
+  bridge   = src=DRIFT_VECTOR_ADD, alias=DRIFT_VECTOR_ADD
+  bridge   = src=HELM_MAP_CLEAR, alias=HELM_MAP_CLEAR
+
+	app_logging = off
+}
+
+//--------------------------------------------------
+// pHostInfo Configuration Block
+
+ProcessConfig = pHostInfo
+{
+  AppTick   = 1
+  CommsTick = 1
+}
+
+//--------------------------------------------------
+// pLogger Configuration Block
+
+ProcessConfig = pLogger
+{
+  AppTick       = 10
+  CommsTick     = 10
+  
+  File          = XLOG_SHORESIDE
+  PATH          = ./
+  SyncLog       = true @ 0.2
+  AsyncLog      = true
+  FileTimeStamp = true
+
+  LogAuxSrc     = true
+
+  // Log it all!!!!!
+  WildCardLogging = true 
+
+  WildCardOmitPattern = *_STATUS
+  WildCardOmitPattern = DB_VARSUMMARY
+  WildCardOmitPattern = DB_RWSUMMARY
+}
+
+
+//--------------------------------------------------------
+ProcessConfig = pMarineViewer
+{
+  AppTick    = 4
+  CommsTick  = 4
+
+  //tiff_file            = ./FIS.tif
+  //tiff_file_b          = ./FIS.tif
+  tiff_file            = MIT_SP.tif
+  tiff_file_b          = MIT_SP.tif
+  set_pan_x            = 100
+  set_pan_y            = -300
+  zoom                 = 1.7
+  //set_pan_x            = 60
+  //set_pan_y            = -320
+  //zoom                 = 1.7
+  vehicles_shape_scale = 1.0
+  vehicles_name_mode   = names
+
+	app_logging = log
+	
+  circle_viewable_all = false
+
+	//content_mode = realmcast
+	realmcast_channel = abe:events
+  appcast_viewable = true
+  appcast_color_scheme = indigo
+	appcast_font_size    = large
+  procs_font_size      = large
+  nodes_font_size      = large
+
+	watch_cluster = key=task_manager, vars=MISSION_TASK:TASK_WPT:TM_ALERT_REQUEST
+	watch_cluster = key=messages, vars=NODE_MESSAGE_LOCAL:NODE_MESSAGE
+	watch_cluster = key=states_bids, vars=TASK_OUR_STATE:TASK_OUR_BID:TASK_BID_RCVD:TRANSIT:MODE
+	watch_cluster = key=contacts, vars=BCM_REPORT_REQUEST:CONTACTS_250:CONTACTS_5000
+	watch_cluster = key=mission, vars=DEPLOY:MOOS_MANUAL_OVERRIDE:RETURN:STATION:MODE
+	watch_cluster = key=life_events, vars=TASK_WPT:IVPHELM_LIFE_EVENT
+	
+  stale_report_thresh = 10
+  stale_remove_thresh = 18
+
+  scope = PSHARE_INPUT_SUMMARY
+  scope = NODE_BROKER_PING
+  scope = DEPLOY_ALL
+}
+
+

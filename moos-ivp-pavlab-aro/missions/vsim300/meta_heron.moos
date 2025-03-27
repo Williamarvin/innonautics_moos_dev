@@ -1,0 +1,132 @@
+//-------------------------------------------------
+//  NAME: Michael Benjamin, MIT
+//  FILE: meta_heron.moos
+//-------------------------------------------------
+ServerHost   = localhost
+ServerPort   = $(MPORT)
+Community    = $(VNAME)
+MOOSTimeWarp = $(WARP)
+
+#ifdef REGION pavlab
+  // MIT Sailing Pavilion (PavLab)
+  LatOrigin = 42.358436
+  LongOrigin = -71.087448
+#else
+  // Forest Lake Maine
+  LatOrigin  = 43.825300 
+  LongOrigin = -70.330400 
+#endif
+
+//------------------------------------------
+// Antler configuration  block
+
+ProcessConfig = ANTLER
+{
+  MSBetweenLaunches = 400
+  Run = MOOSDB        @ NewConsole = false
+  Run = uSimHeron     @ NewConsole = false
+  Run = uXMS          @ NewConsole = false
+  Run = uSimMarine    @ NewConsole = false
+  Run = uProcessWatch @ NewConsole = false
+  Run = pLogger       @ NewConsole = false
+}
+
+//------------------------------------------
+// uSimHeron config block
+
+ProcessConfig = uSimHeron
+{
+  AppTick    = 4
+  CommsTick  = 4
+
+	comms_type = $(COMMS_TYPE)
+  	port       = $(PORT)
+	//ip_addr    = $(IP_ADDR)
+}
+
+//------------------------------------------
+// pLogger config block
+
+ProcessConfig = pLogger
+{
+  AppTick    = 4
+  CommsTick  = 4
+
+	AsyncLog = true
+
+  Log  = M300_RAW_INBUFF @ 0 NOSYNC
+  file = heron
+  LogAuxSrc = true
+  WildCardLogging = true
+  WildCardOmitPattern = *_STATUS
+}
+
+//------------------------------------------                                    
+// uSimMarine config block                                                      
+
+ProcessConfig = uSimMarine
+{
+  AppTick = 40
+  CommsTick = 40
+
+#ifdef REGION pavlab
+
+ #ifdef VNAME abe
+  start_x       = 10
+  start_y       = 0
+ #else
+  start_x       = 20
+  start_y       = 0
+ #endif
+ 
+#else
+  start_x       = 92
+  start_y       = -30
+#endif
+
+  start_speed   = 0
+  start_heading = 180
+  //drift_y       = -0.5
+
+  prefix        = NAV
+  turn_rate     = 60 // actually was 36 due to bug
+  thrust_map    = 0:0, 40:1, 100:2
+}
+
+//------------------------------------------
+// uXMS config block
+
+ProcessConfig = uXMS
+{
+  AppTick    = 4
+  CommsTick  = 4
+
+  VAR = DB_CLIENTS, NAV_LAT, NAV_LONG
+	var = NAV_HEADING, NAV_SPEED
+  VAR = USH_RAW_NMEA
+
+	display_source = true
+	display_time = true
+	
+	source = uSimHeron
+	source = uSimMarine
+}
+
+//------------------------------------------                                    
+// uProcessWatch config block                                                   
+
+ProcessConfig = uProcessWatch
+{
+  AppTick   = 4
+  CommsTick = 4
+
+  summary_wait = 5
+
+  nowatch   = uXMS*
+  nowatch   = uMAC*
+  nowatch   = uPokeDB*
+  watch_all = true
+}
+
+	
+

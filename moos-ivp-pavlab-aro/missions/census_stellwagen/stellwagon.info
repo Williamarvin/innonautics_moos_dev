@@ -1,0 +1,14 @@
+// Generated with Anaxi Tile Downloader
+lat_north= 42.940339233631825
+lat_south= 41.836827860727134
+lon_east= -69.609375
+lon_west= -71.19140625
+datum_lat = 42.358436
+datum_lon = -71.087448
+//tileStartX= 1238
+//tileStartY= 1506
+//tileEndX= 1255
+//tileEndY= 1522
+//zoom= 12
+//numTiles= 306
+//cmd= tsdl.py 41.9247 -71.141 42.8832 -69.718 12 https://b.tile.openstreetmap.fr/hot/%zoom%/%xTile%/%yTile%.png

@@ -1,0 +1,15 @@
+//--------------------------------------------------
+// pHostInfo config block
+
+ProcessConfig = iSeaTracX150V0 
+{
+  AppTick   = 4 
+  CommsTick = 4
+
+  x_input = NAV_X
+  y_input = NAV_Y
+  heading_input_imu = NAV_HDG_IMU
+  heading_input_gps = NAV_HDG_GPS
+  serial_device = /dev/ttyS0
+}
+

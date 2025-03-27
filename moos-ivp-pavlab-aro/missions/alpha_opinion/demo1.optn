@@ -1,0 +1,78 @@
+// Configuration file for pOpinionManager
+// The vehicle's opinion for every option is configured below
+//
+// General assumptions for reasonable group behavior:
+// gamma - delta > 0 : Cooperative
+// gamma - delta < 0 : Competitive
+// alpha >= 0
+// beta  < 0
+
+
+social_option
+{
+   name = perim_search
+   option_output = OPTION=PERIM_SEARCH
+   resistance_weight = 1
+   social_mode = custom   
+   intra_agent_same_option_coupling = 0.4  // Self reinforcement  (alpha)
+   intra_agent_inter_option_coupling = fwd_scout = -0.4     //  (beta)
+   intra_agent_inter_option_coupling = guard_base = -0.4     //  (beta)	
+   inter_agent_same_option_coupling = -0.4  // influence of others (gamma)
+   inter_agent_inter_option_coupling = fwd_scout = 0.20     //  (delta)
+   inter_agent_inter_option_coupling = guard_base = -0.5     //  (delta)
+   input = PERIMETER_INPUT
+   input_gain = 1.0
+   input_function_type = none
+   input_max  = 100
+   input_min  = 0
+   active_condition = DEPLOY=true    // default options is 'always'
+}
+
+
+social_option
+{
+   name = fwd_scout
+   option_output = OPTION=FWD_SCOUT
+   resistance_weight = 1
+   social_mode = custom
+   intra_agent_same_option_coupling = 0.4  // self reinforcement
+   intra_agent_inter_option_coupling = perim_search = -0.4
+   intra_agent_inter_option_coupling = guard_base = -0.4     //  (beta)		
+   inter_agent_same_option_coupling = -0.4  // influence of others  
+   inter_agent_inter_option_coupling = perim_search = 0.20
+   inter_agent_inter_option_coupling = guard_base = -0.45     //  (delta)	
+   input = SCOUT_INPUT
+   input_function_type = none
+   input_max  = 100
+   input_min  = 0
+   input_gain = 1.0	
+   active_condition = DEPLOY=true    // default options is 'always'
+}
+
+social_option
+{
+   name = guard_base
+   resistance_weight = 1
+   social_mode = custom
+   intra_agent_same_option_coupling = 1.0  // self reinforcement
+   intra_agent_inter_option_coupling = fwd_scout = 0.0     //  (beta)
+   intra_agent_inter_option_coupling = perim_search = 0.0
+   inter_agent_same_option_coupling = 2.0  // influence of others  
+   inter_agent_inter_option_coupling = perim_search = 0.00
+   inter_agent_inter_option_coupling = fwd_scout = 0.00     //  (delta)
+   option_output = OPTION=GUARD_BASE
+   input = DANGER_LEVEL
+   input_function_type = none
+   input_max  = 100
+   input_min  = 0
+   input_gain = 10.0
+}
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,9 @@
+//------------------------------------------------
+// uChangeMyName config block
+
+ProcessConfig = uChangeMyName
+{
+   AppTick   = 4
+   CommsTick = 4
+}
+

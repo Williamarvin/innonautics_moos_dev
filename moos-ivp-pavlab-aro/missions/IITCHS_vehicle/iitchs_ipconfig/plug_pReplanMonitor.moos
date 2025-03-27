@@ -1,0 +1,6 @@
+ProcessConfig = pReplanMonitor                                 
+{
+    AppTick	=1
+    CommsTick	= 1
+
+} 

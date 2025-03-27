@@ -1,0 +1,145 @@
+//---------------------------------------------------
+// Helm Behavior file 
+
+initialize   DEPLOY  = false
+initialize   RETURN  = false
+initialize   STATION_KEEP = false
+initialize   SURVEY  = true
+initialize   AVOID   = true
+initialize   SAFETY  = true
+
+set MODE = ACTIVE {
+  DEPLOY = true
+} INACTIVE
+
+set MODE = STATION-KEEPING {
+  MODE = ACTIVE
+  STATION_KEEP = true
+}                       
+
+set MODE = RETURNING {
+  MODE = ACTIVE
+  RETURN = true
+} 
+
+set MODE = SURVEYING {
+  MODE = ACTIVE
+  SURVEY = true
+} 
+
+//----------------------------------------------
+
+Behavior = BHV_Waypoint
+{ 
+  name      = waypt_survey
+  pwt       = 100
+  condition = RETURN = false
+  condition = (STRIKE_REPORT != STRIKE-evader)
+  condition = DEPLOY = true
+  condition = SURVEY = true
+  endflag   = RETURN = true
+
+  updates    = WPT_UPDATE
+  perpetual  = true
+
+                lead = 8
+         lead_damper = 1
+       lead_to_start = true
+           speed = 4   // meters per second
+        capture_line = true
+      capture_radius = 5.0
+         slip_radius = 15.0
+	efficiency_measure = all
+
+	           polygon = 60,-40 : 60,-160 : 150,-160 : 180,-100 : 150,-40
+             order = normal
+             repeat  = 3
+
+    visual_hints = nextpt_color=yellow
+    visual_hints = nextpt_vertex_size=8
+    visual_hints = nextpt_lcolor=gray70
+    visual_hints = vertex_color=dodger_blue, edge_color=white
+    visual_hints = vertex_size=5, edge_size=1
+}
+
+//----------------------------------------------
+Behavior = BHV_Waypoint
+{
+  name      = waypt_return
+  pwt       = 100
+  updates   = RETURN_UPDATES
+  condition = MODE==RETURNING
+  activeflag = STATION_KEEP = false
+  endflag   = STATION_KEEP = true
+  //endflag   = AVOID = false
+
+      speed = 4.0
+     radius = 3.0
+  nm_radius = 15.0
+     points = $(START_POS)
+     repeat = 10
+       lead = 8
+}
+
+//----------------------------------------------
+Behavior = BHV_StationKeep
+{
+  name         = station-keep
+  pwt          = 100
+  condition    = (MODE==STATION-KEEPING) or ((STRIKE_REPORT=STRIKE-evader) and (RETURN=false))
+  inactiveflag = STATIONING = false
+  activeflag   = STATIONING = true
+  activeflag   = STATION_KEEP = true
+  activeflag   = SURVEY     = false
+  //activeflag   =  AVOID     = false
+
+     center_activate = true
+        inner_radius = 5
+        outer_radius = 10 
+         outer_speed = 1.0
+
+       transit_speed = 1.3
+          swing_time = 7
+        visual_hints = vertex_size=0, edge_color=gray50
+}
+
+//----------------------------------------------
+
+Behavior = BHV_OpRegion
+ {
+   // General Behavior Parameters
+   // ---------------------------
+   name         = op_region                 // example
+   pwt          = 100                       // default
+   condition    = SAFETY=true               // example
+   condition    = RETURN=false
+   updates      = OPREGION_UPDATES          // example
+
+   // Parameters specific to this behavior
+   // ------------------------------------
+                  max_time = 0              // default (seconds)
+                 max_depth = 0              // default (meters)
+              min_altitude = 0              // default (meters)
+                 reset_var = OPREGION_RESET // example
+        trigger_entry_time = 1              // default (seconds)
+         trigger_exit_time = 0.5            // default (seconds) 
+
+                   polygon = pts={20,0:20,-200:190,-200:220,-140: 190, 0}, label=area_x
+
+		    //polygon = 60,-40 : 60,-160 : 150,-160 : 180,-100 : 150,-40
+
+    breached_altitude_flag = SAY_MOOS = Sir, the min altitude has been excceded
+       breached_depth_flag = SAY_MOOS = Sir, the max depth has been excceded
+        breached_poly_flag = SAY_MOOS = Sir, the op region has been violated
+        breached_time_flag = SAY_MOOS = Sir, the maximum mission time has been exceeded
+
+              visual_hints = vertex_color = brown  // default
+              visual_hints = vertex_size  = 3      // default
+              visual_hints = edge_color   = aqua   // default
+              visual_hints = edge_size    = 1      // default
+ }
+ 
+ //----------------------------------------------
+
+
+

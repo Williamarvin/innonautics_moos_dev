@@ -1,0 +1,8 @@
+ProcessConfig = uTimerScript                                    
+{
+	AppTick      = 2
+	CommsTick    = 2
+	paused        = false
+
+	event = var=RUN_CS_RUN, val="true" , time=5
+}  

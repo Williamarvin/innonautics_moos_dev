@@ -1,0 +1,55 @@
+//--------    FILE: meta_vehicle.bhv   -------------
+
+initialize   DEPLOY = false
+initialize   RETURN = false
+initialize   AVOIDING = idle
+//initialize   DRIFT_X = 0.5
+//initialize   DRIFT_Y = 0.7
+
+// //----------------------------------------------
+Behavior = BHV_SailSurvey
+{ 
+  name      = sailsurvey
+  pwt       = 100
+  condition = RETURN = false
+  condition = DEPLOY = true
+
+  pattern_width = 25
+  performance_grid_spacing = 5
+  performance_visuals = active
+
+}
+
+//----------------------------------------------
+Behavior=BHV_Waypoint
+{
+  name       = waypt_return
+  pwt        = 100
+  condition  = RETURN = true
+  condition  = DEPLOY = true
+  perpetual  = true
+  updates    = RETURN_UPDATE
+  endflag    = RETURN = false
+  endflag    = DEPLOY = false
+  endflag    = MISSION = complete
+
+	endflag   = EFLAG  = r_endings=$[CTR_02]
+	cycleflag = CFLAG  = r_cyles=$[CTR_01]
+	wptflag   = WFLAG  = r_waypoints=$[CTR]
+
+      lead_condition = AVOIDING != active
+
+                lead = 8
+         lead_damper = 1
+       lead_to_start = true
+
+           speed = 2.0
+  capture_radius = 2.0
+     slip_radius = 8.0
+#ifdef REGION pavlab    
+          point = 0,-20
+#else
+          point = 0, 0
+#endif          
+ }
+

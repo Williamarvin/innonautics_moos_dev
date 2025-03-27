@@ -1,0 +1,47 @@
+//------------------------------------------------
+// iHydroMAN_IvPExtend config block
+
+ProcessConfig = iHydroMAN_IvPExtend
+{
+   AppTick   = 4
+   CommsTick = 4
+
+   LatOrigin = 42.358436
+   LongOrigin = -71.087448
+
+   hydroman_gateway_port = 1101
+   hydroman_gateway_ip = 127.0.0.1
+
+   // *********************************************************************************************
+   // OWNSHIP NAVIGATION RELATED
+   // *********************************************************************************************
+
+   gps_expiration_time = 5
+
+   // Prefixes of the ownship sensor data messages, which will be sent to HydroMAN
+   prefix_gps_msg = GPS_
+   prefix_imu_msg = IMU_
+   prefix_compass_msg = COMPASS_
+   prefix_actuator_msg = PYDIR_THRUST_
+
+   // Prefixes for nav and target nav output provided by HydroMAN
+   // Msg style eg: "prefix_nav_data" + X/Y/LAT/LONG/HEADING
+   prefix_nav_output = HYDROMAN_NAV_           
+
+   // *********************************************************************************************
+   // TARGET VEHICLE NAVIGATION RELATED 
+   // *********************************************************************************************
+
+   //target_vehicles=JING,KIRK,IDA,GUS
+   //ownship_name=JING
+
+   // Prefixes of the target vehicle sensor data messages, which will be sent to HydroMAN
+   // Msg style eg: "range_msg" 
+   range_msg = CRS_RANGE_REPORT
+   bearing_msg = CRS_BEARING_REPORT
+   track_msg = UNIT_TRACK_IN
+
+   // Msg style eg: "prefix_target_nav_output" + "target_name" + X/Y/LAT/LONG/HEADING
+   prefix_target_nav_output = HYDROMAN_TARGET_NAV_  
+}
+

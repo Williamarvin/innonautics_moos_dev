@@ -1,0 +1,9 @@
+//------------------------------------------------
+// pBathyPath config block
+
+ProcessConfig = pBathyPath
+{
+   AppTick   = 4
+   CommsTick = 4
+}
+

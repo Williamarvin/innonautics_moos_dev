@@ -1,0 +1,51 @@
+//-------------------------------------------------
+// NAME: B. Cole, MIT
+// FILE: serial.moos
+//-------------------------------------------------
+ServerHost   = localhost
+ServerPort   = 9000
+Community    = alpha
+
+//------------------------------------------
+// Antler configuration  block
+
+ProcessConfig = ANTLER
+{
+  MSBetweenLaunches = 600
+  Run = MOOSDB      @ NewConsole = false
+  Run = iSerial     @ NewConsole = false
+  Run = uXMS        @ NewConsole = true
+}
+
+//------------------------------------------------
+// uFldAIS config block
+
+ProcessConfig = iSerial
+{
+  AppTick   = 10
+  CommsTick = 10
+
+  // dAISyHAT
+  //SERIAL_PORT    = /dev/serial0
+  //SERIAL_BAUD    = 38400
+
+  // Arduino
+  //SERIAL_PORT    = /dev/ttyACM0
+  //SERIAL_PORT    = /dev/tty.usbmodem14201
+  SERIAL_PORT      = /dev/tty.usbmodem14101
+  
+  SERIAL_BAUD      = 9600
+  
+  MOOS_PUB_VAR   = SERIAL_RAW
+}
+  
+//------------------------------------------
+// uXMS config block
+
+ProcessConfig = uXMS
+{
+  AppTick    = 10
+  CommsTick  = 10
+
+  VAR = SERIAL_RAW
+}

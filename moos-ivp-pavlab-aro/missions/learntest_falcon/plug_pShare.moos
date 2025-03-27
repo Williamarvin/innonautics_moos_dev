@@ -1,0 +1,15 @@
+//---------------------------------------------------------
+// pShare Config Block
+
+ProcessConfig = pShare
+{
+  AppTick    = 2
+  CommsTick  = 2
+
+  input = route =  $(IP_ADDR):$(PSHARE_PORT)
+  
+#ifdef SHARE_AUX true
+  Output = src_name=NAV_FULL_POS, dest_name=NAV_FULL_POS_$(VNAME), route = $(AUX_SHARE_CONFIG)
+  Output = src_name=NAV_FULL_STATE, dest_name=NAV_FULL_STATE_$(VNAME), route = $(AUX_SHARE_CONFIG)
+#endif
+}

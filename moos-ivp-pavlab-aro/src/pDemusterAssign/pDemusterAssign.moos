@@ -1,0 +1,9 @@
+//------------------------------------------------
+// pDemusterAssign config block
+
+ProcessConfig = pDemusterAssign
+{
+   AppTick   = 4
+   CommsTick = 4
+}
+

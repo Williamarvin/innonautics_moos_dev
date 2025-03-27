@@ -1,0 +1,36 @@
+Format: "--config=[start:increment:end]" (start and end are included)
+Any lines not starting with "-" will not be considered
+Do not have "_" in the config name
+
+#--vnum=[2:1:10]
+#--turnRadius=[1.5]
+#--turnRadius=[1.5:1.5:9]
+#--projectFirst=false
+#--projectFirst=true
+
+#--assAlg=worst
+#--assAlg=random
+#--assAlg=greedy
+#--assAlg=hungarian_ext
+
+#--assMet=distance
+#--assMet=heading
+
+#--headDistWeight=[0.1:0.1:0.9]
+#--tempBlockLimit=[1:1:5]
+#--tempBlockLimit=100
+#--turnInPlace=true
+#--turnInPlace=false
+
+#--useDynamicSpeed=true
+#--useDynamicSpeed=false
+#--dthMin=4
+#--dthMin=15
+
+#--fhType=input
+#--fhType=average
+
+--mode=decluster
+--mode=simultaneous
+--mode=deploy
+#--mode=sequential

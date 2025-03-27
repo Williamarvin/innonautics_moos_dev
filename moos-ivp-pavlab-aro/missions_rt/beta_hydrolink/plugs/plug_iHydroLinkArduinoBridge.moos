@@ -1,0 +1,13 @@
+//------------------------------------------------
+//iHydroLinkArduinoBridge config block
+ProcessConfig = iHydroLinkArduinoBridge
+{
+			AppTick   = 4
+			CommsTick = 4
+					baud_rate = 115200
+			   heading_offset = 0
+						 port = /dev/ttyACM0
+						debug = true 
+				filtering_gps = true 
+	 gps_filter_time_constant = 1
+}

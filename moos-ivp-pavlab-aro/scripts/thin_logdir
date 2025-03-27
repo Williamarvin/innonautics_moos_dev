@@ -1,0 +1,155 @@
+#!/bin/bash
+
+#-------------------------------------------------------------- 
+#   Script: thin_logdir
+#   Author: Raymond Turrisi
+#   LastEd: Nov 25 2023
+# Useage: 
+#   Pass an agent log directory to trim it up. 
+#   i.e. $ thin_logdir LOG_DEB_25_11_2023_____23_02_52
+# 
+# Intent: 
+#  Typically reduces log files to 1/5 of what they were, without 
+#  affecting variables which will affect analysis. This also means
+#  a 5x speed up in data transfer time, which was the main motivator. 
+#  This script is only intended to be a "good enough" solution for most 
+#  people - not a catch all. Purely for convenience. 
+#
+# Contributing/Changing: 
+#  As a group - if you find yourself using this script and wish 
+#  to modify it, remove things which DO affect your analysis as 
+#  long as it isn't extremely niche - if it is niche - you should probably
+#  just fork this script. 
+#  Things from this list should only include extraneous messages 
+#  included in runtime overhead, and contribute absolutely nothing 
+#  useful to an analysis which describes a vehicles runtime performance/behavior. 
+#  DO NOT Add things without a email to other known users, since 
+#  an assumption may render serious consequences to another user
+#  In short
+#   1) Remove variables from this list freely
+#   2) Add variables VERY sparingly
+#-------------------------------------------------------------- 
+
+# Check if the argument is provided
+if [ "$#" -ne 1 ]; then
+    echo "<thin_logdir> Usage: $0 <directory>"
+    exit 1
+fi
+
+directory=$1
+
+# Check if the directory exists
+if [ ! -d "$directory" ]; then
+    echo "<thin_logdir> Error: Directory $directory does not exist."
+    exit 1
+fi
+
+rm -rf $directory/*.blog $directory/*.ylog
+
+deletions_iters="\
+    PHOSTINFO_ITER_GAP \
+    PHOSTINFO_ITER_LEN \
+    UPROCESSWATCH_ITER_GAP \
+    UPROCESSWATCH_ITER_LEN \
+    UFLDSHOREBROKER_ITER_GAP \
+    UFLDSHOREBROKER_ITER_LEN \
+    IVPHELM_ITER \
+    *_ITER_LEN \
+    *_ITER_GAP \
+    PREALM_ITER_GAP \
+    PREALM_ITER_LEN \
+    UFLDTASKMONITOR_ITER_GAP \
+    UFLDTASKMONITOR_ITER_LEN \
+    UXMS_838_ITER_GAP \
+    UXMS_838_ITER_LEN \
+    UFLDCOLLISIONDETECT_ITER_GAP \
+    UFLDCOLLISIONDETECT_ITER_LEN \
+    USIMMARINEV22_ITER_GAP \
+    USIMMARINEV22_ITER_LEN \
+    PMARINEPID_ITER_LEN \
+    PMARINEPID_ITER_GAP \
+"
+deletions_appstatus="\
+    UMEMWATCH_STATUS \
+    PREALM_STATUS \
+    PLOGGER_STATUS \
+    PNODEREPORTER_STATUS \
+    PCONTACTMGRV20_STATUS \
+"
+
+deletions_helm="\
+    IVPHELM_LOOP_CPU \
+    IVPHELM_CREATE_CPU \
+    IVPHELM_TOTAL_PCS_CACHED \
+    IVPHELM_TOTAL_PCS_FORMED \
+    IVPHELM_IPF_CNT \
+    IVPHELM_SUMMARY \
+    IVPHELM_CPU \
+    IVPHELM_UPDATE_RESULT \
+"
+
+deletions_other="\
+    DB_EVENT \
+    DB_CLIENTS \
+    DB_UPTIME \
+    DB_TIME \
+    LOGGER_DIRECTORY \
+    APPCAST \
+    PSHARE_INPUT_SUMMARY \
+    PSHARE_OUTPUT_SUMMARY \
+    APPCAST_REQ \
+    ACK_MESSAGE \
+    ACK_MESSAGE_LOCAL \
+    OPR_TRAJECTORY_PERIM_ETA \
+    UMH_SUMMARY_MSGS \
+    APP_LOG \
+    PROC_WATCH_TIME_WARP \
+    PROC_WATCH_EVENT \
+    PROC_WATCH_ALL_OK \
+    DB_RWSUMMARY \
+    PROC_WATCH_SUMMARY \
+    PROC_WATCH_FULL_SUMMARY \
+    HELM_MAP_CLEAR \
+    PNODEREPORTER_PID \
+    UFLDNODEBROKER_PID \
+    PSHARE_CMD \
+    LOGGER_DIRECTORY \
+    PID_REPORT \
+    UMH_SUMMARY_MSGS \
+    NODE_BROKER_ACK \
+    NODE_PSHARE_VARS \
+    HELM_MAP_CLEAR \
+    REALMCAST_CHANNELS \
+    IVPHELM_REGISTER \
+    PCONTACTMGRV20_PID \
+    PNR_EXTRAP_POS_GAP \
+    PNR_EXTRAP_HDG_GAP \
+    BHV_IPF \
+    BHV_EVENT \
+    OPR_DEBUG \
+    COMMS_POLICY \
+    PLOGGER_CMD \
+    TM_ALERT_REQUEST \
+    BCM_ALERT_REQUEST \
+    MOOS_DEBUG \
+    HM_SIZE \
+    MEDIATED_MESSAGE \
+    MEDIATED_MESSAGE* \
+    MEDIATED_MESSAGE_LOCAL \
+    PNR_POST_GAP \
+    OPR_ABSOLUTE_PERIM_DIST \
+    OPR_ABSOLUTE_PERIM_ETA \
+    ALERT_VERBOSE \
+    UFSB_BRIDGE_VARS \
+    DB_QOS \
+    ACK_MESSAGE_* \
+    NODE_BROKER_PING \
+    "
+deletions="${deletions_iters} ${deletions_appstatus} ${deletions_helm} ${deletions_other}"
+
+for alog in $directory/*.alog; do 
+    alog=$(echo "$alog" | sed 's:/\+:/:g')
+    mv $alog ${alog}-old
+    alogrm -f -q --clean ${alog}-old $deletions $alog
+    rm ${alog}-old
+done 

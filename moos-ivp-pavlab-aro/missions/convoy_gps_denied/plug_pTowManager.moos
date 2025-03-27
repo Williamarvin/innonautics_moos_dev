@@ -1,0 +1,11 @@
+//----------------------------------------------------
+// pTowManager Config Block  
+
+ProcessConfig = pTowManager
+{
+  AppTick    = 4
+  CommsTick  = 4
+
+	ownship = $(VNAME)
+}
+	

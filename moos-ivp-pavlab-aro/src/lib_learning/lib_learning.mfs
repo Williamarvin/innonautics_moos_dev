@@ -1,0 +1,17 @@
+module   = lib_learning
+type     = Library
+author   = Tyler Paine
+contact  = tpaine@mit.edu
+org      = MIT
+thumb    = A library of basic learning algorithms which are direct
+           implementations of published research work by others.
+depends  = BLAS, LAPACK, Armadillo
+	   
+borndate = 210601
+doc_url  =  https://oceanai.mit.edu/svn/moos-ivp-pavlab-aro/src/lib_learning
+license  = GPL
+distro   = moos-ivp.org
+synopsis = Library contains C++ classes for algorithms such as shallow recurrent nueral
+  networks, adaptive identification, Gaussian process regression, Kalman consensus,
+  and recursive least squares.  These classes are all implementations or replications
+  of previous publications by others as cited in the codebase. 

@@ -1,0 +1,18 @@
+//------------------------------------------------
+// pFalconRunMgr config block
+
+ProcessConfig = pFalconRunMgr
+{
+   AppTick   = 4
+   CommsTick = 4
+
+   midpoint_flag_var_name = MIDFLAG       // does not check for distance
+   loop_id_var_name       = START_LOOP    // "id=2"
+
+   loops_before_inducing_fault = 2
+   loops_before_changing_rad   = 4
+
+   fault_msg = SIM_THR_FAULT_L = 0.5
+   rad_change_msg = LEG_UPDATE=turn_rad_mod=-10
+}
+

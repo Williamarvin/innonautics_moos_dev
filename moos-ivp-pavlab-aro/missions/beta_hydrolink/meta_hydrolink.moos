@@ -1,0 +1,63 @@
+ServerHost = localhost
+ServerPort = $(MOOS_PORT)
+Community  = $(VNAME)
+
+//------------------------------------------------------------
+ProcessConfig = ANTLER
+{
+  MSBetweenLaunches = 100
+
+  Run = MOOSDB                      @ NewConsole = false
+  Run = uProcessWatch               @ NewConsole = false
+  Run = pShare                      @ NewConsole = false
+  #ifdef LOGGING TRUE
+  Run = pLogger                     @ NewConsole = false
+  #endif
+  Run = pNodeReporter               @ NewConsole = false
+  Run = pHostInfo                   @ NewConsole = false
+  Run = uFldNodeBroker              @ NewConsole = false
+  Run = pDeadManPost                @ NewConsole = false
+  Run = pRealm                      @ NewConsole = false
+  Run = uFldMessageHandler          @ NewConsole = false
+
+  #ifdef XMODE SIM
+    Run = uSimMarineV22               @ NewConsole = false
+  #elseifdef XMODE REAL
+    Run = iHydroLinkArduinoBridge     @ NewConsole = false
+    Run = iSeaTracX150V0              @ NewConsole = false
+  #endif
+}
+
+//--------------------------------------------------
+// uFldNodeBroker Config Block
+
+ProcessConfig = uFldNodeBroker
+{
+  AppTick   = 1
+  CommsTick = 1
+
+  try_shore_host = pshare_route=$(SHORE_IP):$(SHORE_PSHARE)
+
+  bridge = src=VIEW_POLYGON
+  bridge = src=VIEW_POINT
+  bridge = src=VIEW_SEGLIST
+  bridge = src=VIEW_CIRCLE
+  bridge = src=APPCAST
+  bridge = src=NODE_REPORT_LOCAL,  alias=NODE_REPORT
+  bridge = src=NODE_MESSAGE_LOCAL, alias=NODE_MESSAGE
+}
+
+#include plugs/plug_origin_warp.moos
+#include plugs/plug_pNodeReporter.moos
+#include plugs/plug_iHydroLinkArduinoBridge.moos
+#include plugs/plug_iSeaTracX150V0.moos
+#include plugs/plug_pShare.moos
+#include plugs/plug_pLogger.moos
+#include plugs/plug_pHostInfo.moos
+#include plugs/plug_uProcessWatch.moos
+#include plugs/plug_pDeadManPost.moos
+#include plugs/plug_uFldMessageHandler.moos
+
+#ifdef XMODE SIM
+  #include plugs/plug_uSimMarineV22.moos
+#endif

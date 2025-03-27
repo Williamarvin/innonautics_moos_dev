@@ -1,0 +1,9 @@
+//-------------------------------------------------------------
+ProcessConfig = pProxonoi2                                      
+{                                                               
+  AppTick   = 2
+  CommsTick = 2                                                 
+                                                                
+  region = $(COVER_REGION)
+  ignore_name=ADVERSARY																																
+}                                            

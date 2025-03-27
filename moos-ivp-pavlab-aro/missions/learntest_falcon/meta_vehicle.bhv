@@ -1,0 +1,236 @@
+//*******************************************************
+// Vehicle behavior configuration file
+
+initialize   DEPLOY = false
+initialize   RETURN = false
+initialize   STATION_KEEP = false
+initialize   HEADING_ID = false
+initialize   START_LINE_DONE = false
+initialize   STRAIGHT_LINE_DONE = false
+
+
+set MODE = ACTIVE {
+  DEPLOY = true
+} INACTIVE
+
+set MODE = STATION-KEEPING {
+  MODE = ACTIVE
+  STATION_KEEP = true
+}
+
+set MODE = HEADING_ID {
+  MODE = ACTIVE
+  RETURN = false
+  HEADING_ID = true
+}
+
+set MODE = STRAIGHT_LINE {
+  MODE = ACTIVE
+  RETURN = false
+  STRAIGHT_LINE = true
+}
+
+set MODE = RETURNING {
+  MODE = ACTIVE
+  RETURN = true
+} TRAVERSING
+
+	
+//----------------------------------------------
+Behavior = BHV_Waypoint
+{
+  name      = waypt_survey
+  pwt       = 100
+  condition = MODE==TRAVERSING
+  endflag   = RETURN = true
+
+  updates   = WPT_UPDATE
+  perpetual = true
+
+                lead = 8
+         lead_damper = 1
+       lead_to_start = true
+              speed = 1  // meters per second
+	      
+        capture_line = true
+      capture_radius = 2
+         slip_radius = 10
+	efficiency_measure = all
+
+	// Bigger home plate
+  // polygon = pts={-17,-26:52,1:69,-40:41,-67:1,-68} 
+
+
+	// Smaller home plate zones
+#ifdef ZONE east
+       //  polygon = pts={38,-37:64,-32:77,-16:59,11:23,-3}
+#elseifdef ZONE west
+       //  polygon = pts={-18,-30:-9,-57:16,-55:30,-42:12,-14}
+#else
+       //   polygon = pts={-2,-21:44,-2:56,-29:37,-48:10,-49}
+       //     order = reverse
+#endif
+	
+          repeat = 10
+	  
+       // Close lawn
+        points = format=lawnmower, label=foxtrot, x=45, y=-50, height=60, width=180, lane_width=15, rows=east-west, startx=0, starty=0, degs=-20
+
+       // Far lawn
+//      points = format=lawnmower, label=foxtrot, x=92, y=-176, height=60, width=180, lane_width=15, rows=east-west, startx=0, starty=0, degs=-20
+
+
+    visual_hints = nextpt_color=yellow
+    visual_hints = nextpt_vertex_size=8
+    visual_hints = nextpt_lcolor=gray70
+    visual_hints = vertex_color=dodger_blue, edge_color=white
+    visual_hints = vertex_size=5, edge_size=1
+}
+
+//----------------------------------------------
+Behavior=BHV_Waypoint
+{
+  name       = waypt_return
+  pwt        = 100
+  condition  = MODE==RETURNING
+  perpetual  = true
+  updates    = RETURN_UPDATE
+  endflag    = RETURN = false
+  endflag    = DEPLOY = false
+  endflag    = MISSION = complete
+
+	   speed = 1
+  capture_radius = 2.0
+     slip_radius = 8.0
+
+#ifdef ZONE east
+  points = 18,0
+#elseifdef ZONE west
+  points = 8,-6
+#else
+  points = 0,-10
+#endif
+
+ }
+
+//----------------------------------------------
+Behavior = BHV_StationKeep
+{
+  name         = station-keep
+  pwt          = 100
+  condition    = MODE==STATION-KEEPING
+
+     center_activate = true
+        inner_radius = 5
+        outer_radius = 10
+         outer_speed = 1.0
+
+       transit_speed = 0.5
+          swing_time = 7
+        visual_hints = vertex_size=0, edge_color=gray50
+}
+
+//----------------------------------------------
+Behavior = BHV_Waypoint
+{
+  name      = waypt_start_line
+  pwt       = 100
+  condition = MODE==HEADING_ID
+  condition = START_LINE_DONE==false
+  endflag   = START_LINE_DONE=true
+  endflag   = STRAIGHT_LINE=true
+
+  updates   = WPT_UPDATE
+  perpetual = true
+
+                lead = 8
+         lead_damper = 1
+       lead_to_start = true
+              speed = 1 // meters per second
+	      
+        capture_line = true
+      capture_radius = 2
+         slip_radius = 5
+	efficiency_measure = all
+
+	// Initial start line for heading ID, further west
+	//points = -87,-104:-77,-104:-67,-104
+
+	// new start line for heading ID
+	//points = 100,-146:110,-146:120,-146
+  points = -80,-140:-70,-140:-60,-140
+          //repeat = 1
+
+
+    visual_hints = nextpt_color=yellow
+    visual_hints = nextpt_vertex_size=8
+    visual_hints = nextpt_lcolor=gray70
+    visual_hints = vertex_color=dodger_blue, edge_color=white
+    visual_hints = vertex_size=5, edge_size=1
+}
+
+//----------------------------------------------
+Behavior = BHV_Waypoint
+{
+  name      = waypt_straight_line
+  pwt       = 100
+  condition = START_LINE_DONE==true
+  endflag   = STRAIGHT_LINE_DONE=true
+
+  updates   = WPT_UPDATE
+  perpetual = true
+
+                lead = 8
+         lead_damper = 1
+       lead_to_start = true
+              speed = 1 // meters per second
+	      
+        capture_line = true
+      capture_radius = 2
+         slip_radius = 5
+	efficiency_measure = all
+
+	// Initial start line for heading ID, further west
+	//points = -87,-104:-77,-104:-67,-104
+
+	// new start line for heading ID
+	//points = 100,-146:110,-146:120,-146
+  points = -60,-140:70,-140:200,-140:330,-140:460,-140
+          //repeat = 1
+
+
+    visual_hints = nextpt_color=yellow
+    visual_hints = nextpt_vertex_size=8
+    visual_hints = nextpt_lcolor=gray70
+    visual_hints = vertex_color=dodger_blue, edge_color=white
+    visual_hints = vertex_size=5, edge_size=1
+}
+
+Behavior = BHV_OpRegion
+ {
+   // General Behavior Parameters
+   // ---------------------------
+   name         = op_region                 // example
+   pwt          = 100                       // default
+   condition    = MODE==HEADING_ID          // example
+   updates      = OPREGION_UPDATES          // example
+
+   // Parameters specific to this behavior
+   // ------------------------------------
+                  max_time = 0              // default (seconds)
+                 max_depth = 0              // default (meters)
+              min_altitude = 0              // default (meters)
+                 reset_var = OPREGION_RESET // example
+        trigger_entry_time = 1              // default (seconds)
+         trigger_exit_time = 0.5            // default (seconds) 
+
+                   //polygon = pts={-173,-109:-67,-316:350,-253:304,37}, label=area_x
+		   polygon = pts={-173,-109:-67,-316:575,-239:502,99}, label=area_x
+
+        breached_poly_flag = SAY_MOOS = Sir, the op region has been violated
+
+              visual_hints = vertex_color = brown  // default
+              visual_hints = vertex_size  = 3      // default
+              visual_hints = edge_color   = aqua   // default
+              visual_hints = edge_size    = 1      // default
+ }

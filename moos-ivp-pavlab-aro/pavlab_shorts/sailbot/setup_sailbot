@@ -1,0 +1,7 @@
+#Run as source
+#i.e.
+# $ source setup_sailbot
+
+_path="$HOME/pavlab_shorts/sailbot/"
+
+export PATH="$PATH:$_path" 

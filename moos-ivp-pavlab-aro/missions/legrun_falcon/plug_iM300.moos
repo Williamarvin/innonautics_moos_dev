@@ -1,0 +1,67 @@
+//--------------------------------------------------------
+// iM300 Config Block
+	
+ProcessConfig = iM300
+{
+  AppTick    = 10
+  CommsTick  = 10
+
+	// iM300 needs to know the IP address of the M300 front seat
+	// computer, from the perspective of the PABLO. This is different
+	// than the IP of the front seat computer for users logging in from
+	// outside the vehicle.
+
+#ifdef XMODE SIM
+	comms_type = client
+ 	 port      = 29500
+	ip_addr    = $(IP_ADDR)
+#elseifdef XMODE M300
+	comms_type = client
+  	port       = 29500
+	ip_addr    = $(FSEAT_IP)
+#endif
+
+
+
+  warn_bad_nmea_len  = false   
+  warn_bad_nmea_form = false   
+	
+	stale_thresh = 2
+	stale_check_enabled = true
+	
+	max_rudder  = 50
+	max_thrust  = 100
+	drive_mode  = normal
+	ignore_msg  = $GPGLL, $GPGSV, $GPVTG, $GPZDA, $CPALT, $CPIMU, $GPGST, $GNGLL, $GNGSV, $GNVTG, $GNZDA, $GLGSV, $GNGSA, $GNTXT
+	ignore_checksum_errors = true
+
+	max_appcast_events       = 8
+  // max_appcast_run_warnings = 10
+
+	// heading_source options are gps, imu, or auto where auto uses imu
+	// when available and not timed out as defined in the
+	// stale_nave_msg_thresh parameter
+ 	heading_source = auto    
+
+	// threshold in seconds, default is 1.5
+	stale_gps_msg_thresh = 3
+	
+	nav_prefix 			= NAV
+	gps_prefix			= GPS
+	compass_prefix	= COMPASS
+
+	// Publish the body-relative velocities for adaptive controller
+	publish_body_vel = true
+	use_nvg_msg_for_nav_x_nav_y = false
+	
+	stale_compass_thresh = 1      // threshold for compass measurement
+			       	      // used in calc of body-relative vel
+	mag_declination_deg = -14.2   // Hack for now, should use a gps reference
+
+        add_thruster_fault_factor = true
+	fault_factor_thruster_l   = 1.0
+	fault_factor_thruster_r   = 1.0
+
+
+}
+

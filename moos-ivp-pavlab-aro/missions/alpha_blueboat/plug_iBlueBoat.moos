@@ -1,0 +1,20 @@
+//------------------------------------------------
+// iBlueBoat config block
+
+ProcessConfig = iBlueBoat
+{
+  AppTick   = 10
+  CommsTick = 10
+
+  drive_mode  = aggro
+
+  comms_type     = client
+  ip_addr        = 192.168.31.1     // frontseat IP address
+  port           = 29217          //
+  debug          = true
+
+  MAX_RUDDER     =  50.0          // Example
+  MAX_THRUST     = 100.0          // Example
+
+  max_appcast_events = 8          //default=8
+}

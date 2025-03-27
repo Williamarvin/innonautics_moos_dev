@@ -1,0 +1,29 @@
+alias sshaf="ssh administrator@$ABEF"
+alias ssha="ssh student2680@$ABEB"
+
+alias sshbf="ssh administrator@$BENF"
+alias sshb="ssh student2680@$BENB"
+
+alias sshcf="ssh administrator@$CALF"
+alias sshc="ssh student2680@$CALB"
+
+alias sshdf="ssh administrator@$DEBF"
+alias sshd="ssh student2680@$DEBB"
+
+alias sshef="ssh administrator@$EVEF"
+alias sshe="ssh student2680@$EVEB"
+
+alias sshff="ssh administrator@$FINF"
+alias sshf="ssh student2680@$FINB"
+
+alias sshmf="ssh administrator@$MAXF"
+alias sshm="ssh student2680@$MAXB"
+
+alias sshnf="ssh administrator@$NEDF"
+alias sshn="ssh student2680@$NEDB"
+
+alias sshof="ssh administrator@$OAKF"
+alias ssho="ssh student2680@$OAKB"
+
+alias sshpf="ssh administrator@$PIPF"
+alias sshp="ssh student2680@$PIPB"

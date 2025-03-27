@@ -1,0 +1,142 @@
+//*******************************************************
+// ShoreSide Configuration File
+
+ServerHost = localhost
+ServerPort = $(MOOS_PORT)
+Community  = shoreside
+
+#include plug_origin_warp.moos
+  
+//--------------------------------------------------------
+Processconfig = ANTLER
+{
+  MSBetweenLaunches = 100
+
+  Run = MOOSDB          @ NewConsole = false
+  Run = pRealm          @ NewConsole = false
+  Run = uProcessWatch   @ NewConsole = false
+  Run = pHostInfo       @ NewConsole = false
+
+  Run = pShare          @ NewConsole = false
+  Run = uFldShoreBroker @ NewConsole = false
+  Run = pMarineViewer   @ NewConsole = false
+  Run = pLogger         @ NewConsole = false
+}
+
+#include plug_pRealm.moos
+#include plug_uProcessWatch.moos
+#include plug_pHostInfo.moos
+
+//---------------------------------------------------------
+// pShare Config Block  (Created from Plugin)
+
+ProcessConfig = pShare
+{
+  AppTick    = 2
+  CommsTick  = 2
+
+  input = route =  $(IP_ADDR):$(PSHARE_PORT)
+}  
+
+//--------------------------------------------------
+// uFldShoreBroker Configuration Block
+
+ProcessConfig = uFldShoreBroker
+{
+  AppTick       = 1
+  CommsTick     = 1
+
+  // Note: [QBRIDGE = FOO]  is shorthand for                    
+  //       [BRIDGE = src=FOO_$V,  alias=FOO] and                
+  //       [BRIDGE = src=FOO_ALL, alias=FOO]
+
+	auto_bridge_appcast = true
+	
+  qbridge  = DEPLOY, RETURN, LOITER, STATION_KEEP, NODE_REPORT, NODE_MESSAGE
+  qbridge  = MOOS_MANUAL_OVERRIDE, AVOID, UP_LOITER
+  qbridge  = RETURN_UPDATES, BCM_DISPLAY_RADII
+  qbridge  = CONTACT_INFO
+
+  bridge   = src=UP_LOITER_$N, alias=UP_LOITER
+  bridge   = src=DRIFT_VECTOR_ADD, alias=DRIFT_VECTOR_ADD
+  bridge   = src=HELM_MAP_CLEAR, alias=HELM_MAP_CLEAR
+  bridge   = src=REGION_INFO,  alias=REGION_INFO
+}
+
+//--------------------------------------------------------
+ProcessConfig = pMarineViewer
+{
+  AppTick    = 4
+  CommsTick  = 4
+
+#ifdef REGION pavlab
+  tiff_file            = MIT_SP.tif
+#else
+  tiff_file            = forrest19.tif
+#endif
+  set_pan_x            = -90
+  set_pan_y            = -280
+  zoom                 = 1
+  vehicles_shape_scale = 1
+  vehicles_name_mode   = names+shortmode
+
+	watch_cluster = key=mission_top, vars=DEPLOY:RETURN
+	watch_cluster = key=mission_top, vars=STATION_KEEP:LOITER:AVOID
+	
+  circle_viewable_all = false
+
+	content_mode      = appcast       // or realmcast
+	realmcast_channel = mission_top
+	
+  appcast_color_scheme = indigo
+	appcast_font_size    = medium
+  procs_font_size      = medium
+  nodes_font_size      = large
+
+  stale_report_thresh = 2
+  stale_remove_thresh = 30
+
+	scope = REALMCAST_REQ
+	scope = REALMCAST_REQ_HENRY
+	
+  left_context[return_point] = RETURN_$[UP_VNAME_CLOSEST] = true
+  left_context[return_point] = RETURN_UPDATES_$[UP_VNAME_CLOSEST] = points=$[XPOS],$[YPOS]
+  left_context[station]      = STATION_KEEP_$[UP_VNAME_CLOSEST] = true
+	
+  button_one   = DEPLOY # DEPLOY_ALL=true 
+  button_one   = DEPLOY # MOOS_MANUAL_OVERRIDE_ALL=false 
+  button_one   = DEPLOY # LOITER_ALL=true
+  button_one   = DEPLOY # AVOID_ALL=true
+  button_one   = DEPLOY # RETURN_ALL=false
+  button_one   = DEPLOY # STATION_KEEP_ALL=false
+
+  button_two   = RETURN # RETURN_ALL=true
+  button_two   = RETURN # STATION_KEEP_ALL=false
+
+  button_three  = STATION:true  # STATION_KEEP_ALL=true
+  button_four   = STATION:false # STATION_KEEP_ALL=false
+}
+
+//--------------------------------------------------
+// pLogger Configuration Block
+
+ProcessConfig = pLogger
+{
+  AppTick       = 10
+  CommsTick     = 10
+  
+  File          = LOG_SHORESIDE
+  PATH          = ./
+  SyncLog       = true @ 0.2
+  AsyncLog      = true
+  FileTimeStamp = true
+
+  LogAuxSrc     = true
+
+  // Log it all!!!!!
+  WildCardLogging = true 
+
+  WildCardOmitPattern = *_STATUS
+  WildCardOmitPattern = DB_VARSUMMARY
+  //WildCardOmitPattern = DB_RWSUMMARY
+}

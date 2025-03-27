@@ -1,0 +1,86 @@
+
+
+Task Generated wpt01 PMV --> all
+  Task Accepted abe wpt01
+  Generated convoy01  --> ben, cal, deb 
+    Task Accepted ben convoy01
+    Generated
+
+
+
+Task [wpt01] PMV --> all
+Task [convoy01] abe --> ben,cal,deb
+Task [convoy02] ben --> cal,deb
+Task [convoy03] cal --> deb
+
+
+Task      Source  Exclude      To               Result
+--------  ------  -------      ---------------  ------
+wpt01     PMV                  abe,ben,cal,deb  [abe]
+convoy01  abe     abe          ben,cal,deb      [ben]
+convoy02  ben     abe,ben      cal,deb          [cal]
+convoy03  cal     abe,ben,cal  deb              [deb]
+
+
+
+Task      Source  To                   Result
+--------  ------  ---------------      ------
+wpt01     PMV     *abe,?ben,?cal,?deb  
+
+
+
+Recipient
+
+abe  : received, bid out, result noted
+*abe : maybe not received
++abe : received, bid out
+?abe : received, bid out, waiting for remaining bids
+
+
+
+
+
+
+
+Intervehicle Messaging:
+           
+          Local         Destination
+	  ------------  ----------- 
+abe->ben  TASK_OUR_BID  TASK_BID
+abe->cal  TASK_OUR_BID  TASK_BID
+abe->deb
+
+
+
+When a behavior receives a task bid, it (IvPTaskBehavior) publishes
+
+   TASK_BID_RCVD = id=wpt01, vname=abe, bid=23   (should add ownship=cal)?
+
+
+
+Vehicle receives MISSION_TASK
+ pTaskManager publishes TASK_WPT
+ TaskWaypoint publishes BCM_REPORT_REQUEST
+ ContagMgr    publishes CONTACTS_500
+ TaskWaypoint publishes TASK_OUR_BID=23
+                        NODE_MESSAGE_LOCAL --> ben TASK_BID=23
+                        NODE_MESSAGE_LOCAL --> cal TASK_BID=23
+                        NODE_MESSAGE_LOCAL --> deb TASK_BID=23
+
+
+(1) Task Manager has received the task
+(2) Task is of known type, and alert has been sent presumably for spawning
+
+Snooping
+(3) behavior has been spawned
+    bid has been sent
+    all bids received
+
+Result
+
+
+We would like pTaskManager on each vehicle to be sending the below status message to shoreside
+whenever any of the fields change value:
+----------------------------------------------------------------------------------------------
+TASKMGR_STATUS   taskid=wpt01, received=true, generated=true, bidsent=true, allbids=true, bidwon=true,
+                 flags_posted=2, xflags_posted=1

@@ -1,0 +1,6 @@
+ProcessConfig = pKalmanSolutionGen                              
+{                                                               
+  AppTick   = 4                                                 
+  CommsTick = 4                                                 
+                                                                                                                           
+} 

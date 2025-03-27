@@ -1,0 +1,17 @@
+//------------------------------------------------------
+// uSimMarine Config Block
+
+ProcessConfig = uSimMarine
+{
+  AppTick   = 10
+  CommsTick = 10
+
+  start_pos = $(START_POS)
+  prefix    = NAV
+
+  //rotate_speed = 0.012
+  //drift_x      = 0.0045
+
+  //thrust_map = -100:-2, 0:0, 20:1, 40:2, 60:3, 80:5, 100:5
+  thrust_map = -100:-1.4, 0:0, 20:0.1, 40:0.2, 60:0.7, 70:1.0, 80:1.5, 85:1.7, 90:1.8 100:1.8
+}

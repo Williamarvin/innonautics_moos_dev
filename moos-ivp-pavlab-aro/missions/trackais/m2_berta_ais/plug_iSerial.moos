@@ -1,0 +1,12 @@
+//------------------------------------------------
+// iSerial config block
+
+ProcessConfig = iSerial
+{
+  AppTick   = 10
+  CommsTick = 10
+
+  SERIAL_PORT    = /dev/serial0
+  SERIAL_BAUD    = 38400
+  MOOS_PUB_VAR   = SERIAL_AIS
+}

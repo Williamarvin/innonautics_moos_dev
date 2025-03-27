@@ -1,0 +1,8 @@
+//------------------------------------------------
+// uFldAIS config block
+
+ProcessConfig = uFldTrackAIS
+{
+  AppTick   = 2
+  CommsTick = 2
+}

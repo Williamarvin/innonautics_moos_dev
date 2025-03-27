@@ -1,0 +1,16 @@
+plug_origin_warp.moos is referenced in meta_vehicle.moos and meta_shoreside.moos only
+
+pmm/ can be where pMarineMaestro dumps files which you can iteratively test
+
+pmm_backup/ contains the original mission files
+
+All the plug files which are constant I put in plugs/
+
+The tiff files are referenced in pmm/plug_pMarineViewer.moos, check the documentation for how you have to modify your path, where you can put the tiff files in pmm/ or pmm/tiffs/ depending on if you generate one or several
+
+To run the mission you can do ./launch.sh {timewarp} for a basic simulation
+
+i.e. ./launch.sh 5 
+Will infer a simulation because in operations you do not use this command, and this will run at a timewarp of 5. This mission is immediately portable for running a single Heron. 
+
+

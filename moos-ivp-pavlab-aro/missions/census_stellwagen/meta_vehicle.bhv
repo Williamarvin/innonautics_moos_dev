@@ -1,0 +1,220 @@
+//--------    FILE: meta_vehicle.bhv  -------------
+
+#define SPD 5.0
+
+#define REGION0_COLOR white
+#define REGION1_COLOR red
+#define REGION2_COLOR green
+#define REGION3_COLOR yellow
+#define REGION4_COLOR orange
+#define REGION5_COLOR pink
+
+#define BOTTOM_ZONE pts={82524,-9394:46544, -6277:50941,-25399:85338,-22811}
+#define TOP_ZONE pts={44677,1481:40143,21077:72470,38439:80910,-1782}
+
+
+initialize   DEPLOY  = false
+initialize   RETURN  = false
+initialize   TRANSIT = true
+initialize   AVOID   = true
+initialize   STATION_KEEP = false
+initialize   OPTION = TOP_ZONE
+initialize   OPTIONS_ACTIVE=true
+initialize   RESCUE_REGION=$(TOP_ZONE)
+  
+set MODE = ACTIVE {
+  DEPLOY = true
+} INACTIVE
+
+set MODE = STATION_KEEPING {
+  MODE = ACTIVE
+  STATION_KEEP = true
+}
+
+
+set MODE = TOP_ZONE_SEARCHING {
+  MODE = ACTIVE
+  RETURN != true
+  OPTION = TOP_ZONE	
+}
+
+set MODE = BOTTOM_ZONE_SEARCHING {
+  MODE = ACTIVE
+  RETURN != true
+  OPTION = BOTTOM_ZONE
+}
+
+set MODE = RETURNING {
+  MODE = ACTIVE
+  RETURN = true
+} 
+
+
+#ifdef VTYPE AUV
+//-----------------------------
+Behavior = BHV_ConstantDepth
+{
+   // General Behavior Parameters
+   // ---------------------------
+   name         = const_dep_survey   
+   pwt          = 100
+   condition  = (MODE==TOP_ZONE_SEARCHING) OR (MODE==BOTTOM_ZONE_SEARCHING)   
+   updates      = CONST_DEP_UPDATES  
+
+   // Parameters specific to this behavior
+   // ------------------------------------
+   duration=no-time-limit
+   depth = 50
+}
+
+//-------------------------------
+Behavior = BHV_Scout
+{
+  name       = scout
+  pwt        = 100
+  updates    = SCOUT_UPDATE
+  condition  = (MODE==TOP_ZONE_SEARCHING) OR (MODE==BOTTOM_ZONE_SEARCHING)	
+  perpetual  = true
+  endflag    = RETURN = true
+	
+  capture_radius = 10
+  
+}
+
+
+
+#else
+
+//----------------------------------------------
+Behavior = BHV_Voronoi2
+{ 
+  name      = voronoi_zone
+  pwt       = 10
+  condition  = (MODE==TOP_ZONE_SEARCHING) OR (MODE==BOTTOM_ZONE_SEARCHING)
+  idleflag   = PROX_POLY_VIEW = false
+  activeflag = PROX_POLY_VIEW = true
+  UPDATES   = VCOVER_UPDATE
+  perpetual = true
+  // Parameters specific to this behavior
+  // ------------------------------------
+    capture_radius  = 10
+    activate_radius = 15
+    //turn_radius = 500    
+    op_region=$(TOP_ZONE)    
+    speed = 10
+    stale_nav_thresh = 5
+    stale_poly_thresh = 10
+
+       setpt_method = center
+     allow_slipping = true
+ 
+   visual_hints = setpt_size   = 4 
+   visual_hints = setpt_color  = dodger_blue 
+   visual_hints = vertex_color  = yellow        // default
+   visual_hints = vertex_lcolor = aqua          // default
+   visual_hints = label         = zone2         // example
+}
+
+#endif
+
+
+//#include plugs.bhv <bhv_avd_colregs>
+//#include plugs.bhv <bhv_avd_cpa>
+
+
+//----------------------------------------------
+Behavior = BHV_Waypoint
+{
+  name        = waypt_return
+  pwt         = 100
+  updates     = RETURN_UPDATES
+  condition   = MODE==RETURNING
+  perpetual   = true
+  endflag     = RETURN = false
+  endflag     = STATION_KEEP=true
+	spawnx_flag = RETURN_UPDATES=point=$[OSX],$[OSY]
+
+           speed = 2.0
+  capture_radius = 2.0
+     slip_radius = 8.0
+           point = 0,0
+
+     visual_hints = vertex_size  = 4            
+     visual_hints = vertex_color = dodger_blue  
+}
+
+//----------------------------------------------
+Behavior = BHV_StationKeep
+{
+  name         = station-keep
+  pwt          = 100
+  condition    = MODE==STATION_KEEPING
+
+  center_activate = true
+     inner_radius = 5
+     outer_radius = 10 
+      outer_speed = 1.0
+    transit_speed = 1.3
+       swing_time = 7
+     visual_hints = vertex_size=0, edge_color=gray50
+}
+
+//----------------------------------------------
+//Behavior = BHV_OpRegionV24
+{
+  name      = opreg
+  pwt       = 300
+	condition = MODE==ACTIVE
+  updates   = RECOVER_UPDATES
+
+  //core_poly = pts={60,10:-75.5402,-54.2561:-36.9866,-135.58:98.5536,-71.3241}
+  core_poly = pts={120,10:-422,-247.2:-268,-572:274.4,-315.2}
+  
+
+
+  dynamic_region_var = RESCUE_REGION
+
+  visual_hints = edge_size = 1
+
+  visual_hints = save_edge_color = gray30
+  visual_hints = halt_edge_color = gray40
+
+  save_dist = 5
+  halt_dist = 10
+}
+
+
+// Our own non-standard collision avoidance
+//---------------------------------------------- 
+Behavior = BHV_AvdColregsV19
+{
+  name       = avdcol_
+  pwt        = 200
+
+  condition  = AVOID = true 
+  condition  = MODE==ACTIVE
+  condition  = MODE!=ACTIVE::STATION_KEEPING
+
+	updates    = CONTACT_INFO
+  endflag    = CONTACT_RESOLVED = $[CONTACT]
+  templating = spawn
+
+  spawnx_flag  = ENCOUNTER_START = os=$(VNAME),cn=$[CONTACT],rng=$[RANGE],rel_brg=$[OS_CN_REL_BNG],targ_ang=$[CN_OS_REL_BNG],time=$[UTC]
+  cnflag     = @cpa ENCOUNTER_END = os=$(VNAME), cn=$[CONTACT], rng=$[RANGE], rel_brg=$[OS_CN_REL_BNG], targ_ang=$[CN_OS_REL_BNG], time=$[UTC]
+
+             contact = to-be-set
+    on_no_contact_ok = true
+         extrapolate = true
+               decay = 10,20
+
+    giveway_bow_dist = 10
+        use_refinery = true
+
+      pwt_outer_dist = 10
+      pwt_inner_dist = 8
+      completed_dist = 15
+   min_util_cpa_dist = 8
+   max_util_cpa_dist = 15
+           pwt_grade = linear
+ bearing_line_config = white:0, green:0.65, yellow:0.8, red:1.0
+}

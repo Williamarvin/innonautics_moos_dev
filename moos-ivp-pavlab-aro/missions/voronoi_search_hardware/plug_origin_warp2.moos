@@ -1,0 +1,16 @@
+MOOSTimeWarp = $(WARP)
+
+// Saxis
+LatOrigin  = 37.9355
+LongOrigin = -75.772 
+
+// Forest lake
+//LatOrigin  = 43.825300 
+//LongOrigin = -70.330400 
+
+//MIT_SP
+//LatOrigin = 42.358436
+//LongOrigin = -71.08744
+
+
+

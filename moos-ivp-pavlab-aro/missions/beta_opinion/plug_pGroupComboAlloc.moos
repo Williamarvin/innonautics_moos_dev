@@ -1,0 +1,21 @@
+
+
+//-------------------------------------------------------------
+// pGroupComboAlloc
+
+ProcessConfig = pGroupComboAlloc
+{
+  AppTick   = 0.25
+  CommsTick = 0.25
+
+  post_behavior_updates = false
+  calc_marginal_cost_improvement = true
+  active_option_name = EXPLOIT
+
+  assigned_cost = 20
+  unassigned_penalty = 1000
+  
+  //app_logging = log
+  
+
+}

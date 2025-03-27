@@ -1,0 +1,14 @@
+//---------------------------------------
+// pNodeReporter Config Block
+	
+ProcessConfig = pNodeReporter
+{
+  AppTick     = 2
+  CommsTick   = 2
+
+  vessel_type = kayak
+
+  alt_nav_prefix = GT_
+  alt_nav_name = _GT
+
+}

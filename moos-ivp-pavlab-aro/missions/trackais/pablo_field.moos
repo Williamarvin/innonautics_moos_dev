@@ -1,0 +1,58 @@
+//-------------------------------------------------
+// NAME: B. Cole, MIT
+// FILE: pablo_field.moos
+//-------------------------------------------------
+ServerHost   = localhost
+ServerPort   = 9000
+Community    = alpha
+
+// MIT Sailing Pavilion (PavLab)
+LatOrigin = 42.358436
+LongOrigin = -71.087589
+
+//------------------------------------------
+// Antler configuration  block
+
+ProcessConfig = ANTLER
+{
+  MSBetweenLaunches = 600
+  Run = MOOSDB       @ NewConsole = false
+  Run = uFldTrackAIS @ NewConsole = false
+  Run = iSerial      @ NewConsole = false
+  //Run = uXMS       @ NewConsole = true
+}
+
+//------------------------------------------------
+// uFldAIS config block
+
+ProcessConfig = uFldTrackAIS
+{
+  AppTick   = 1
+  CommsTick = 1
+  }
+
+
+//------------------------------------------------
+// iSerial config block
+
+  ProcessConfig = iSerial
+{
+  AppTick   = 10
+  CommsTick = 10
+
+  SERIAL_PORT    = /dev/serial0
+  SERIAL_BAUD    = 38400
+  MOOS_PUB_VAR   = SERIAL_AIS
+}
+
+
+//------------------------------------------
+// uXMS config block
+
+ProcessConfig = uXMS
+{
+  AppTick    = 2
+  CommsTick  = 2
+
+  VAR = SERIAL_AIS
+}

@@ -1,0 +1,320 @@
+//*******************************************************
+// ShoreSide Configuration File
+
+ServerHost = localhost
+ServerPort = $(MOOS_PORT)
+Community  = shoreside
+
+#include plug_origin_warp.moos
+
+//--------------------------------------------------------
+Processconfig = ANTLER
+{
+  MSBetweenLaunches = 100
+
+  Run = MOOSDB              @ NewConsole = false
+  Run = pRealm              @ NewConsole = false
+  #ifdef LAUNCH_GUI yes
+    Run = pMarineViewer       @ NewConsole = false
+  #endif
+  Run = pLogger             @ NewConsole = false
+
+  Run = pShare              @ NewConsole = false
+  Run = pHostInfo           @ NewConsole = false
+  Run = uFldShoreBroker     @ NewConsole = false
+
+  Run = uProcessWatch       @ NewConsole = false
+  Run = uFldNodeComms       @ NewConsole = false
+  Run = pDemusterAssign     @ NewConsole = false
+  // Run = uFldCollisionDetect @ NewConsole = false
+}
+
+#include plug_pShare.moos
+#include plug_pHostInfo.moos
+
+//------------------------------------------------
+// pDemusterAssign config block
+
+ProcessConfig = pDemusterAssign
+{
+   AppTick   = 4
+   CommsTick = 4
+
+   margin = $(FORMATION_MARGIN)
+   margin_muster = 8
+  //  margin_muster = $(FORMATION_MARGIN)
+   distance = $(FORMATION_DISTANCE)
+   type = random
+   heading_type = $(FORMATION_HEADING_TYPE)
+   
+   //Formation specific parameters
+   circle_radius = $(CIRCLE_RADIUS)
+   arrow_angle = 90
+
+   //Dubin parameters
+   dubin_turn_radius = $(TURN_RADIUS)
+
+   //Assignment parameters
+   assignment_algorithm = $(ASSIGNMENT_ALGORITHM)
+  //  assignment_algorithm = hungarian_collision
+   assignment_metric = $(ASSIGNMENT_METRIC)
+   heading_distance_weight = $(HEAD_DIST_WEIGHT)
+
+   project_first_point = $(PROJECT_FIRST)
+  //Needed for the projection
+   capture_radius = 2.5
+
+   turn_in_place = $(TURN_IN_PLACE)
+   mode = $(MODE)
+   number_of_controlers = 8
+}
+
+//--------------------------------------------------
+// ufldnodecomms Configuration Block
+
+ProcessConfig = uFldNodeComms
+{
+  AppTick       = 2
+  CommsTick     = 2
+
+  comms_range      = 30
+  critical_range   = 15
+
+  min_msg_interval = 0
+  max_msg_length   = 10000
+  groups           = false
+
+  view_node_rpt_pulses = false
+  pulse_duration = 0
+}
+
+//--------------------------------------------------
+// uFldShoreBroker Configuration Block
+
+ProcessConfig = uFldShoreBroker
+{
+  AppTick       = 1
+  CommsTick     = 1
+
+  qbridge  = DEPLOY, RETURN, STATION_KEEP, NODE_REPORT, NODE_MESSAGE
+  qbridge  = MOOS_MANUAL_OVERRIDE, APPCAST_REQ, AVOID
+  qbridge  = SAY_MOOS
+  qbridge  = WPT_UPDATE
+
+  qbridge  = DEMUSTER
+  qbridge  = DUBIN_UPDATE
+  qbridge  = DEMUSTER_CONFIG
+  qbridge  = AVOID
+
+
+	bridge   = src=HEARTBEAT
+
+  bridge   = src=HELM_MAP_CLEAR, alias=HELM_MAP_CLEAR
+  bridge   = src=SIM_THR_FAULT_L
+  bridge   = src=SIM_THR_FAULT_R
+
+  qbridge  = YOU_HAVE_CONTROL
+  qbridge  = WAYPOINT_UPDATE
+}
+
+//--------------------------------------------------
+// pLogger Configuration Block
+
+ProcessConfig = pLogger
+{
+  AppTick       = 10
+  CommsTick     = 10
+
+  File          = LOG_SHORESIDE
+  #ifdef BATCH_NAME
+  PATH          = ./logs_simulation/%(BATCH_NAME)/%(MISSION_NAME)
+  Log = DEMUSTER_BEGIN @ 0
+  Log = DEMUSTER_COMPLETE @ 0  
+  #elseifdef SIM TRUE
+  PATH          = ./logs_simulation/%(MISSION_NAME)
+  Log = DEMUSTER_BEGIN @ 0
+  Log = DEMUSTER_COMPLETE @ 0  
+  #else
+  PATH          = ./
+  WildCardLogging = true
+  WildCardOmitPattern = *_STATUS
+  WildCardOmitPattern = DB_VARSUMMARY
+  WildCardOmitPattern = DB_RWSUMMARY
+  #endif
+  
+  SyncLog       = true @ 0.2
+  AsyncLog      = true
+  FileTimeStamp = true
+
+  LogAuxSrc     = true
+
+  // // Log it all!!!!!
+  // WildCardLogging = true
+  // WildCardOmitPattern = *_STATUS
+  // WildCardOmitPattern = DB_VARSUMMARY
+  // WildCardOmitPattern = DB_RWSUMMARY
+}
+
+//--------------------------------------------------------
+ProcessConfig = pMarineViewer
+{
+  AppTick    = 4
+  CommsTick  = 4
+
+  //tiff_file            = forrest19.tif
+  tiff_file            = MIT_SP.tif
+  tiff_file            = mit_sp_osm18.tif
+  set_pan_x            = 0
+  set_pan_y            = -220
+  zoom                 = 1.2
+  vehicles_shape_scale = 2
+  vehicles_name_mode   = off
+
+  circle_viewable_all = true
+
+  trails_color = off
+  trails_length = 0
+
+	beat_flag = HEARTBEAT=true
+	
+  appcast_viewable = true
+  appcast_color_scheme = indigo
+
+  scope  = DEPLOY_ALL
+
+  action = STATION_KEEP_ALL = false
+  action = STATION_KEEP_ALL = true
+
+  // left_context[new_anchor] = NEW_ANCHOR_POINT = $(XPOS),$(YPOS)
+  // left_context[new_anchor] = VIEW_POINT = x=$(XPOS),y=$(YPOS),label=demuster
+  // //Start demustering
+  // left_context[new_anchor] = DEMUSTER_ALL=false
+  // left_context[new_anchor] = DEPLOY_ALL=true
+  // left_context[new_anchor] = MOOS_MANUAL_OVERRIDE_ALL=false
+  // left_context[new_anchor] = RETURN_ALL=false
+  // left_context[new_anchor] = STATION_KEEP_ALL=false
+  // left_context[new_anchor] = DEMUSTER_ASSIGN=true
+  // left_context[new_anchor] = DEMUSTERING = true
+
+
+  button_one   = DEPLOY  # DEPLOY_ALL=true
+  button_one   = MOOS_MANUAL_OVERRIDE_ALL=false
+  button_one   = RETURN_ALL=false # STATION_KEEP_ALL=false
+  button_one   = DEMUSTER_ALL=false
+  button_one   = DEMUSTERING = true
+  //Demuster
+  button_one   = NEW_ANCHOR_POINT = 0, 0
+  // button_one   = VIEW_POINT = x=0,y=0,label=demuster
+  button_one   = DEMUSTER_ASSIGN = true
+  button_one   = DEMUSTER_CONFIG = type_circle
+  button_one   = DEMUSTER_BEGIN = true
+
+
+
+  button_two   = RETURN  # RETURN_ALL=true
+  button_two   = RETURN  # STATION_KEEP_ALL=false
+  button_two   = DEMUSTERING = false
+
+
+	button_three = ALLSTOP # DEPLOY_ALL=false
+  button_three   = DEMUSTERING = false
+
+
+	button_four  = STATION # STATION_KEEP_ALL=true
+  button_four   = DEMUSTERING = false
+
+  button_five       = TR+       # DEMUSTER_CONFIG_ALL = turning_radius_increase
+  button_six        = TR-       # DEMUSTER_CONFIG_ALL = turning_radius_decrease
+  button_five       = DEMUSTER_CONFIG = turning_radius_increase
+  button_six        = DEMUSTER_CONFIG = turning_radius_decrease
+  button_seven      = SDR+      # DEMUSTER_CONFIG_ALL = slowdown_range_increase
+  button_eight      = SDR-      # DEMUSTER_CONFIG_ALL = slowdown_range_decrease
+  button_nine       = SDIST+    # DEMUSTER_CONFIG_ALL = safety_distance_increase_DEACTIVATED
+  button_ten        = SDIST-    # DEMUSTER_CONFIG_ALL = safety_distance_decrease_DEACTIVATED
+  button_eleven     = HZ+       # DEMUSTER_CONFIG_ALL = safety_horizon_increase
+  button_twelve     = HZ-       # DEMUSTER_CONFIG_ALL = safety_horizon_decrease
+  // button_thirteen   = SPEED+    # DEMUSTER_CONFIG_ALL = speed_increase
+  // button_fourteen   = SPEED-    # DEMUSTER_CONFIG_ALL = speed_decrease
+
+  button_thirteen   = DEMUSTER  # NEW_ANCHOR_POINT = 0, 0
+  button_thirteen   = DEMUSTER_CONFIG=type_circle
+  button_thirteen   = DEMUSTER_ALL=false
+  button_thirteen   = STATION_KEEP_ALL=true
+  button_thirteen   = DEMUSTER_ASSIGN=true
+  button_thirteen   = DUBIN_UPDATE_ALL=only_right_turns=false
+  button_thirteen   = DEMUSTER_CONFIG_ALL=synch_true
+  button_thirteen   = DEMUSTER_CONFIG_ALL=safety_distance_set=3
+  button_thirteen   = DEMUSTER_BEGIN=true //ended prematurely
+  // button_thirteen   = DEPLOY_ALL=true
+  // button_thirteen   = MOOS_MANUAL_OVERRIDE_ALL=false
+  // button_thirteen   = RETURN_ALL=false
+  // button_thirteen   = STATION_KEEP_ALL=false
+  // button_thirteen   = DEMUSTERING = true
+
+  // button_fourteen   = MUSTER  # NEW_ANCHOR_POINT = -15, -50
+  button_fourteen   = MUSTER  # NEW_ANCHOR_POINT = 20, -30
+  button_fourteen   = DEMUSTER_CONFIG=type_random
+  button_fourteen   = DEMUSTER_ALL=false
+  button_fourteen   = STATION_KEEP_ALL=true
+  button_fourteen   = DEMUSTER_ASSIGN=true
+  button_fourteen   = DUBIN_UPDATE_ALL=only_right_turns=true
+  button_fourteen   = DEMUSTER_CONFIG_ALL=synch_false
+  button_fourteen   = DEMUSTER_CONFIG_ALL=safety_distance_set=5
+  button_fourteen   = DEMUSTER_COMPLETE=true //ended prematurely
+  // button_fourteen   = DEPLOY_ALL=true
+  // button_fourteen   = MOOS_MANUAL_OVERRIDE_ALL=false
+  // button_fourteen   = RETURN_ALL=false
+  // button_fourteen   = STATION_KEEP_ALL=false
+  // button_fourteen   = DEMUSTERING = true
+
+  button_fifteen    = MARGIN+   # DEMUSTER_CONFIG     = margin_increase
+  button_sixteen    = MARGIN-   # DEMUSTER_CONFIG     = margin_decrease
+  button_seventeen  = SYNCH     # DEMUSTER_CONFIG_ALL = synch_toggle
+  button_eighteen   = TYPE      # DEMUSTER_CONFIG     = type_toggle
+  button_nineteen   = ALGORITHM # DEMUSTER_CONFIG     = algorithm_toggle
+  button_twenty     = METRIC    # DEMUSTER_CONFIG     = metric_toggle
+}
+
+//--------------------------------------------------------
+// uProcessWatch Configuration Block
+
+ProcessConfig = uProcessWatch
+{
+  AppTick   = 1
+  CommsTick = 1
+
+  allow_retractions = true
+
+  watch_all = true      // default is true
+
+  nowatch = uXMS*
+  nowatch = uPokeDB*
+
+  summary_wait = 10
+}
+
+
+// ProcessConfig = uFldCollisionDetect                             
+// {                                                               
+//   AppTick   = 4                                                 
+//   CommsTick = 4                                                 
+
+//   // condition = DEPLOY_ALL = true                                 
+//   condition = DEMUSTERING = true                                 
+
+//   encounter_flag = ENCOUNTER = $CPA                             
+//   collision_flag = COLLISION = $CPA                             
+//   near_miss_flag = NEAR_MISS = vname1=$V1,vname2=$V2,cpa=$CPA   
+
+//   encounter_range = 8 //in meters      
+//   near_miss_range = 4    
+//   collision_range = 2                                           
+
+//   pulse_render   = true               
+//   pulse_range    = 10       
+//   pulse_duration = 10
+
+//   encounter_rings = false       
+
+//   report_all_encounters = true  
+// }   

@@ -1,0 +1,48 @@
+//-------------------------------------------------
+//  NAME: Michael Benjamin, MIT
+//  FILE: meta_sock_comms.moos
+//-------------------------------------------------
+ServerHost = localhost
+ServerPort = $(MPORT)
+Community  = sock_comms_$(MPORT)
+
+//------------------------------------------
+// Antler configuration  block
+
+ProcessConfig = ANTLER
+{
+  MSBetweenLaunches = 600
+  Run = MOOSDB      @ NewConsole = false
+  Run = uSockComms  @ NewConsole = false
+  Run = uXMS        @ NewConsole = false
+}
+
+//------------------------------------------
+// uSockComms config block
+
+ProcessConfig = uSockComms
+{
+  AppTick    = 4
+  CommsTick  = 4
+
+	comms_type = $(COMMS_TYPE)
+  port       = $(PORT)
+
+#ifdef COMMS_TYPE client
+	ip_addr    = $(IP_ADDR)
+#endif
+
+	message = $(MSG)
+}
+
+//------------------------------------------
+// uXMS config block
+
+ProcessConfig = uXMS
+{
+  AppTick    = 4
+  CommsTick  = 4
+
+  VAR = DB_CLIENTS
+}
+

@@ -1,0 +1,12 @@
+ProcessConfig = uFldSearchDetect_Disc                            
+{                                                               
+  AppTick   = 8                                                 
+  CommsTick = 8                                                 
+                                                                
+  encounter_range = 100                                   
+  target_name = ADVERSARY  
+  detect_range = 1:20:20  
+  sigma=10
+  probability_detect=false                                                        
+           
+} 

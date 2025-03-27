@@ -1,0 +1,56 @@
+// Configuration file for pOpinionManager
+// The vehicle's opinion for every option is configured below
+
+social_option
+{
+   name = wide_loiter
+   option_output = OPTION=WIDE_LOITER
+   resistance_weight = 0.01
+   social_mode = normal   // locks out and resets
+   intra_agent_same_option_coupling = 0.2  // Self reinforcement  (alpha)
+   intra_agent_inter_option_coupling = small_loiter = 0.1     //  (beta)
+   inter_agent_same_option_coupling = 0.1  // influence of others (gamma)
+   inter_agent_inter_option_coupling = small_loiter = 0.1     //  (delta)
+   input = DANGER_LEVEL
+   input_function_type = none
+   input_max  = 100
+   input_min  = 0
+   active_condition = DEPLOY=true    // default options is 'always'
+}
+
+
+social_option
+{
+   name = small_loiter
+   option_output = OPTION=SMALL_LOITER
+   resistance_weight = 0.01
+   social_weight = normal
+   intra_agent_same_option_coupling = 0.2  // self reinforcement
+   intra_agent_inter_option_coupling = wide_loiter = 0.1
+   inter_agent_same_option_coupling = 0.1  // influence of others  
+   inter_agent_inter_option_coupling = wide_loiter = 0.1
+   input = none
+   input = COLLECT_RESOURCE_LEVEL
+   input_function_type = none
+   input_max  = 100
+   input_min  = 0
+   active_condition = DEPLOY=true    // default options is 'always'
+}
+
+social_option
+{
+   name = return_to_charge
+   resistance_weight = 0.01
+   social_weight = self_reinforced
+   option_output = OPTION=RETURN_TO_CHARGE
+   input = REFUEL_NEEDED=true
+}
+
+
+
+
+
+
+
+
+

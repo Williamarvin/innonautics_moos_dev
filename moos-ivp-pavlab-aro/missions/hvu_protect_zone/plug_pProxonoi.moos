@@ -1,0 +1,12 @@
+//-------------------------------------------------------------
+ProcessConfig = pProxonoi2                                      
+{                                                               
+  AppTick   = 2
+  CommsTick = 2                                                 
+                                                                
+  region = -262,-182:-82,-537:465,-310:251,37
+
+  post_region  = false                  
+  post_poly    = false 
+									
+}                                            

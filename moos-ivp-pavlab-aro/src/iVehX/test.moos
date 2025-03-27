@@ -1,0 +1,44 @@
+//-------------------------------------------------
+// NAME: T. Paine, MIT
+// FILE: test.moos
+//-------------------------------------------------
+
+ServerHost   = localhost
+ServerPort   = 9000
+Community    = vehicle_test_community
+MOOSTimeWarp = 1
+
+// Forest Lake
+LatOrigin  = 43.825300 
+LongOrigin = -70.330400 
+
+
+
+//------------------------------------------
+// Antler configuration  block
+ProcessConfig = ANTLER
+{
+  MSBetweenLaunches = 200
+  Run = MOOSDB        @ NewConsole = false
+  Run = iBlueBoat         @ NewConsole = false
+}
+
+
+//------------------------------------------------
+// iBlueBoat config block
+
+ProcessConfig = iBlueBoat
+{
+  AppTick   = 10
+  CommsTick = 10
+
+  comms_type     = client
+  ip_addr        = 192.168.1.2     // frontseat IP address
+  port           = 29217          //
+  debug          = false
+
+  MAX_RUDDER     =  30.0          // Example
+  MAX_THRUST     = 100.0          // Example
+
+  max_appcast_events = 8          //default=8
+}

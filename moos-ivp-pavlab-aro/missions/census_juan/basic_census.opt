@@ -1,0 +1,70 @@
+
+// Configuration file for pOpinionManager
+// The vehicle's opinion for every option is configured below
+//
+// General assumptions for reasonable group behavior:
+// gamma - delta > 0 : Cooperative
+// gamma - delta < 0 : Competitive
+// alpha >= 0
+// beta  < 0
+
+
+// -------------------------------------------
+// Top Zone
+social_option
+{
+               name = top_zone
+   active_condition = DEPLOY=true    // default options is 'always'
+   active_condition = OPTIONS_ACTIVE=true
+              input = TOP_ZONE_BIAS   // ODOMETRY_DIST
+      option_output = OPTION=TOP_ZONE
+      option_output = VCOVER_UPDATE=op_region=pts={44677,1481:40143,21077:72470,38439:80910,-1782}
+      option_output = PROX_UP_REGION=pts={44677,1481:40143,21077:72470,38439:80910,-1782}
+      option_output = RESCUE_REGION=pts={44677,1481:40143,21077:72470,38439:80910,-1782}
+         social_mode = custom
+   resistance_weight = 1.0
+   
+    intra_agent_same_option_coupling = 0.05   // Self reinforcement  (alpha)
+//   intra_agent_inter_option_coupling = bottom_zone= -0.04            //  (beta)	
+    inter_agent_same_option_coupling = 0.5   // influence of others (gamma)
+//   inter_agent_inter_option_coupling = loiter2 = 0.2            //  (delta)
+//   inter_agent_inter_option_coupling = loiter3 = 0.2           //  (delta)
+
+//   randomly_perturb_params = true
+      
+   input_function_type =  none
+            input_max  =  100
+            input_min  = -100
+            input_gain = 1.0
+}
+
+// -------------------------------------------
+// Bottom Zone
+social_option
+{
+               name = bottom_zone
+   active_condition = DEPLOY=true    // default options is 'always'
+   active_condition = OPTIONS_ACTIVE=true
+              input = BOTTOM_ZONE_BIAS
+      option_output = OPTION=BOTTOM_ZONE
+      option_output = VCOVER_UPDATE=op_region=pts={82524,-9394:46544,-6277:50941,-25399:85338,-22811}
+      option_output = PROX_UP_REGION=pts={82524,-9394:46544,-6277:50941,-25399:85338,-22811}
+      option_output = RESCUE_REGION=pts={82524,-9394:46544,-6277:50941,-25399:85338,-22811}
+
+         social_mode = custom
+   resistance_weight = 1.0
+   
+    intra_agent_same_option_coupling = 0.05   // Self reinforcement  (alpha)
+//   intra_agent_inter_option_coupling = top_zone = -0.01            //  (beta)
+    inter_agent_same_option_coupling = 0.5  // influence of others (gamma)
+//   inter_agent_inter_option_coupling = loiter1 = 0.2 //2.0           //  (delta)
+//   inter_agent_inter_option_coupling = loiter3 = .2 //2.0           //  (delta)
+
+//   randomly_perturb_params = true
+   
+   input_function_type =  none
+            input_max  =  100
+            input_min  = -100
+            input_gain =  1.0
+}
+

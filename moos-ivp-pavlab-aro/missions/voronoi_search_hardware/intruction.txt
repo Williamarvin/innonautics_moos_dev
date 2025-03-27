@@ -1,0 +1,15 @@
+Three launch scripts
+-launchvehicle
+    -command line flags
+        -(--vname) assigns ip and vname paramaters
+        -(--smode=) assigns the search mode for Region Search
+        -(--sim) will set the vehicle as simulation
+        -(--vector=VECTOR) sets vector field
+        -(--vector=SEARCH) sets region search behavior
+        -(--shoreip=) sets the shore ip address
+-launchshoreside
+    -command line flags
+        -(--adv) will launch a simulated adversary
+        -(--ip) input shore ip address
+        -(--amt=#) the number of swarm vehicles
+-launchadversary

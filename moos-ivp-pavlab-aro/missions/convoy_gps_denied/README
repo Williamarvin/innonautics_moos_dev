@@ -1,0 +1,12 @@
+Mission for testing dynamic convoying for Sea Train project
+
+To Run:
+
+$ ./launch.sh --amt=4 10      (4 vehicles, timewarp 10)
+
+After launching, hit the DEPLOY button. Nothing will move yet.
+
+Click in the region above the vehicles.
+
+  - The vehicle closest to the click point will begin traversing out through the region.
+  - A second vehicle will begin a convoy behavior following the first

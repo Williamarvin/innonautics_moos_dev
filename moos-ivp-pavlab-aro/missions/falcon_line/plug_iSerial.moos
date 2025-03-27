@@ -1,0 +1,13 @@
+//------------------------------------------
+ProcessConfig = iSerial                              
+{                                                               
+  AppTick   = 10                                                
+  CommsTick = 10                                                
+                                                                
+  SERIAL_PORT    = /dev/ttyACM0                                 
+  SERIAL_BAUD    = 9600                                        
+  MOOS_RX_VAR    = SERIAL_RX_RAW
+  MOOS_TX_VAR    = SERIAL_TX
+
+  MODE = READ_WRITE
+} 

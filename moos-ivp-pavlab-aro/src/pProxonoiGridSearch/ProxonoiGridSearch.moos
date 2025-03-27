@@ -1,0 +1,28 @@
+//------------------------------------------------
+// pProxonoiGridSearch config block
+// Maybe the region includes both sub regions?
+//#define REGION1 -321.4,-204.8:-50.3,-76.3:99.6,-392.6:-192.9,-521.1
+
+ProcessConfig = pProxonoiGridSearch
+{
+   AppTick   = 1
+   CommsTick = 2
+
+
+  grid_config = pts={$(REGION1)}
+  grid_config = cell_size=20   
+
+  grid_config = cell_vars=val:1:var:10
+  grid_config = cell_min=val:0
+  grid_config = cell_max=val:10	
+  
+  grid_config = cell_min=var:0.00001
+  grid_config = cell_max=var:1000
+
+  tree_depth = 3
+  max_mdp_iter = 3
+  discount_factor = 0.8
+
+
+}
+

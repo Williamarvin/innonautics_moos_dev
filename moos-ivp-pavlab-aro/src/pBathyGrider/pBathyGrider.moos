@@ -1,0 +1,9 @@
+//------------------------------------------------
+// pBathyGrider config block
+
+ProcessConfig = pBathyGrider
+{
+   AppTick   = 4
+   CommsTick = 4
+}
+

@@ -1,0 +1,74 @@
+ServerHost = $(IP_ADDR)
+ServerPort = $(MOOS_PORT)
+Community  = $(VNAME)
+
+#include plug_origin_warp.moos
+
+//------------------------------------------------------------
+ProcessConfig = ANTLER
+{
+  MSBetweenLaunches = 100
+
+  Run = MOOSDB             @ NewConsole = false
+  Run = uProcessWatch      @ NewConsole = false
+  Run = pShare             @ NewConsole = false
+  Run = pLogger            @ NewConsole = false
+  Run = pHostInfo          @ NewConsole = false
+  Run = uFldNodeBroker     @ NewConsole = false
+  Run = pRealm             @ NewConsole = false
+  Run = uFldMessageHandler @ NewConsole = false
+  Run = /home/student2680/falcon/heron/heron/realtime_reachability.py @ NewConsole = false, ExtraProcessParams=PythonParams
+  PythonParams =localhost,$(MOOS_PORT),abe  
+}
+
+
+
+
+
+#include plug_pShare.moos
+#include plug_pLogger.moos
+#include plug_pHostInfo.moos
+#include plug_uProcessWatch.moos
+
+//--------------------------------------------------
+// heron_realtime_reachability Config Block
+ProcessConfig = heron_realtime_reachability
+{
+}
+
+
+//--------------------------------------------------
+// uFldMessageHandler Config Block
+	
+ProcessConfig = uFldMessageHandler
+{
+  AppTick   = 3
+  CommsTick = 3
+
+  strict_addressing = false
+}
+
+//--------------------------------------------------
+// uFldNodeBroker Config Block
+
+ProcessConfig = uFldNodeBroker
+{
+  AppTick   = 1
+  CommsTick = 1
+
+	app_logging = true
+	
+  try_shore_host = pshare_route=$(SHORE_IP):$(SHORE_PSHARE)
+
+  bridge = src=VIEW_POLYGON
+  bridge = src=VIEW_POINT
+  bridge = src=VIEW_SEGLIST
+  bridge = src=VIEW_CIRCLE
+  bridge = src=APPCAST
+  bridge = src=NODE_REPORT_LOCAL,  alias=NODE_REPORT
+  bridge = src=NODE_MESSAGE_LOCAL, alias=NODE_MESSAGE
+
+  //bridge = src=LEG_SPDS_REP  // Add vars here
+
+}
+

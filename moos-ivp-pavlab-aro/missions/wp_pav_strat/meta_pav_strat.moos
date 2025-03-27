@@ -1,0 +1,125 @@
+ServerHost = localhost
+ServerPort = $(MOOS_PORT)
+Community  = $(RNAME)
+
+#include plug_origin_warp.moos
+
+//------------------------------------------------------------
+ProcessConfig = ANTLER
+{
+  MSBetweenLaunches = 100
+
+  Run = pAqctNodeCtrl      @ NewConsole = false
+  Run = pOpinionManager    @ NewConsole = false
+  Run = pMultiAgentColFilt @ NewConsole = false
+
+}
+
+
+//----------------------------------------------- 
+ProcessConfig = pAqctNodeCtrl
+{
+  AppTick   = 4
+  CommsTick = 4
+
+  #ifdef VTEAM red
+  	 home_zone_poly = $(RED_ZONE)
+	 own_flag_location = $(RED_FLAG)
+	 
+  #elseifdef VTEAM blue
+  	 home_zone_poly = $(BLUE_ZONE)
+	 own_flag_location = $(BLUE_FLAG)
+  #endif
+
+     rname = $(RNAME)
+     
+ team_size = 3
+
+ 	   // opinion dynamics related
+          dist_to_own_flag_gain = -0.6   //-0.5 is a good defensive bias
+  enemy_agent_in_home_zone_gain = 30.0
+   		    defend_bias = 5 // maybe 10?
+
+     // defense task allocation related
+      // 	       min_reallocate_interval = 5 // seconds
+      //	       max_reallocate_interval = 10 // seconds
+
+      //	  task_wait_to_resend_interval  = 3 // seconds
+	  
+   // defense task allocation 2.0 related
+      	  intercept_heading_penalty  = 0.1  // meters / degrees
+          intercept_static_lead_dist = 9.0
+              intercept_speed_extrap = 5.0 // seconds in the future
+   use_dynamic_speed_based_lead_dist = true
+
+   // loiter update related
+      near_loiter_pt = $(CH)
+      far_loiter_pt = $(CM)
+      loiter_offset = 15   //  meters
+      loiter_offset_angle = $(FLD_ANG)
+      
+		    
+  app_logging = log 
+
+}
+
+
+//------------------------------------------------
+// pOpinionManager config block
+
+ProcessConfig = pOpinionManager
+{
+   AppTick   = 10
+   CommsTick = 10
+   SocialTick = 1
+
+   group = leader    // leader, follower
+   
+   #ifdef VTEAM red
+   	  node_message_dest_group = red
+   #elseifdef VTEAM blue
+   	  node_message_dest_group = blue
+   #endif
+
+   option_file = aquaticus3.opt
+
+
+   satFunOrder = 2.0
+   u_th  = 30.0
+   tau_u = 10.0
+
+   min_attention = 0.50
+   max_attention = 0.50
+ 
+   opinion_thresh = 0.1
+
+   neighbor_msg_stale_thresh = 2.0 // seconds
+   // set sensitivity_g  and tau_u internally
+
+   // Example messages:
+   // OPINION_MESSAGE=VNAME,GROUP,OPTION1_NAME,OPTION1_OPINION,OPTION2_NAME,OPTION2_OPINION
+   // PROPOSAL_MESSAGE=VNAME,OPTIONX_NAME,VALUE_PROPOSITION
+
+   //app_logging = log
+   
+}
+
+
+//------------------------------------------------
+// pOpinionManager config block
+
+ProcessConfig = pMultiAgentColFilt
+{
+   AppTick   = 4
+   CommsTick = 4
+
+   verbose_visuals = true
+   own_state_stale_thresh = 1.0
+   stale_node_rec_thresh  = 2.0
+
+   //nominal_fwd_reachable_set = pts={0.0,0.0:0.5,5.0:-0.5,5.0}
+   nominal_fwd_reachable_set = pts={0.0,0.0:1.5,7.0:-1.5,7.0}
+   nominal_fwd_speed = 2.0
+
+
+}

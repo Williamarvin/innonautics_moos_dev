@@ -1,0 +1,241 @@
+ServerHost = localhost
+ServerPort = $(MOOS_PORT)
+Community  = $(VNAME)
+
+#include plug_origin_warp.moos
+
+//------------------------------------------------------------
+ProcessConfig = ANTLER
+{
+  MSBetweenLaunches = 100
+
+  Run = MOOSDB               @ NewConsole = false
+  Run = uProcessWatch        @ NewConsole = false
+  Run = pShare               @ NewConsole = false
+  Run = pLogger              @ NewConsole = false
+  Run = pNodeReporter        @ NewConsole = false
+  Run = pMarinePID           @ NewConsole = false
+  Run = pHelmIvP             @ NewConsole = false
+  Run = pHostInfo            @ NewConsole = false
+  Run = uFldNodeBroker       @ NewConsole = false
+  Run = pRealm               @ NewConsole = false
+  Run = uFldMessageHandler   @ NewConsole = false
+  Run = pDynamicTrafficLight @ NewConsole = false
+  #ifdef MODE deploy
+  Run = pContactMgrV20       @ NewConsole = false
+  #endif
+  // Run = pTurnInPlace       @ NewConsole = false
+
+#ifdef XMODE SIM
+  Run = uSimMarineV22      @ NewConsole = false
+#elseifdef XMODE M300
+  Run = iM300              @ NewConsole = false
+  Run = iM300Health        @ NewConsole = false
+#endif
+
+}
+
+
+#ifdef XMODE SIM
+#include plug_uSimMarineV22.moos
+#include plug_pLogger_sim.moos
+#elseifdef XMODE M300
+#include plug_iM300.moos
+#include plug_iM300Health.moos
+#include plug_pLogger.moos
+#endif
+
+
+
+#include plug_pShare.moos
+#include plug_pHostInfo.moos
+#include plug_uProcessWatch.moos
+
+//------------------------------------------------------
+// pTurnInPlace Config Block
+
+// ProcessConfig = pTurnInPlace
+// {
+//   AppTick   = 4
+//   CommsTick = 4
+
+//   vname = $(VNAME)
+//   condition = TURN_IN_PLACE==true
+//   updates = TIP_UPDATE
+//   endflag = TURN_IN_PLACE = false
+//   point = 30,-30
+
+//   mode = $(XMODE)
+// }
+
+ProcessConfig = pDynamicTrafficLight
+{
+  AppTick   = 4
+  CommsTick = 4
+
+  vname = $(VNAME)
+  max_safety_distance = $(DT_SAFETY_MAX)
+  min_safety_distance = $(DT_SAFETY_MIN)
+  max_horizon = $(DT_HORIZON_MAX)
+  min_horizon = $(DT_HORIZON_MIN)
+  default_speed = $(SPEED)
+  precision = 2
+  temp_block_limit = $(TEMP_BLOCK_LIMIT)
+
+  #ifdef XMODE SIM
+  use_compass_heading = false
+  #elseifdef XMODE M300
+  use_compass_heading = true
+  #endif
+  
+  show_visualization = true
+  use_dynamic_speed = $(USE_DYNAMIC_SPEED)
+
+  mode = $(MODE)
+
+  // #ifdef MODE sequential
+  // synchronize = false
+  // #else
+  // synchronize = true
+  // #endif
+  synchronize = false
+
+
+  reverse_thrust = -100;
+}
+
+//---------------------------------------
+ProcessConfig = pHelmIvP
+{
+  AppTick    = 4
+  CommsTick  = 4
+
+  behaviors    = targ_$(VNAME).bhv
+  verbose      = false
+  domain       = course:0:359:360
+  // domain       = speed:0:2.0:21
+  domain       = speed:-1.0:2.0:31
+
+  #ifdef MODE deploy
+  hold_on_apps = pContactMgrV20
+  #endif
+}
+
+//---------------------------------------
+// pNodeReporter Config Block
+	
+ProcessConfig = pNodeReporter
+{
+  AppTick     = 20
+  CommsTick   = 20
+
+  vessel_type = heron
+  platform_length = 1.35
+}
+
+	
+//--------------------------------------------------
+// uFldMessageHandler Config Block
+	
+ProcessConfig = uFldMessageHandler
+{
+  AppTick   = 3
+  CommsTick = 3
+
+  strict_addressing = false
+}
+
+//--------------------------------------------------
+// uFldNodeBroker Config Block
+
+ProcessConfig = uFldNodeBroker
+{
+  AppTick   = 1
+  CommsTick = 1
+
+  try_shore_host = pshare_route=$(SHORE_IP):$(SHORE_PSHARE)
+
+  bridge = src=VIEW_POLYGON
+  bridge = src=VIEW_POINT
+  bridge = src=VIEW_SEGLIST
+  bridge = src=VIEW_CIRCLE
+  bridge = src=VIEW_VECTOR
+  bridge = src=APPCAST
+  bridge = src=NODE_REPORT_LOCAL,  alias=NODE_REPORT
+  bridge = src=NODE_MESSAGE_LOCAL, alias=NODE_MESSAGE
+  // bridge = src=DEMUSTER_ASSIGN
+  bridge = src=DUBIN_POINTS_LEFT
+  bridge = src=DEADLOCK
+  bridge = src=PERMANENTLY_BLOCKED
+  bridge = src=TRAJECTORY_HANDSHAKE_WAITTIME
+  bridge = src=I_WANT_CONTROL
+}
+
+//---------------------------------------
+// pMarinePIDV22 Config Block
+	
+ProcessConfig = pMarinePID
+{
+  AppTick    = 10
+  CommsTick  = 10
+
+  verbose       = true
+  depth_control = false
+  active_start  = true
+
+  deprecated_ok = true
+
+  // Yaw PID controller (Set for M300)
+  #ifdef XMODE SIM
+    yaw_pid_kp             = 3.0 
+    yaw_pid_kd             = 0.3 
+  #elseifdef XMODE M300
+    yaw_pid_kp             = 0.8 
+    yaw_pid_kd             = 0.6 
+  #endif
+  yaw_pid_ki             = 0.1  
+  yaw_pid_integral_limit = 0.3 
+
+  // Speed PID controller
+  speed_pid_kp           = 1.0
+  #ifdef XMODE SIM
+    speed_pid_kd         = 0.5
+  #elseifdef XMODE M300
+    speed_pid_kd         = 0.0
+  #endif
+  speed_pid_ki           = 0.0
+  speed_pid_integral_limit = 0.07
+
+  
+
+  // Maximums
+  maxrudder  = 100 // 100
+  maxthrust  = 100
+
+  // A non-zero SPEED_FACTOR overrides use of SPEED_PID
+  // Will set DESIRED_THRUST = DESIRED_SPEED * SPEED_FACTOR
+  //SPEED_FACTOR = 20
+}
+
+//--------------------------------------------------------
+// pContactMgrV20 Config Block
+
+ProcessConfig = pContactMgrV20
+{
+  AppTick   = 2
+  CommsTick = 2
+
+  decay = 30,60
+
+  alert_verbose = true
+
+  post_all_ranges = true
+
+  contact_max_age = 35
+	display_radii_id = avd
+  display_radii = false
+  alert_range_color = gray70
+  cpa_range_color   = gray30
+
+	hold_alerts_for_helm = true 
+}

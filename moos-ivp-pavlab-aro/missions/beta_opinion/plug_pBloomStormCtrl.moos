@@ -1,0 +1,51 @@
+//------------------------------------------------
+// pBloomStormCtrl config block
+
+ProcessConfig = pBloomStormCtrl
+{
+   AppTick   = 4
+   CommsTick = 4
+
+   // General parameters
+   //region_1_spec = -300,-250:-28.9,-121.5:121,-437.8:-171.5,-566.3
+   //region_2_spec = 125,-50:394.1,78.5:546,-237.8:253.5,-366.3
+   region_1_spec = -321.4,-204.8:-50.3,-76.3:99.6,-392.6:-192.9,-521.1
+   region_2_spec = 114.3,-27.4:383.4,101.1:535.3,-214.4:242.8,-343.7
+   sample_radius = 15
+   sample_time = 20
+   sample_capture_radius = 5
+
+#ifdef STATIC_COL yes
+   persistent_exploit_set = abe,cal,eve,gil
+   persistent_explore_set = ben,deb,fin,hix
+#endif
+
+
+   max_batt = 15.5
+   min_batt = 11.5
+   
+   // Control input params:
+   // All:
+   all_input_gain=$(ALL_INPUT_GAIN)
+
+   // Explore
+   no_sample_available_weight = 50  // not used
+   batt_exh_gain = $(BATT_EXH_GAIN)
+   search_value_improvement_gain = $(SEARCH_VALUE_IMPRV_GAIN) //0.001
+   explore_bias = $(EXPLORE_BIAS) // 0.0
+
+   // Exploit
+   //sampling_cost_improvement_gain = $(SAMPLE_COST_IMPRV_GAIN) //0.001
+   currently_sampling_weight = 40
+
+   // Migrate
+   storm_detected_input_val = 100
+   finish_migration_input_val = 100
+   time_since_last_migration_thresh = 600  // don't change the input after this point
+   time_since_last_migration_resistance_val = -200.0
+   time_since_no_samples_thresh = 1200  // change the input after this point
+   time_since_no_samples_encouragement_slope = 0.0
+
+   //app_logging = log
+}
+

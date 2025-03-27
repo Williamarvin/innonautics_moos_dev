@@ -1,0 +1,23 @@
+// MOOS file
+
+ServerHost = localhost
+ServerPort = 9000
+
+//------------------------------------------
+// Antler configuration  block
+ProcessConfig = ANTLER
+{
+  MSBetweenLaunches = 200
+
+  Run = MOOSDB       @ NewConsole = false
+  Run = uXMS         @ NewConsole = true
+  Run = nav_stub     @ NewConsole = true
+}
+
+////////////////////////////////////////
+ProcessConfig = nav_stub
+{
+  //@ANTLER Run = tgt_stub @ NewConsole = true
+
+  AppTick = 5
+}

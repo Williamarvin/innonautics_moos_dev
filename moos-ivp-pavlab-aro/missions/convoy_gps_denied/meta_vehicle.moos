@@ -1,0 +1,235 @@
+ServerHost = localhost
+ServerPort = $(MOOS_PORT)
+Community  = $(VNAME)
+
+#include plug_origin_warp.moos
+
+//------------------------------------------------------------
+Processconfig = ANTLER
+{
+  MSBetweenLaunches = 500
+   
+  Run = MOOSDB             @ NewConsole = false
+  Run = uProcessWatch      @ NewConsole = false
+  Run = pShare             @ NewConsole = false
+  Run = pLogger            @ NewConsole = false
+  Run = pNodeReporter      @ NewConsole = false
+  Run = pHelmIvP           @ NewConsole = false
+  Run = pHostInfo          @ NewConsole = false
+  Run = uFldNodeBroker     @ NewConsole = false
+  Run = uFldMessageHandler @ NewConsole = false
+  Run = uLoadWatch         @ NewConsole = false
+  Run = uMemWatch          @ NewConsole = false
+  Run = iSay               @ NewConsole = false
+  Run = pContactMgrV20     @ NewConsole = false
+  //Run = pTowManager        @ NewConsole = false
+  Run = pTaskManager       @ NewConsole = false
+  Run = pRealm             @ NewConsole = false
+  Run = pEvalConvoy        @ NewConsole = false
+
+  Run = iM300              @ NewConsole = false
+  Run = iM300Health        @ NewConsole = false
+  Run = pMarinePID         @ NewConsole = false
+  Run = iHydroMAN_IvPExtend @ NewConsole = false
+  Run = uTimerScript       @ NewConsole = false ~ uTimerScript_PING
+
+  Run = pDynamLearning     @ NewConsole = false	
+}
+
+#include plug_iM300.moos
+#include plug_iM300Health.moos
+#include plug_pMarinePID.moos
+#include plug_uFldMessageHandler.moos
+#include plug_uTimerScript_PING.moos
+#include plug_pDynamLearning.moos
+#include plug_pTowManager.moos
+#include plug_pContactMgrV20.moos
+#include plug_uMemWatch.moos
+#include plug_pShare.moos
+#include plug_pHostInfo.moos
+#include plug_pLogger.moos
+#include plug_uProcessWatch.moos
+#include plug_uLoadWatch.moos
+#include plug_iSay.moos
+
+//------------------------------------------------
+// iHydroMAN_IvPExtend config block
+
+ProcessConfig = iHydroMAN_IvPExtend
+{
+   AppTick   = 4
+   CommsTick = 4
+
+   LatOrigin = 42.358436
+   LongOrigin = -71.087448
+
+   hydroman_gateway_port = $(HYDROMAN_IPORT)
+   hydroman_gateway_ip = 127.0.0.1
+
+   // *********************************************************************************************
+   // OWNSHIP NAVIGATION RELATED
+   // *********************************************************************************************
+
+   gps_expiration_time = 5             // in seconds
+   compass_stdev = 1                   // stdev in degrees
+   range_stdev = 1                    // in meters
+
+   // Prefixes of the ownship sensor data messages, which will be sent to HydroMAN
+   prefix_gps_msg = GPS
+   prefix_imu_msg = IMU
+   prefix_compass_msg = NAV
+   prefix_actuator_msg = PYDIR_THRUST
+
+   // Prefixes for nav and target nav output provided by HydroMAN
+   // Msg style eg: "prefix_nav_data" + X/Y/LAT/LON/HEADING
+   prefix_nav_output = HYDROMAN_NAV_           
+
+   // *********************************************************************************************
+   // TARGET VEHICLE NAVIGATION RELATED 
+   // *********************************************************************************************
+
+   ownship_name=$(VNAME)
+
+   // Prefixes of the target vehicle sensor data messages, which will be sent to HydroMAN
+   // Msg style eg: "range_msg" 
+   range_msg = CRS_RANGE_REPORT
+   bearing_msg = CRS_BEARING_REPORT
+   target_track_msg = TARGET_TRACK
+
+   // Msg style eg: "prefix_target_nav_output" + "target_name" + X/Y/LAT/LONG/HEADING
+   prefix_target_nav_output = HYDROMAN_TARGET_NAV_  
+
+   publish_target_node_report = false
+   use_particle_nav_for_track = true
+}
+
+//------------------------------------------
+// pTaskManager config block
+
+ProcessConfig = pTaskManager
+{
+  AppTick   = 4
+  CommsTick = 4
+
+	max_appcast_events = 20
+	ignore_msg = CONVOY_STAT_RECAP_ALLY
+}
+
+//------------------------------------------
+// pEvalConvoy config block
+
+ProcessConfig = pEvalConvoy
+{
+  AppTick   = 4
+  CommsTick = 4
+
+	on_tail_thresh    = 10
+	alignment_thresh  = 60 
+	tracking_thresh   = 1.2 
+	rng_switch_thresh = 1
+}
+
+//------------------------------------------
+// pRealm config block
+
+ProcessConfig = pRealm
+{
+  AppTick   = 4
+  CommsTick = 4
+
+	msg_max_hist = 20
+	trunc_length = 270
+	wrap_length  = 90
+
+	summary_interval = 2.0
+	relcast_interval  = 0.8
+	
+	hist_var = MISSION_TASK
+	hist_var = TASK_BID_RCVD
+	hist_var = NODE_MESSAGE
+	hist_var = NODE_MESSAGE_LOCAL
+	hist_var = TASK_STATE
+	hist_var = TASK_MGR_STATUS
+	
+	scope_set = name=events, vars = MISSION_TASK : TASK_WPT : TASK_OUR_BID : NODE_MESSAGE
+	scope_set = name=events, vars = NODE_MESSAGE_LOCAL : BCM_REPORT_REQUEST : CONTACTS_5000
+	scope_set = name=events, vars = TRANSIT : TASK_OUR_STATE : TASK_BID : TASK_CONVOY : UP_CONVOY
+	scope_set = name=events, vars = CONVOY: MODE: UP_CONVOY
+
+	scope_set = name=events_thin, vars = MISSION_TASK : TASK_WPT : TASK_OUR_BID : CONTACTS_5000
+	scope_set = name=events_thin, vars = BCM_REPORT_REQUEST : TRANSIT : TASK_OUR_STATE : TASK_BID
+	scope_set = name=events_thin, vars = TM_ALERT_REQUEST
+
+	scope_set = name=bcm, vars = BCM_REPORT_REQUEST : CONTACTS_5000
+}
+
+//----------------------------------------------------
+// pTowManager Configuration Block  
+
+ProcessConfig = pHelmIvP
+{
+  AppTick    = 4
+  CommsTick  = 4
+
+	ok_skew = any
+  Behaviors    = targ_$(VNAME).bhv  
+  Verbose      = false
+  Domain       = course:0:359:360
+  Domain       = speed:0:$(MAXSPD):21
+
+	hold_on_apps = pContactMgrV20, pTaskManager
+}
+
+//--------------------------------------------------------
+// pNodeReporter Configuration Block 
+
+ProcessConfig = pNodeReporter
+{
+  AppTick     = 2
+  CommsTick   = 2
+
+  alt_nav_prefix = GT_
+  alt_nav_name = _GT
+  alt_nav_group  = gnd_truth
+
+  platform_group = normal
+
+  platform_color = $(COLOR)
+  platform_type = kayak
+  terse_reports = true
+}
+
+//--------------------------------------------------
+// uFldNodeBroker configuration block from plugin
+
+ProcessConfig = uFldNodeBroker
+{
+  AppTick   = 1
+  CommsTick = 1
+
+  try_shore_host = pshare_route=$(SHORE_IP):$(SHORE_PSHARE)
+
+  bridge = src=VIEW_POLYGON
+  bridge = src=VIEW_CIRCLE
+  bridge = src=VIEW_POINT
+  bridge = src=VIEW_SEGLIST
+  bridge = src=VIEW_WEDGE
+  bridge = src=APPCAST
+  bridge = src=REALMCAST
+  bridge = src=TASK_MGR_STATUS
+  bridge = src=CONVOY_RECAP
+  bridge = src=CONVOY_STAT_RECAP
+  bridge = src=CONVOY_SPD_POLICY
+  bridge = src=NODE_REPORT_LOCAL,  alias=NODE_REPORT
+  bridge = src=NODE_MESSAGE_LOCAL, alias=NODE_MESSAGE
+
+  bridge =  src=CRS_RANGE_REQUEST
+
+  bridge =  src=VISUALIZE_TARGET,         alias=VIEW_SEGLIST_TARGET
+  bridge =  src=VISUALIZE_NAV, 					  alias=VIEW_SEGLIST_NAV
+  bridge =  src=VISUALIZE_HM_NAV,         alias=VIEW_SEGLIST_HM_NAV
+  bridge =  src=VISUALIZE_RANGE,          alias=VIEW_RANGE_%(VNAME)
+  bridge =  src=VISUALIZE_RANGE_CENTER,   alias=VISUALIZE_RANGE_CENTER_%(VNAME)
+  bridge =  src=TARGET_TRACK_LOCAL,       alias=TARGET_TRACK_%(VNAME)
+}
+

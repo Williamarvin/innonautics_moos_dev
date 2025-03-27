@@ -1,0 +1,128 @@
+//--------------------------------------------------------
+ProcessConfig = pMarineViewer
+{
+  AppTick    = 4
+  CommsTick  = 4
+
+  tiff_file            = images/saxis_esri_14.tif
+  tiff_file_b          = images/saxis_esri_sat_14.tif
+  //tiff_file_b          = saxis14.tif
+  set_pan_x            = -250
+  set_pan_y            = -40
+  zoom                 = 0.77
+  vehicles_shape_scale = 25
+  vehicles_name_mode   = names+shortmode
+
+	hash_viewable = true
+	hash_delta = 4000
+	node_report_unc = true
+
+	//content_mode = realmcast
+	//realmcast_channel = kim:uFldNodeBroker
+	//realmcast_channel = mission:COVER
+	//realmcast_channel = odometry
+	
+  polygon_viewable_all    = true
+  polygon_viewable_labels = false
+  seglist_viewable_all    = false
+  seglist_viewable_labels = false
+  point_viewable_all      = true
+  point_viewable_labels   = false
+
+	nodes_font_size      = xlarge   // {xlarge, large, small, xsmall}     
+  procs_font_size      = xlarge   // {xlarge, large, small, xsmall}     
+  appcast_font_size    = large    // {xlarge, large, medium, xsmall}    
+	
+  appcast_viewable     = true
+  appcast_color_scheme = indigo
+
+	watch_cluster = key=mission_top, vars=DEPLOY:RETURN:COVER:STATION_KEEP
+	//watch_cluster = key=odometry, vars=ODOMETRY_DIST:PROXONOI_POLY:PROXONOI_REGION:DESIRED_HEADING:IVPHELM_STATE
+
+  action = UNC_COMMS_RANGE = 10000
+  action = UNC_COMMS_RANGE = 7500
+  action = UNC_COMMS_RANGE = 5000
+  action = UNC_COMMS_RANGE = 4000
+  action = UNC_COMMS_RANGE = 3000
+  action = UNC_COMMS_RANGE = 2000
+  action = UNC_COMMS_RANGE = 1500
+  action = UNC_COMMS_RANGE = 1000
+
+	action = RETURN_ABE="true"
+  action = RETURN_BEN="true"
+  action = RETURN_CAL="true"
+  action = RETURN_DEB="true"
+  action = RETURN_EVE="true"
+  action = RETURN_FIN="true"
+  action = RETURN_GIL="true"
+  action = RETURN_HAL="true"
+  action = RETURN_IKE="true"
+  action = RETURN_JIM="true"
+  action = RETURN_KIM="true"
+  action = RETURN_LOU="true"
+  action = RETURN_MAL="true"
+  action = RETURN_NED="true"
+  action = RETURN_OPI="true"
+  action = RETURN_PAL="true"
+  action = RETURN_QUE="true"
+  action = RETURN_RAY="true"
+  action = RETURN_SAM="true"
+  action = RETURN_TIM="true"
+  action = RETURN_ULA="true"
+  action = RETURN_VAL="true"
+  action = RETURN_WES="true"
+  action = RETURN_XIU="true"
+  action = RETURN_YEN="true"
+  action = RETURN_ZAN="true"
+
+  left_context[vehicle_pick] = PROX_POLY_VIEW_$[UP_VNAME_CLOSEST]=toggle
+  left_context[prox_clear] = PROX_CLEAR_$[UP_VNAME_CLOSEST]=toggle
+
+  right_context[full_rpt] = UNC_FULL_REPORT_REQ=$[VNAME_CLOSEST]
+	right_context[vcenter] = PMV_CENTER=vname=$[VNAME_CLOSEST],zoom=1.5
+
+  comms_pulse_viewable_all = false
+  node_pulse_viewable_all = true
+  vehicles_name_mode = names
+
+  stale_report_thresh = 15
+  stale_remove_thresh = 20000
+
+	scope = UVOI_RELATIVE_STD_DEV
+	scope = UNC_FULL_REPORT_REQ
+  scope = PMV_CENTER
+  scope = PROX_POLY_VIEW_ABE
+  scope = COLREGS_AVOID_MODE
+  scope = PHI_HOST_INFO
+
+  button_one   = DEPLOY  # DEPLOY_ALL=true # COVER_ALL=true
+  button_one   = DEPLOY  # MOOS_MANUAL_OVERIDE_ALL=false 
+  button_one   = RETURN_ALL=false
+  button_two   = RETURN  # RETURN_ALL=true
+
+  button_three = PROX_CLEAR # PROX_CLEAR_ALL=true
+  button_four = PROX_TOGGLE # PROX_POLY_VIEW_ALL=toggle
+
+	button_5 = STATION_TRUE # STATION_KEEP_ALL="true"
+	button_6 = STATION_FALSE # STATION_KEEP_ALL="false"
+
+	button_7 = COMMS_500 # UNC_COMMS_RANGE=500
+	button_8 = COMMS_250 # UNC_COMMS_RANGE=250
+	button_9 = COMMS_100 # UNC_COMMS_RANGE=100
+	button_10 = COMMS_1000 # UNC_COMMS_RANGE=1000
+	button_11 = COMMS_2000 # UNC_COMMS_RANGE=2000
+	button_12 = COMMS_4000 # UNC_COMMS_RANGE=4000
+	button_13 = COMMS_6000 # UNC_COMMS_RANGE=6000
+	button_14 = COMMS_8000 # UNC_COMMS_RANGE=8000
+
+	
+  //button_three = SPD_SAME # WPT_UPDATE_ALL="use_alt_speed=true"
+  //button_three = LOITER_UPDATE_ALL="use_alt_speed=true"
+
+  //button_four  = SPD_DIFF # WPT_UPDATE_ALL="use_alt_speed=false"
+  //button_four  = LOITER_UPDATE_ALL="use_alt_speed=false"
+
+//  BUTTON_THREE = AVOID:ON  # AVOID=colregs
+//  BUTTON_FOUR  = AVOID:OFF # AVOID=false
+}
+

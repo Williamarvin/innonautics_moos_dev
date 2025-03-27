@@ -1,0 +1,9 @@
+//------------------------------------------------
+// iPingSim config block
+
+ProcessConfig = iPingSim
+{
+   AppTick   = 4
+   CommsTick = 4
+}
+

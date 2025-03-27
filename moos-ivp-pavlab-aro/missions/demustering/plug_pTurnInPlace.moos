@@ -1,0 +1,16 @@
+//------------------------------------------------------
+// pTurnInPlace Config Block
+
+ProcessConfig = pTurnInPlace
+{
+  AppTick   = 4
+  CommsTick = 4
+
+  vname = $(VNAME)
+  condition = TURN_IN_PLACE==true
+  updates = TIP_UPDATE
+  endflag = DUBIN_UPDATE = regenerate_path
+  point = 30,-30
+
+  mode = $(XMODE)
+}

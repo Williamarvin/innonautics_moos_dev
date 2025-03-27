@@ -1,0 +1,101 @@
+<tag><origin_warp>
+MOOSTimeWarp = $(WARP)
+
+// MIT Sailing Pavilion                                                    
+//LatOrigin  = 42.358456  
+//LongOrigin = -71.087589 
+//LatOrigin = 42.358436
+//LongOrigin = -71.087448
+
+// Port Angles, WA
+LatOrigin  = 48.11815 
+LongOrigin = -123.43074
+
+
+<tag><pHostInfo>
+//--------------------------------------------------
+// pHostInfo Config Block
+
+ProcessConfig = pHostInfo
+{
+  AppTick 	= 1
+  CommsTick = 1
+
+  default_hostip_force = $(IP_ADDR)
+}
+
+<tag><pShare>
+//---------------------------------------------------------
+// pShare Config Block
+
+ProcessConfig = pShare
+{
+  AppTick   = 4
+  CommsTick = 4
+
+  input = route = $(IP_ADDR):$(PSHARE_PORT)
+}
+
+<tag><uSimMarineV22>
+//------------------------------------------------------
+// uSimMarineV22 Config Block
+
+ProcessConfig = uSimMarineV22
+{
+  AppTick   = 1
+  CommsTick = 1
+
+  start_pos = $(START_POS)
+  prefix    = NAV
+//	drift_x   = 0.02
+	 thrust_factor=5
+	 max_speed = 12
+
+	turn_rate = 50
+
+  wormhole = tag=one, madrid_poly={format=ellipse,x=91709,y=-13383,degs=90,major=300,minor=1700,pts=20}
+  wormhole = tag=one, weber_poly={format=ellipse,x=85673,y=8089,degs=-45,major=300,minor=1700,pts=20}
+  wormhole = tag=one, connection=from_madrid
+  wormhole = tag=one, id_change=true
+  wormhole = tag=one, delay=3
+
+}
+
+<tag><uLoadWatch>
+//-------------------------------------------------------------
+// uLoadWatch Config Block
+
+ProcessConfig = uLoadWatch                                      
+{                                                               
+  AppTick   = 1                                                
+  CommsTick = 1                                               
+                                                                
+  thresh = app=pHelmIvP,  gapthresh=1.5
+  thresh = app=pHostInfo, gapthresh=100
+  thresh = app=any,       gapthresh=2.0  
+
+  near_breach_thresh = 0.5
+
+}                                            
+
+<tag><uProcessWatch>
+//--------------------------------------------------
+// uProcessWatch Config Block
+
+ProcessConfig = uProcessWatch
+{
+  AppTick   = 1
+  CommsTick = 1
+
+	watch_all = true
+
+  nowatch = uMAC*  
+  nowatch = uXMS*
+  nowatch = uPokeDB*
+  nowatch = uQueryDB*
+
+	allow_retractions = true
+	summary_wait = 10
+}
+
+

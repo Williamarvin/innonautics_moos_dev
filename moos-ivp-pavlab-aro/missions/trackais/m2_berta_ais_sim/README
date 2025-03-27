@@ -1,0 +1,9 @@
+//-------------------------------------------------
+// NAME: B. Cole, MIT
+// FILE: README
+// DATE: 22 JUNE 2021
+//-------------------------------------------------
+
+Alpha mission for single-vehicle with AIS-based collision avoidance using geodetic Unscented Kalman Filter.
+
+Adapted from the m2_berta two-vehicle mission written by: Michael Benjamin

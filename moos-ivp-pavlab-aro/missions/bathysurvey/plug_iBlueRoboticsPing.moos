@@ -1,0 +1,11 @@
+//------------------------------------------------------------
+// iBlueRoboticsPing configuration block
+  
+ProcessConfig = iBlueRoboticsPing
+{
+  AppTick   = 10
+  CommsTick = 10
+
+  ping_interval = 50
+  speed_of_sound = 1500000
+}

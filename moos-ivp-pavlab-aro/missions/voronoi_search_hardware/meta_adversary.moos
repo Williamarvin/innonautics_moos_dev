@@ -1,0 +1,129 @@
+ServerHost = localhost
+ServerPort = $(VPORT)
+Community  = $(VNAME)
+
+#include $(ORIGIN)
+  
+//------------------------------------------------------------
+Processconfig = ANTLER
+{
+  MSBetweenLaunches = 200
+   
+  Run = MOOSDB             @ NewConsole = false
+  //Run = pRealm             @ NewConsole = false
+  Run = pShare             @ NewConsole = false
+  Run = pNodeReporter      @ NewConsole = false
+  Run = uSimMarineX         @ NewConsole = false
+  Run = pHelmIvP           @ NewConsole = false
+  Run = pHostInfo          @ NewConsole = false
+  Run = uFldNodeBroker     @ NewConsole = false
+  Run = uXMS             @ NewConsole = false
+  Run = pWormDestUpdate  @ NewConsole = false
+  //Run = uFunctionVis  @ NewConsole = false
+}
+
+#include $(SIMX)
+
+ ProcessConfig = uXMS
+{
+  AppTick       = 1
+  CommsTick     = 1
+
+VAR=DEPLOY
+VAR=AT_DEST
+VAR=RETURN_UPDATES
+VAR=NUM_ITERATIONS
+VAR=NAV_SPEED
+VAR=NAV_SPEED_OVER_GROUND
+} 
+ ProcessConfig = pWormDestUpdate
+{
+  AppTick       = 1
+  CommsTick     = 1
+
+  end=$(NEW_P)
+  x_offset=$(X_OFF)
+  min=$(MIN)
+  max=$(MAX)
+
+} 
+ProcessConfig = pShare
+{
+  AppTick    = 5
+  CommsTick  = 5
+
+  input = route =  $(IP_ADDR):$(PSHARE_PORT)
+}
+
+//--------------------------------------------------
+// uFldNodeBroker configuration block from plugin
+
+ProcessConfig = uFldNodeBroker
+{
+  AppTick   = 6
+  CommsTick = 6
+
+  try_shore_host = pshare_route=$(SHORE_IP):$(SHORE_PSHARE)
+
+  bridge = src=BVOI_STATE
+  bridge = src=COLREGS_AVOID_MODE
+  bridge = src=AVDCOL_MODE
+  bridge = src=VIEW_POLYGON
+  bridge = src=VIEW_POINT
+  bridge = src=VIEW_SEGLIST
+  bridge = src=APPCAST
+  bridge = src=REALMCAST
+  bridge = src=REALMCAST_CHANNELS
+  bridge = src=BCM_DETECTION_DIST
+  bridge = src=AT_DEST, alias=FINISH_MISSION
+  bridge = src=NUM_ITERATIONS, alias=COUNTER
+  bridge = src=NODE_REPORT_LOCAL,  alias=NODE_REPORT
+  bridge = src=NODE_MESSAGE_LOCAL, alias=NODE_MESSAGE
+}
+
+
+//--------------------------------------------------
+// pHostInfo Config Block
+
+ProcessConfig = pHostInfo
+{
+  AppTick 	= 1
+  CommsTick = 1
+
+#ifdef IP_ADDR
+  default_hostip_force = $(IP_ADDR)
+#endif
+}
+
+
+//----------------------------------------------------
+// pHelmIvP Configuration Block  (Created from Plugin)
+
+ProcessConfig = pHelmIvP
+{
+  AppTick    = 1
+  CommsTick  = 1
+
+  ok_skew      = any
+  Behaviors    = targ_$(VNAME).bhv  
+  Verbose      = false
+  Domain       = course:0:359:360
+  Domain       = speed:0:5:50
+}
+
+
+
+//--------------------------------------------------------
+// pNodeReporter Configuration Block (Created from Plugin)
+
+ProcessConfig = pNodeReporter
+{
+  AppTick     = 6
+  CommsTick   = 6
+  
+  VESSEL_TYPE = UUV
+}
+
+
+  
+ 

@@ -1,0 +1,8 @@
+#!/bin/bash
+
+#Sets environment variables for use by all other scripts in this group
+#
+#
+
+#If an IP address changes, only change it here
+export HLIP0="192.168.2.243"

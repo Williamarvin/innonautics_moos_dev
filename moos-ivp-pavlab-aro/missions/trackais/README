@@ -1,0 +1,58 @@
+Author: Blake Cole
+Date: July 11th 2021
+File: README
+
+This mission directory contains a variety of tools for testing missions involving vehicles capable of AIS-enabled UKF tracking and avoidance of nearby vessels.
+
+The workhorse application is uFldTrackAIS.  The general workflow is as follows:
+
+  1) Ingest NMEA0183 strings from some source.  Typically, either a real serial connection (iSerial) or a simulated serial connection (uSimAIS).  Fragmented NMEA strings (e.g. AIS Message Type 5) are fused.  Complete NMEA payloads are then stored as custom AISMsg class objects.  All decoding capabilites are contained within this class structure.
+
+  2) After a message is decoded and stored as an AISMsg object, is is directed to a VesselTrack class object, stored in a C++ dictionary, keyed by the vessel MMSI number.  This dictionary is allowed to grow as more vehicles are detected.
+
+  3) At each iteration of uFldTrackAIS, the state of vessels with valid kinematic data (lon, lat, sog, cog) is estimated in geodetic coordinates using an Unscented Kalman Filter (UKF).  If new valid AIS data is available at a given iteration, the model prediction is fused with the new data, weighted by the Kalman gain (often heavily in favor of the new data).
+
+  4) All vessel states and covariance matrices are stored locally, at every iteration.  The directory structure is organized as follows:
+  moos-ivp-pavlab
+  --> data
+        --> ukf_logs
+            --> log_[unix-timestamp]
+                --> mmsi_[vessel-mssi-number]
+                    --> ais.csv (AIS data)
+                    --> P.csv   (error covariance matrices)
+                    --> x.csv   (state estimates)
+                    --> y.csv   (residual errors)
+
+
+
+
+******************************
+TRACKING ONLY MISSIONS
+******************************
+The following missions test UKF tracking capabilities only; no collision avoidance capabilities are included.  The "deliverable" is the ukf_logs directory, which can be analyzed and validated in MATLAB, to ensure the UKF state estimation is proceeding in a reasonable manner (true 'validation' is not possible without knowledge of the true location of tracked vessels).
+
+pablo_sim.moos
+-----------------------------
+A simulated mission in which simulated AIS data (taken from a real historical dataset) are read at a presecribed rate, and published to the MOOSDB (uSimAIS).  To be run on RasPi / Linux machine.
+
+macos_sim.moos
+-----------------------------
+A simulated mission in which simulated AIS data (taken from a real historical dataset) are read at a presecribed rate, and published to the MOOSDB (uSimAIS).  To be run on MacOS machine.
+
+pablo_field.moos
+-----------------------------
+A mission in which real AIS data is read from an AIS receiver connected via serial, using the iSerial interface application.  This application publishes raw NMEA-0183 strings to the MOOSDB, and does not perform any validation or decoding.
+
+
+******************************
+TRACKING + AVOIDANCE  MISSIONS
+******************************
+The following missions build upon the tracking-only-missions, by layering on collision avoidance behaviors (embodied by pContactMgrV20 application and COLREGSv19 behavior).
+
+m2_berta_ais_sim
+-----------------------------
+This is a simulated AIS-based collision avoidance mission, centered in Boston Harbor, with AIS data collected in June, 2020.  The uSimAIS application is used to process AIS data from a text file (moos-ivp-pavlab/data/serial_raw_ais.txt), as was done for *_sim.moos tracking-only missions.
+
+m2_berta_ais
+-----------------------------
+This mission is intended to be used with real vehicles at the MIT Sailing Pavilion.

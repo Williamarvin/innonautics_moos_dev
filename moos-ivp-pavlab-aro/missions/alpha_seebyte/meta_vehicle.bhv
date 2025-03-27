@@ -1,0 +1,135 @@
+//*******************************************************
+// Vehicle behavior configuration file
+
+initialize   DEPLOY = false
+initialize   RETURN = false
+initialize   STATION_KEEP = false
+initialize   REGION = one
+initialize   SURFACE = false
+	
+//----------------------------------------------
+Behavior = BHV_Waypoint
+{
+  name      = waypt_survey1
+  pwt       = 100
+  condition = RETURN = false
+  condition = STATION_KEEP = false
+  condition = DEPLOY = true
+	condition = REGION = one
+	condition = SURFACE != true
+	endflag   = SURFACE = true
+  updates   = WPT_UPDATE1
+  perpetual = true
+
+                lead = 8
+         lead_damper = 1
+       lead_to_start = true
+              speed  = $(SPEED)  // meters per second
+        capture_line = true
+      capture_radius = 5
+         slip_radius = 15
+	efficiency_measure = all
+
+  points = format=lawnmower, label=fox, x=-60, y=-70, height=40, width=50, lane_width=8, rows=north-south, startx=0, starty=0, degs=336
+
+           order = reverse
+          repeat = 0
+
+    visual_hints = nextpt_color=yellow,  nextpt_vertex_size=8
+    visual_hints = nextpt_lcolor=gray70, vertex_size=5, edge_size=1
+    visual_hints = edge_color=white,     vertex_color=dodger_blue, 
+}
+
+//----------------------------------------------
+Behavior = BHV_Waypoint
+{
+  name      = waypt_survey2
+  pwt       = 100
+  condition = RETURN = false
+  condition = STATION_KEEP = false
+  condition = DEPLOY = true
+	condition = REGION = two
+  endflag   = RETURN = true
+  updates   = WPT_UPDATE2
+  perpetual = true
+
+                lead = 8
+         lead_damper = 1
+       lead_to_start = true
+              speed  = $(SPEED)  // meters per second
+        capture_line = true
+      capture_radius = 5
+         slip_radius = 15
+	efficiency_measure = all
+
+  points = format=lawnmower, label=fox, x=43, y=-22, height=40, width=50, lane_width=8, rows=north-south, startx=0, starty=0, degs=336
+
+           order = normal
+          repeat = 0
+
+    visual_hints = nextpt_color=yellow,  nextpt_vertex_size=8
+    visual_hints = nextpt_lcolor=gray70, vertex_size=5, edge_size=1
+    visual_hints = edge_color=white,     vertex_color=dodger_blue, 
+}
+
+//----------------------------------------------
+Behavior=BHV_Waypoint
+{
+  name       = waypt_return
+  pwt        = 100
+  condition  = RETURN = true
+  condition  = STATION_KEEP = false
+  condition  = DEPLOY = true
+  perpetual  = true
+  updates    = RETURN_UPDATE
+  endflag    = RETURN = false
+  endflag    = DEPLOY = false
+  endflag    = MISSION = complete
+
+	   speed = $(SPEED)
+  capture_radius = 2.0
+     slip_radius = 8.0
+          points = 0,-10
+ }
+
+//----------------------------------------------                                          
+Behavior = BHV_StationKeep
+{
+  name         = station_keep_all
+  pwt          = 100
+  condition    = STATION_KEEP = true
+  condition    = DEPLOY = true
+
+     center_activate = true
+        inner_radius = 5
+        outer_radius = 10
+         outer_speed = 1.0
+
+       transit_speed = 0.5
+          swing_time = 7
+        visual_hints = vertex_size=0, edge_color=gray50
+}
+
+//----------------------------------------------                                          
+Behavior = BHV_StationKeep
+{
+  name         = station_keep_1
+  pwt          = 100
+  condition    = DEPLOY  = true
+  condition    = SURFACE = true
+  endflag      = SURFACE = false
+  endflag      = REGION  = two
+	duration     = 150
+	duration_idle_decay = false
+	
+	        station_pt = -5,-48
+        inner_radius = 2
+        outer_radius = 10
+         outer_speed = 1.0
+
+       transit_speed = 0.5
+          swing_time = 7
+        visual_hints = vertex_size=0, edge_color=gray50
+}
+
+

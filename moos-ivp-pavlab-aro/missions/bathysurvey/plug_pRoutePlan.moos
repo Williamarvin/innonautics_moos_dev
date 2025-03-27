@@ -1,0 +1,78 @@
+
+//--------------------------------------------------
+// pRoutePlanner Configuration Block
+
+ProcessConfig = pRoutePlan
+{
+  AppTick       = 5
+  CommsTick     = 5
+
+  proposal_var_name = PROPOSED_PATH
+
+  proposal_wait_time = 2.0
+  max_proposal_iterations = 10
+  max_maintain_path  = 5
+
+#ifdef XMODE SIM
+  depth_threshold = 20.0
+#else
+  depth_threshold = 15.0
+#endif
+
+#ifdef GRIDSIZE FULL
+  //variance_threshold = 0.001
+  variance_pct_threshold = 0.33
+  consensus_wait_time = 18
+#elseifdef GRIDSIZE NEW
+  variance_pct_threshold = 0.33
+  consensus_wait_time = 18
+#else
+  //variance_threshold = 0.003
+  variance_pct_threshold = 0.33    // for cell 127 / 442	
+  consensus_wait_time = 3.0
+#endif
+
+  number_of_vehicles = $(VNUM)  // number of vehicles deployed
+  vehicle_n = $(V_N) // vehicle's N coefficient for lawnmower calculations
+
+
+//  Set the start and goal cells here if desired
+//  Grid layout 
+//   (1) ----------- (4)
+//    |               |
+//    |               |
+//    |               |
+//   (2) ----------- (3)
+//
+//   Does not have to be horizontal!!
+
+// use all the cells along the line 1 to 4
+// as possible start cells
+  use_all_top_cells_as_start = true
+
+// use all the cells along the line 2 to 3
+// as possible goal cells
+  use_all_bottom_cells_as_goal = true
+
+// In addition, you can specify specific cell numbers
+// for start and goal cells.  These are additive,
+// so for instance setting use_all_top_cells_as_start = true
+// and specifying cells here will cause the path planner to
+// consider both groups of cells to be possible starts. 
+// start_cells = 1,2,3,4,
+// goal_cells = 5,6,7,8
+
+
+#ifdef PATHMODE OTHER
+  explore_possible_paths = 1
+#else 
+  explore_possible_paths = 0
+#endif
+
+#ifdef XMODE SIM
+  timeout = 1;
+#endif
+  
+ app_logging = log
+
+}

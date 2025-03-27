@@ -1,0 +1,9 @@
+//------------------------------------------------
+// pDynamicTrafficLight config block
+
+ProcessConfig = pDynamicTrafficLight
+{
+   AppTick   = 4
+   CommsTick = 4
+}
+

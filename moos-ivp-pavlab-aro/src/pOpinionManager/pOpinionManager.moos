@@ -1,0 +1,33 @@
+//------------------------------------------------
+// pOpinionManager config block
+
+ProcessConfig = pOpinionManager
+{
+   AppTick   = 10
+   CommsTick = 10
+   SocialTick = 1
+
+   group = leader    // leader, follower
+
+   option_file = demo1.opt
+   
+   satFunOrder = 2.0
+   u_th  = 0.1
+   tau_u = 10.0
+
+   min_attention = 0.5
+   max_attention = 1.5
+   
+   opinion_thresh = 0.1
+
+   neighbor_msg_stale_thresh = 2.0 // seconds
+   // set sensitivity_g  and tau_u internally
+
+   // Example messages:
+   // OPINION_MESSAGE=VNAME,GROUP,OPTION1_NAME,OPTION1_OPINION,OPTION2_NAME,OPTION2_OPINION
+   // PROPOSAL_MESSAGE=VNAME,OPTIONX_NAME,VALUE_PROPOSITION
+
+   app_logging = log
+   
+}
+

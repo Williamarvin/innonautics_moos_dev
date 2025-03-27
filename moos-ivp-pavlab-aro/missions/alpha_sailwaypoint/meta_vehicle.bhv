@@ -1,0 +1,119 @@
+//-------------------------------------------------
+// NAME: M. Benjamin, Jason Webb MIT MechE
+// FILE: meta_vehicle.moos
+//-------------------------------------------------
+
+initialize   DEPLOY = false
+initialize   RETURN = false
+initialize   SEARCH_1 = false
+initialize   SEARCH_2 = false
+initialize   SEARCH_1_DONE = false
+initialize   SPDLIMIT = true
+//initialize   DRIFT_X = 0.5
+//initialize   DRIFT_Y = 0.7
+initialize   AVOIDING = idle
+
+//----------------------------------------------
+Behavior = BHV_HSLine
+{ 
+  name = hsline
+
+	time_on_leg = 5
+	condition = DEPLOY=true
+}
+
+//----------------------------------------------
+Behavior=BHV_SailWaypoint
+{
+  name       = return
+  pwt        = 100
+  condition  = RETURN = true
+  condition  = DEPLOY = true
+  perpetual  = true
+  updates    = RETURN_UPDATE
+  endflag    = RETURN = false
+  endflag    = DEPLOY = false
+  endflag    = MISSION = complete
+
+
+	// endflag    = EFLAG  = r_endings=$[CTR_02]
+	// cycleflag  = CFLAG  = r_cyles=$[CTR_01]
+	// wptflag    = WFLAG  = r_waypoints=$[CTR]
+
+           speed = 2.0
+  capture_radius = 10.0
+     slip_radius = 20.0
+          point = 0,-20
+      
+      upwind_threshold   = 45   // degrees
+             patience    = 0.9  // amount of importance of course zaic
+
+#include plug_polar.moos
+ }
+
+//----------------------------------------------
+Behavior=BHV_SailWaypoint
+{
+  name      = sail
+  pwt       = 100
+  condition = RETURN = false
+  condition = DEPLOY = true
+  condition = SEARCH_1 = false
+	// endflag   = RETURN = true
+      endflag   = RETURN = true
+
+
+  updates    = SAIL_UPDATE
+  perpetual  = true
+
+             speed     = 2.0  // meters per second
+      capture_line     = false
+    capture_radius     = 10
+       slip_radius     = 15
+  upwind_threshold     = 45   // degrees
+          patience     = 0.9  // amount of importance of course zaic
+//    dist_from_track     = 25   // sets allowable distance from trackline when navigating upwind
+           
+//           search     = true // indicates that the function is to search the area provided by points below
+//      track_space     = 15 // width between sweeping lines in search pattern (25 may be sweet spot for simulation)
+//      sensor_width     = 10  // the effective width covered by the vehicle's sensor or the area covered in a single pass, determines search grid cell size
+
+// prop_installed       = true       
+
+
+      //points = pts={50,-50:150,0:250,-15:190,-75:225,-100:50,-180}
+      //points = pts={50,-50:150,0:225,-100:50,-180}          
+      //points = pts={10,-40:80,-150:140,-90:-130,-120:70,0:30,-130}          
+      //points = pts={-50,-100:150,-100:300,-250:-50,-250:-50,-100} 
+      //points = pts={50,-100:200,-50:250,-200:100,-250}  
+#ifdef REGION pavlab       
+      // points = pts={50,-100:250,-25:300,-175:100,-250}
+      // point  = 100,-50 // Cannonical Mission: Path to first search area
+      // point  = 47,-398 // Cannonical Mission: Path to second search area
+      points = pts={50,-50:100,-50:100,-150:50,-50} // triangle
+
+      // points = pts={0,-50:150,-50:150,-200:0,-200} // rectangle
+      // points = pts={50,-100:100,-100:100,-200:50,-200} // rectangle
+      // points = pts={48,-25:102,-25:140,-63:140,-117:102,-155:48,-155:10,-117:10,-63:48,-25}// octagon
+#elseifdef REGION forest_lake
+      // points = pts={50,0:200,0:175,-100:25,-100}
+      // points = pts={50,0:175,0:175,-20:50,-20:50,-40:175,-40:175,-60:50,-60:50,-80:175,-80:175,-100:50,-100}
+      points = pts={50,-50:100,-50:100,-150:50,-50} // triangle
+      // points = pts={48,-25:102,-25:140,-63:140,-117:102,-155:48,-155:10,-117:10,-63:48,-25}// octagon
+#elseifdef REGION deer_island
+      // Deer Island survey
+      points = pts={-250,120:-610,435:-700,350:-485,360:95,-30:-510,-60:-510,-400:450,-455:500,-655:-315,-770:75,-520}
+// hex around BHF3 
+//       points = pts={186,-796:146,-796:126,-761:146,-726:186,-726:206,-761}
+#endif              
+      // repeat = forever     // number of _additional_ repeats or 'forever'
+      // order = toggle
+#include plug_polar.moos		
+
+   visual_hints = nextpt_color=yellow
+   visual_hints = nextpt_vertex_size=8
+   visual_hints = nextpt_lcolor=gray70
+   visual_hints = vertex_color=dodger_blue, edge_color=white
+   visual_hints = vertex_size=6, edge_size=1
+}
+

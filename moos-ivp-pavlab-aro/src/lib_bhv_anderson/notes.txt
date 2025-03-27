@@ -1,0 +1,44 @@
+
+The Anderson Turn behavior is meant to enable a maneuver that it accessible to
+the vehicle in virtually any mode. It's conceivable that its run condition is
+simply something like DEPLOY=true.
+
+The behavior is engaged with a message to a MOOS variable. While this behavior
+supports dynamic parameter updates via a MOOS variable named in the updates
+parameter, such updates are meant for modifying default parameters that may be
+in play on all turns.
+
+The behavior receives input from another variable, named with the engage_var
+parameter. For example:
+
+  engage_var = ATURN_ENGAGE
+
+Postings to this variable may be used to invoke an Anderson turn. For example:
+
+  ATURN_ENGAGE = starboard
+
+or
+
+  ATURN_ENGAGE = starboard, turnrad=20
+
+In the latter example a starboard turn is requested with a turn radius of 20
+meters. In the former example, the unspecified turn radius will result in the
+default turn radius being used. The default turn radius is set in a separate
+behavior configuration parameter "turn_radius=15"
+
+Once invoked the behavior will proceed through a set of waypoints
+completing an Anderson turn. When the last waypoint is reached, the
+behavior will return to "off" mode. Note that it is still a "running"
+behavior from the helm's perspective of having its run conditions
+met. It is simplay waiting a new command to turn. Not unlike a running
+obstacle avoidance behavior where the obstacle is still outside of
+range to take action.
+
+During the turn, the behavior may be given the command:
+
+  ATURN_ENGAGE = off
+
+This will abort the Anderson turn and the vehicle should go back to what it was
+doing before the turn, depending on how the mission is configured.
+
+

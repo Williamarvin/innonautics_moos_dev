@@ -1,0 +1,29 @@
+//--------------------------------------------------
+ProcessConfig = pLogger
+{
+  AppTick     = 10
+  CommsTick   = 10
+
+  File    = LOG_%(VNAME)
+  PATH    = ./
+  SyncLog   = true @ 0.2
+  AsyncLog   = true
+  FileTimeStamp = true
+
+  //Log = IVPHELM_LIFE_EVENT @ 0 nosync
+
+  // Log it all!!!!!
+  //LogAuxSrc = true
+  //WildCardLogging = true
+  //WildCardOmitPattern = *_STATUS
+  //WildCardOmitPattern = DB_VARSUMMARY
+  //WildCardOmitPattern = DB_RWSUMMARY
+
+  Log = N_ODOM_BLOOM_CTRL @ 0
+  Log = NUMBER_OF_SAMPLED_BLOOMS @ 0
+  Log = EXPLORE_BIAS @ 0
+  Log = SEARCH_VALUE_IMPRV_GAIN @ 0
+  Log = ALL_INPUT_GAIN @ 0
+  Log = BATT_EXH_GAIN @ 0 
+
+}

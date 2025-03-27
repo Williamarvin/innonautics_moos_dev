@@ -1,0 +1,6 @@
+
+To use the dynamic loading of behaviors, you need to set the following 
+environment variable, in your .bashrc file 
+
+IVP_BEHAVIOR_DIRS=$IVP_BEHAVIOR_DIRS:/Users/jane/moos-ivp-pavlab/lib
+

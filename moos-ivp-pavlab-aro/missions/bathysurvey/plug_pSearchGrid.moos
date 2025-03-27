@@ -1,0 +1,29 @@
+//--------------------------------------------------
+// pSearchGrid Configuration Block
+
+ProcessConfig = pSearchGrid
+{
+  AppTick       = 4
+  CommsTick     = 1
+
+  report_deltas = true
+  match_name    = $(VNAME)
+  grid_var_name = VIEW_GRID_PSG_LOCAL
+
+//#ifdef GRIDSIZE SMALL
+  //GRID_CONFIG = pts={-75,-55: 185,-55: 185,-220: -75,-220}
+  //GRID_CONFIG = cell_size=10
+//#elseifdef GRIDSIZE FULL
+  //GRID_CONFIG = pts={-290,-140:-180,-490:240,-480:590,-350:400,140:80,20}
+  //GRID_CONFIG = cell_size=30
+//#endif
+
+  GRID_CONFIG = pts={$(X_1),$(Y_1): $(X_2),$(Y_2): $(X_3),$(Y_3): $(X_4),$(Y_4)}
+  //GRID_CONFIG = pts={$(MINX),$(MINY): $(MAXX),$(MINY): $(MAXX),$(MAXY): $(MINX),$(MAXY)}
+  GRID_CONFIG = cell_size=$(CELLSIZE)
+  GRID_CONFIG = cell_vars=x:0
+  GRID_CONFIG = cell_min=x:0
+  GRID_CONFIG = cell_max=x:100
+
+
+}

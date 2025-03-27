@@ -1,0 +1,256 @@
+//*******************************************************
+// ShoreSide Configuration File
+
+ServerHost = localhost
+ServerPort = 9000
+Community  = shoreside
+
+#include plugs.moos <origin_warp>
+  
+//--------------------------------------------------------
+Processconfig = ANTLER
+{
+  MSBetweenLaunches = 100
+
+  Run = MOOSDB          @ NewConsole = false
+#ifdef LAUNCH_GUI yes
+  Run = pMarineViewer   @ NewConsole = false
+#endif
+
+  Run = uFldJoustMgr    @ NewConsole = false
+  Run = pLogger         @ NewConsole = false
+  Run = pShare          @ NewConsole = false
+  Run = pHostInfo       @ NewConsole = false
+  Run = uFldShoreBroker @ NewConsole = false
+  Run = uFldNodeComms   @ NewConsole = false
+	Run = uFldCollisionDetect @ NewConsole = false
+  Run = uProcessWatch   @ NewConsole = false
+  Run = pRealm          @ NewConsole = false
+  Run = uFldUnison      @ NewConsole = false
+}
+
+#include plugs.moos <pShare>
+#include plugs.moos <pHostInfo>
+#include plugs.moos <uProcessWatch>
+
+//--------------------------------------------------
+// uFldUnison Config Block
+
+ProcessConfig = uFldUnison
+{
+  AppTick    = 4
+  CommsTick  = 4
+
+	app_logging = true
+	
+	check_pair = READY_HOLD=true
+	post_pair  = STATION_KEEP_ALL=false
+
+	delay = 2
+	verbose = true
+}
+
+//--------------------------------------------------
+// uFldCollisionDetect Config Block
+
+ProcessConfig = uFldCollisionDetect
+{
+  AppTick       = 4
+  CommsTick     = 4
+
+	app_logging = true
+	
+  encounter_range = 40
+  collision_range = 4
+  near_miss_range = 12
+
+  // condition = COLLISION_DETECT=true                                          
+  condition = DEPLOY_ALL=true
+
+  report_all_encounters = true
+
+  // collision_flag = COLLISION_$UP_V1_$UP_V2 = $CPA                            
+  collision_flag = COLLISION = $CPA
+  near_miss_flag = NEAR_MISS = $CPA
+  encounter_flag = ENCOUNTER = $CPA
+  //encounter_flag = DENSITY = $[cal@60]                                        
+
+  near_miss_flag = NEAR_MISS_$UP_V1 = $CPA
+  near_miss_flag = NEAR_MISS_$UP_V2 = $CPA
+  collision_flag = COLLISION_$UP_V1 = $CPA
+  collision_flag = COLLISION_$UP_V2 = $CPA
+
+  encounter_flag = EVAL_LOITER_REQ_$UP_V1 = id=$IDX, cpa=$CPA, v2=$V2
+  encounter_flag = EVAL_LOITER_REQ_$UP_V2 = id=$IDX, cpa=$CPA, v2=$V1
+
+  encounter_rings = false
+  pulse_render   = true
+  pulse_range    = 20
+  pulse_duration = 30
+}
+
+//---------------------------------------------------------
+// uFldJoustMgr Config Block
+
+ProcessConfig = uFldJoustMgr
+{
+  AppTick   = 2
+  CommsTick = 2
+
+  //circle = $(CIRCLE)
+
+	app_logging = true
+	
+	joust_file = joust.txt
+	updates = LR_UPDATE	
+}
+
+//--------------------------------------------------
+// uFldNodeComms Config Block
+
+ProcessConfig = uFldNodeComms
+{
+  AppTick   = 2
+  CommsTick = 2
+
+           comms_range = 75
+        critical_range = 50
+      min_msg_interval = 0
+        max_msg_length = 1000
+  view_node_rpt_pulses = true
+}
+
+//--------------------------------------------------
+// uFldShoreBroker Config Block
+
+ProcessConfig = uFldShoreBroker
+{
+  AppTick   = 1
+  CommsTick = 1
+
+  qbridge = DEPLOY, NODE_REPORT, NODE_MESSAGE
+  qbridge = STATION_KEEP, APPCAST_REQ, LR_UPDATE, RETURN_UPDATES
+  qbridge = MOOS_MANUAL_OVERIDE, LOITER, WPT_UPDATE, LOITER_UPDATE
+  qbridge = BHV_ABLE_FILTER
+  qbridge = XYZ_DISABLE_TARGET
+  qbridge = XYZ_REENABLE_TARGET
+
+  bridge  = src=AVOID, alias=AVOID
+ 
+  bridge  = src=RETURN_ALL, alias=RETURN
+  bridge  = src=RETURN_$V,  alias=RETURN
+}
+
+//--------------------------------------------------
+// pLogger Configuration Block
+
+ProcessConfig = pLogger
+{
+  AppTick   = 10
+  CommsTick = 10
+  
+  File          = XLOG_SHORESIDE
+  PATH          = ./
+  AsyncLog      = true
+  FileTimeStamp = true
+
+  Log = GIVEN_OBSTACLE @ 0 nosync
+
+  // Log it all!!!!!
+  WildCardLogging = true 
+  WildCardOmitPattern = *_STATUS
+  WildCardOmitPattern = *_ITER_GAP
+  WildCardOmitPattern = *_ITER_LEN
+  WildCardOmitPattern = APPCAST
+  WildCardOmitPattern = DB_VARSUMMARY
+  WildCardOmitPattern = DB_RWSUMMARY
+}
+
+
+//--------------------------------------------------------
+ProcessConfig = pMarineViewer
+{
+  AppTick   = 4
+  CommsTick = 4
+
+  tiff_file            = MIT_SP.tif
+  set_pan_x            = -120
+  set_pan_y            = -180
+  zoom                 = 1.04
+  vehicles_shape_scale = 1.5
+  vehicles_name_mode   = names+shortmode
+
+  polygon_viewable_all    = true
+  polygon_viewable_labels = false
+  seglist_viewable_all    = true
+  seglist_viewable_labels = false
+  point_viewable_all    = true
+  point_viewable_labels = false
+
+  appcast_viewable     = true
+  appcast_color_scheme = indigo
+
+  action = AVOID="true"
+  action = LR_UPDATE_ALL="speed=1.5"
+  action = LR_UPDATE_ALL="speed=1.6"
+  action = LR_UPDATE_ALL="speed=1.7"
+  action = LR_UPDATE_ALL="speed=1.8"
+  action = LR_UPDATE_ALL="speed=1.9"
+  action = LR_UPDATE_ALL="speed=2.0"
+
+  comms_pulse_viewable_all = true
+  range_pulse_viewable_all = false
+  node_pulse_viewable_all  = false
+
+  vehicles_name_mode = names
+
+  stale_report_thresh = 2
+  stale_remove_thresh = 20000
+  
+  scope = UFJ_ARRIVALS
+
+	cmd = label=DEPLOY, var=DEPLOY,  sval=true,  receivers=all:$(VNAMES)
+  cmd = label=DEPLOY, var=MOOS_MANUAL_OVERIDE,  sval=false,  receivers=all:$(VNAMES)
+  cmd = label=DEPLOY, var=RETURN,  sval=false,  receivers=all:$(VNAMES)
+  cmd = label=DEPLOY, var=STATION_KEEP,  sval=false,  receivers=all:$(VNAMES)
+
+  cmd = label=RETURN, var=RETURN, sval=true, receivers=all:$(VNAMES)
+  cmd = label=RETURN, var=STATION_KEEP, sval=false, receivers=all:$(VNAMES)
+	
+  cmd = label=STATION, var=STATION_KEEP, sval=true, receivers=all:$(VNAMES)
+  cmd = label=STATION, var=RETURN, sval=false, receivers=all:$(VNAMES)
+	
+  cmd = label=ALLSTOP, var=DEPLOY, sval=false, receivers=all:$(VNAMES)
+	
+  //right_context[enable] = BHV_ABLE_FILTER_$[UP_VNAME] = contact=$[UP_VNAME_CLOSEST], action=enable
+  right_context[enable] = XYZ_REENABLE_TARGET_$[UP_VNAME] = $[UP_VNAME_CLOSEST]
+
+	//left_context[disable] = BHV_ABLE_FILTER_$[UP_VNAME] = contact=$[UP_VNAME_CLOSEST], action=disable
+  left_context[disable] = XYZ_DISABLE_TARGET_$[UP_VNAME] = $[UP_VNAME_CLOSEST]
+  left_context[return] = RETURN_UPDATES_$[UP_VNAME] = point=$[X],$[Y]
+  left_context[return] = RETURN_$[UP_VNAME] = true
+  left_context[return] = STATION_KEEP_$[UP_VNAME] = false
+	
+  button_1 = DEPLOY  # DEPLOY_ALL=true 
+  button_1 = DEPLOY  # MOOS_MANUAL_OVERIDE_ALL=false 
+  button_1 = RETURN_ALL=false #
+  button_1 = STATION_KEEP_ALL=false #
+
+  button_2 = STATION  # DEPLOY_ALL=true 
+  button_2 = MOOS_MANUAL_OVERIDE_ALL=false 
+  button_2 = RETURN_ALL=false #
+  button_2 = STATION_KEEP_ALL=true
+
+  button_3 = RETURN  # RETURN_ALL=true # LOITER_ALL=false
+	button_4 = ALLSTOP # DEPLOY_ALL=false
+
+  //button_three = SPD_SAME # WPT_UPDATE_ALL="use_alt_speed=true"
+  //button_three = LOITER_UPDATE_ALL="use_alt_speed=true"
+
+  //button_four  = SPD_DIFF # WPT_UPDATE_ALL="use_alt_speed=false"
+  //button_four  = LOITER_UPDATE_ALL="use_alt_speed=false"
+
+  //button_three = AVOID:ON  # AVOID=colregs
+  //button_four  = AVOID:OFF # AVOID=false
+}
+

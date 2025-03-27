@@ -1,0 +1,469 @@
+//-------------------------------------------------
+// NAME: Tyler Paine adapted from M. Benjamin, MIT
+//-------------------------------------------------
+ServerHost = localhost
+ServerPort = $(MOOS_PORT)
+Community  = $(VNAME)
+
+#define REGION1_COLOR blue
+#define REGION2_COLOR orange
+#define REGION3_COLOR yellow
+#define REGION4_COLOR orange
+#define REGION5_COLOR pink
+
+#include plugs.moos <origin_warp>
+  
+//------------------------------------------------------------
+Processconfig = ANTLER
+{
+  MSBetweenLaunches = 50
+   
+  Run = MOOSDB         @ NewConsole = false
+  Run = pLogger        @ NewConsole = false
+  Run = pNodeReporter  @ NewConsole = false
+  Run = pMarinePIDV22  @ NewConsole = false
+
+  Run = pHelmIvP       @ NewConsole = false
+  Run = uProcessWatch  @ NewConsole = false
+  Run = pContactMgrV20 @ NewConsole = false
+  Run = pShare         @ NewConsole = false
+  Run = pHostInfo      @ NewConsole = false
+  Run = uFldMessageHandler @ NewConsole = false
+
+  Run = uFldNodeBroker @ NewConsole = false
+  Run = uLoadWatch     @ NewConsole = false
+  Run = pRealm         @ NewConsole = false
+  Run = pOdometry      @ NewConsole = false
+  Run = pOpinionManager @ NewConsole = false
+  Run = uTimerScript   @ NewConsole = false
+  Run = uOptionMarker  @ NewConsole = false
+  Run = pProxonoi2     @ NewConsole = false
+
+#ifdef XMODE SIM
+  Run = uSimMarineV22  @ NewConsole = false
+#elseifdef XMODE M300 
+  Run = iM300          @ NewConsole = false 
+  Run = iM300Health    @ NewConsole = false 
+#endif
+}
+
+#ifdef XMODE SIM
+#include plugs.moos <uSimMarineV22>
+#elseifdef XMODE M300
+#include plugs.moos <iM300>
+#include plugs.moos <iM300Health>
+#endif
+	
+#include plugs.moos <pShare>
+#include plugs.moos <pHostInfo>
+#include plugs.moos <uProcessWatch>
+#include plugs.moos <uLoadWatch>
+
+
+//----------------------------------------------------
+// pHelmIvP Config Block
+
+ProcessConfig = pHelmIvP
+{
+  AppTick   = 3
+  CommsTick = 3
+
+  ok_skew   = any
+  
+  behaviors = targ_$(VNAME).bhv  
+  verbose   = false
+  domain    = course:0:359:360
+  domain    = speed:0:10:21
+  
+  #ifdef VTYPE AUV
+  domain    = depth:0:100:101
+  #endif
+
+  goals_mandatory = true
+  hold_on_app  = pContactMgrV20
+}
+
+//--------------------------------------------------------
+// pNodeReporter Config Block
+
+ProcessConfig = pNodeReporter
+{
+  AppTick     = 5
+  CommsTick   = 5
+
+#ifdef VTYPE AUV
+  platform_type  = glider
+#else
+  platform_type  = ship
+#endif
+  platform_length  = 800
+  //group          = $(GROUP)
+  platform_color = $(COLOR)
+	
+}
+
+//--------------------------------------------------------
+// pContactMgrV20 Config Block
+
+ProcessConfig = pContactMgrV20
+{
+  AppTick   = 2
+  CommsTick = 2
+
+  decay = 10,20
+  //decay = 30,60
+
+  alert_verbose = true
+
+  contact_max_age  = 35
+  display_radii    = true
+	display_radii_id = avd
+
+	post_closest_range = true	
+  display_radii      = true
+  alert_range_color  = gray70
+  cpa_range_color    = gray30
+
+	hold_alerts_for_helm = true
+}
+
+//--------------------------------------------------
+// uFldNodeBroker Config Block
+
+ProcessConfig = uFldNodeBroker
+{
+  AppTick   = 1
+  CommsTick = 1
+
+  try_shore_host = pshare_route=$(SHORE_IP):$(SHORE_PSHARE)
+
+  //try_shore_host = pshare_route=128.30.24.232:9200
+
+  bridge = src=ARRIVAL
+  bridge = src=COLREGS_AVOID_MODE
+  bridge = src=AVDCOL_MODE
+  bridge = src=VIEW_POLYGON
+  bridge = src=VIEW_POINT
+  bridge = src=VIEW_CIRCLE
+  bridge = src=VIEW_SEGLIST
+  bridge = src=VEHICLE_CONNECT
+  bridge = src=APPCAST
+  bridge = src=BCM_DETECTION_DIST
+  bridge = src=READY_HOLD
+  bridge = src=NODE_REPORT_LOCAL,  alias=NODE_REPORT
+  bridge = src=NODE_MESSAGE_LOCAL, alias=NODE_MESSAGE
+
+}
+
+	
+//--------------------------------------------------
+// uFldMessageHandler Config Block
+	
+ProcessConfig = uFldMessageHandler
+{
+  AppTick   = 3
+  CommsTick = 3
+
+  strict_addressing = false
+}
+
+//-----------------------------------------------------
+// pMarinePIDV22 Config Block 
+
+ProcessConfig = pMarinePIDV22
+{
+  AppTick    = 8
+  CommsTick  = 8
+  
+  verbose       = true
+#ifdef VTYPE AUV
+  depth_control = true
+#else
+  depth_control = false
+#endif
+  active_start  = true
+  
+  // Yaw PID controller
+  yaw_pid_kp             = 1.2
+  yaw_pid_kd             = 0.1
+  yaw_pid_ki             = 0.3
+  yaw_pid_integral_limit = 0.07
+  
+  // Speed PID controller
+  speed_pid_kp           = 1.0
+  speed_pid_kd           = 0.0
+  speed_pid_ki           = 0.0
+  speed_pid_integral_limit = 0.07
+  
+  // Maximums
+  maxrudder  = 100
+  maxthrust  = 100
+  
+  // A non-zero SPEED_FACTOR overrides use of SPEED_PID
+  // Will set DESIRED_THRUST = DESIRED_SPEED * SPEED_FACTOR
+  //speed_factor = 20
+}
+
+
+//--------------------------------------------------
+// pLogger Config Block
+
+ProcessConfig = pLogger
+{
+  AppTick 	= 10
+  CommsTick = 10
+  
+  File      = LOG_%(VNAME)
+  PATH      = ./
+  AsyncLog  = true
+  FileTimeStamp = true
+
+  Log = IVPHELM_LIFE_EVENT @ 0 nosync
+
+  // Log it all!!!!!
+  LogAuxSrc = true
+  WildCardLogging = true 
+
+	// Except these fellas
+	WildCardOmitPattern = *_STATUS
+  WildCardOmitPattern = APPCAST
+  WildCardOmitPattern = *_ITER_GAP
+  WildCardOmitPattern = *_ITER_LEN
+  WildCardOmitPattern = PSHARE_OUTPUT_SUMMARY
+  WildCardOmitPattern = DB_VARSUMMARY
+  WildCardOmitPattern = DB_RWSUMMARY
+  WildCardOmitPattern = NAV_SPEED_OVER_GROUND
+  WildCardOmitPattern = SIMULATION_MODE
+  WildCardOmitPattern = TRUE_X
+  WildCardOmitPattern = TRUE_Y
+  WildCardOmitPattern = NAV_PITCH
+  WildCardOmitPattern = NAV_YAW
+  WildCardOmitPattern = NAV_Z
+  WildCardOmitPattern = NODE_PSHARE_VARS
+  WildCardOmitPattern = NODE_BROKER_ACK
+
+  CompressAlogs = false
+}
+
+<tag><iM300>
+//---------------------------------------------------------
+// iM300 config block
+
+ProcessConfig = iM300
+{
+  AppTick    = 10
+  CommsTick  = 10
+
+  comms_type = client
+  port       = 29500
+  ip_addr    = $(FSEAT_IP)
+
+  stale_thresh = 15
+
+  max_rudder = 50
+  max_thrust = 100
+  drive_mode = normal
+  ignore_msg = $GPGLL, $GPGSV, $GPVTG, $GPZDA, $CPALT, $CPIMU
+  ignore_msg = $CPNVR, $GPGST, $CPRCM, $GNGLL, $GNGSV, $GNVTG,
+  ignore_msg = $GNZDA, $GLGSV, $GNGSA, $GNTXT
+  ignore_checksum_errors = true
+
+  max_appcast_events = 8
+  // max_appcast_run_warnings = 10
+	// heading_source options are gps, imu, or auto where auto uses imu 
+  // when available and not timed out as defined in the stale_thresh
+  // parameter
+  heading_source = auto
+
+  // threshold in seconds, default is 1.5
+  stale_thresh = 5
+
+  nav_prefix     = NAV
+  gps_prefix     = GPS
+  compass_prefix = COMPASS
+}
+
+<tag><iM300Health>
+//------------------------------------------------
+// iM300Health config block
+
+ProcessConfig = iM300Health
+{
+  AppTick   = 4
+  CommsTick = 4
+
+  StaleTime = 3.0         //  Time until messages are considered stale
+  MaxHeadingDelta = 5.0   //  Max Delta allowable between IMU and GPS
+
+  LowBattThresh  = 13.0
+  FullBattThresh = 14.4
+}
+
+
+<tag><pOdometry>
+//------------------------------------------------
+// pOdometry config block
+
+ProcessConfig = pOdometry
+{
+  AppTick   = 4
+  CommsTick = 4
+}
+
+//---------Dissensus---------------------//
+#ifdef OPT_MODE dissensus
+<tag>pOpinionManager
+//------------------------------------------------
+// pOpinionManager config block dissensus 
+
+ProcessConfig = pOpinionManager
+{
+   AppTick   = 4
+   CommsTick = 4
+   SocialTick = 1
+
+   group = leader    // leader, follower
+  
+   //option_file = basic_census.opt
+   option_file = basic_dissensus.opt
+   
+   satFunOrder = 2.0
+   u_th  = 1.75
+   tau_u = 4.0
+
+   min_attention = 1.7
+   max_attention = 1.7
+   
+   opinion_thresh = 0.2
+   node_message_color = black
+
+   neighbor_msg_stale_thresh = 2.0 // seconds
+   // set sensitivity_g  and tau_u internally
+
+    numerical_int_gain = 0.8  // should be less than 1.0
+    
+
+   // Example messages:
+   // OPINION_MESSAGE=VNAME,GROUP,OPTION1_NAME,OPTION1_OPINION,OPTION2_NAME,OPTION2_OPINION
+   // PROPOSAL_MESSAGE=VNAME,OPTIONX_NAME,VALUE_PROPOSITION
+
+#ifdef VNAME abe
+  // app_logging = log
+#endif
+
+}
+#endif
+
+
+//---------Consensus-------------------------//
+#ifdef OPT_MODE consensus
+<tag>pOpinionManager
+//------------------------------------------------
+// pOpinionManager config block consensus
+
+ProcessConfig = pOpinionManager
+{
+   AppTick   = 4
+   CommsTick = 4
+   SocialTick = 1
+
+   group = leader    // leader, follower
+  
+   option_file = basic_census.opt
+   //option_file = basic_dissensus.opt
+   
+   satFunOrder = 2.0
+   u_th  = 1.75
+   tau_u = 4.0
+
+   min_attention = 0.6
+   max_attention = 0.6
+   
+   opinion_thresh = 0.3
+   node_message_color = black
+
+   neighbor_msg_stale_thresh = 2.0 // seconds
+   // set sensitivity_g  and tau_u internally
+
+    numerical_int_gain = 0.3  // should be less than 1.0
+    
+
+   // Example messages:
+   // OPINION_MESSAGE=VNAME,GROUP,OPTION1_NAME,OPTION1_OPINION,OPTION2_NAME,OPTION2_OPINION
+   // PROPOSAL_MESSAGE=VNAME,OPTIONX_NAME,VALUE_PROPOSITION
+
+#ifdef VNAME abe
+  // app_logging = log
+#endif
+
+}
+#endif
+
+
+//------------------------------------------
+// uTimerScript configuration  block
+   
+  ProcessConfig = uTimerScript
+  {
+    AppTick   = 2
+    CommsTick = 2
+ 
+    paused        = false
+    reset_max     = unlimited
+    reset_time    = end
+    delay_reset   = 120
+    script_name   = RAND_OP
+    script_atomic = true
+    
+    randvar = varname=TOP_ZONE_BIAS, min=-0.050, max=0.050, key=at_post 
+    randvar = varname=BOTTOM_ZONE_BIAS, min=-0.050, max=0.050, key=at_post
+
+  event = var=TOP_ZONE_BIAS, val=$[TOP_ZONE_BIAS], time=0   
+  event = var=BOTTOM_ZONE_BIAS, val=$[BOTTOM_ZONE_BIAS], time=0
+  
+ }
+
+
+
+//------------------------------------------
+// uOptionMarker configuration  block
+   
+ProcessConfig = uOptionMarker
+{
+  AppTick   = 1
+  CommsTick = 1
+
+  edge_size = 4.0
+  radius    = 1000.0
+  opinion_saturated_limit = 0.2
+  post_circ_with_stale_opinion = true
+  
+  color_set = TOP_ZONE:$(REGION1_COLOR)
+  color_set = BOTTOM_ZONE:$(REGION2_COLOR)
+  
+}
+
+//-------------------------------------------------------------
+ProcessConfig = pProxonoi2                                      
+{                                                               
+  AppTick   = 2
+  CommsTick = 2                                                 
+                                                                
+  region = pts={44677,1481:40143,21077:72470,38439:80910,-1782}
+
+  post_region  = false                  
+  post_poly    = false
+
+  ignore_name  = ben
+  ignore_name  = deb
+  ignore_name  = fin
+  ignore_name  = hix
+  ignore_name  = jim
+  ignore_name  = lou
+  ignore_name  = ned
+  ignore_name  = pal
+  ignore_name  = ray
+  ignore_name  = tim
+  
+									
+}                                            

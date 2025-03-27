@@ -1,0 +1,23 @@
+//-------------------------------------------------
+// NAME: B. Cole, MIT
+// FILE: README
+// DATE: 22 JUNE 2021
+//-------------------------------------------------
+
+Alpha mission for single-vehicle with AIS-based collision avoidance using geodetic Unscented Kalman Filter.
+
+Adapted from the m2_berta two-vehicle mission written by: Michael Benjamin
+
+This mission supports:
+
+ (1) Launching as the shoreside
+ (2) Launching as a vehicle in-water or simulation
+
+To launch as shoreside:
+-----------------------
+  $ ./launch_shoreside --ip=<my_ipaddr> 
+
+To launch as vehicle:
+-----------------------
+
+  $ ./launch_vehicle --gus --shoreip=<shore_ipaddr>

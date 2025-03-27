@@ -1,0 +1,336 @@
+//*******************************************************
+// ShoreSide Configuration File
+
+ServerHost = localhost
+ServerPort = 9000
+Community  = shoreside
+
+#include plug_origin_warp.moos
+  
+//--------------------------------------------------------
+Processconfig = ANTLER
+{
+  MSBetweenLaunches = 100
+
+  Run = MOOSDB                  @ NewConsole = false
+	Run = pMarineViewer           @ NewConsole = false
+  Run = pLogger                 @ NewConsole = false
+  Run = uXMS                    @ NewConsole = false
+  Run = uProcessWatch           @ NewConsole = false
+  Run = pShare                  @ NewConsole = false
+  Run = pHostInfo               @ NewConsole = false
+  Run = uFldShoreBroker         @ NewConsole = false
+  Run = uFldNodeComms           @ NewConsole = false
+  Run = pRealm                  @ NewConsole = false
+  Run = uFldTaskMonitor         @ NewConsole = false
+  Run = uFldContactRangeSensor  @ NewConsole = false
+  Run = uChangeMyName           @ NewConsole = false
+  Run = uFldConvoyEval  @ NewConsole = false
+}
+
+#include plug_pShare.moos
+#include plug_pHostInfo.moos
+#include plug_uFldConvoyEval.moos
+	
+//---------------------------------------------------------
+// pRealm Config Block
+
+ProcessConfig = pRealm
+{
+  AppTick    = 2
+  CommsTick  = 2
+
+	hist_var = TASK_MGR_STATUS
+	scope_set = name=task_mgr, vars=TASK_MGR_STATUS:MISSION_TASK:MISSION_TASK_ALL
+
+	msg_max_hist = 50
+
+	}
+	
+//---------------------------------------------------------
+// uFldTaskMonitor Config Block
+
+ProcessConfig = uFldTaskMonitor
+{
+  AppTick    = 2
+  CommsTick  = 2
+}
+
+
+//--------------------------------------------------
+// uFldNodeComms Configuration Block
+
+ProcessConfig = uFldNodeComms
+{
+  AppTick   = 2
+  CommsTick = 2
+
+  comms_range      = 15000
+  critical_range   = 25
+  min_msg_interval = 0
+  max_msg_length   = 1000
+  groups           = true
+  ignore_group     = gnd_truth
+
+  view_node_rpt_pulses = false
+}
+
+//--------------------------------------------------
+// pHostInfo configuration block from plugin
+
+ProcessConfig = pHostInfo
+{
+  AppTick   = 1
+  CommsTick = 1
+}
+
+//--------------------------------------------------
+// uXMS Configuration Block
+
+ProcessConfig = uXMS
+{
+  AppTick   = 1
+  CommsTick = 1
+
+  var = APPCAST_REQ_ALL, DEPLOY_ALL, RETURN_ALL, STATION_ALL
+  var = STATION_HENRY, STATION_GILDA
+  var = RETURN_UPDATES_HENRY, RETURN_UPDATES_GILDA
+}
+
+//--------------------------------------------------
+// pLogger Configuration Block
+
+ProcessConfig = pLogger
+{
+  AppTick       = 10
+  CommsTick     = 10
+  
+  File          = XLOG_SHORESIDE
+  PATH          = ./
+  SyncLog       = true @ 0.2
+  AsyncLog      = true
+  FileTimeStamp = true
+
+  LogAuxSrc     = true
+
+  // Log it all!!!!!
+  WildCardLogging = true 
+
+  WildCardOmitPattern = *_STATUS
+  WildCardOmitPattern = DB_VARSUMMARY
+  WildCardOmitPattern = DB_RWSUMMARY
+}
+
+
+//--------------------------------------------------------
+ProcessConfig = pMarineViewer
+{
+  AppTick    = 4
+  CommsTick  = 4
+
+  tiff_file            = MIT_SP.tif
+  tiff_file_b          = MIT_SP.tif
+  set_pan_x            = 0
+  set_pan_y            = -440
+  zoom                 = 2.21
+  vehicles_shape_scale = 1
+  vehicles_name_mode   = names
+
+  circle_viewable_all = true
+
+	//content_mode = realmcast
+	realmcast_channel = abe:events
+  appcast_viewable = true
+  appcast_color_scheme = indigo
+	appcast_font_size    = small
+  procs_font_size      = small
+  nodes_font_size      = small
+
+	watch_cluster = key=task_manager, vars=MISSION_TASK:TASK_WPT:TM_ALERT_REQUEST
+	watch_cluster = key=messages, vars=NODE_MESSAGE_LOCAL:NODE_MESSAGE
+	watch_cluster = key=states_bids, vars=TASK_OUR_STATE:TASK_OUR_BID:TASK_BID_RCVD:TRANSIT:MODE
+	watch_cluster = key=contacts, vars=BCM_REPORT_REQUEST:CONTACTS_250:CONTACTS_5000
+	watch_cluster = key=mission, vars=DEPLOY:MOOS_MANUAL_OVERRIDE:RETURN:STATION:MODE
+	watch_cluster = key=life_events, vars=TASK_WPT:IVPHELM_LIFE_EVENT
+	
+  stale_report_thresh = 10
+  stale_remove_thresh = 18
+
+  scope = PSHARE_INPUT_SUMMARY
+  scope = NODE_BROKER_PING
+  scope = DEPLOY_ALL
+
+  action = STATION_ALL = false
+  action = STATION_ALL = true
+
+	left_context[depart_task] = MISSION_TASK_ALL = type=waypoint,id=wpt$[BIX],waypt_x=$[XPOS],waypt_y=$[YPOS],task_time=$[UTC]
+	left_context[depart_task] = DEPLOY_ALL=true
+	left_context[depart_task] = MOOS_MANUAL_OVERRIDE_ALL=false 
+	left_context[depart_task] = RETURN_ALL=false
+	left_context[depart_task] = STATION_ALL=false
+
+	//left_context[depart_task] = MOOS_MANUAL_OVERRIDE_ALL=false
+	//left_context[depart_task] = DEPLOY_ALL=true
+	//left_context[depart_task] = STATION_ALL=false
+	//left_context[depart_task] = RETURN_ALL=false 
+	
+  right_context[return_point] = RETURN_$[UP_VNAME_CLOSEST] = true
+  right_context[return_point] = RETURN_UPDATES_$[UP_VNAME_CLOSEST] = points=$[XPOS],$[YPOS]
+  right_context[station]      = STATION_$[UP_VNAME_CLOSEST] = true
+
+  button_one   = DEPLOY  # DEPLOY_ALL=true # color=light_green
+  button_one   = MOOS_MANUAL_OVERRIDE_ALL=false 
+  button_one   = RETURN_ALL=false # STATION_ALL=false
+
+  button_three = STATION:T   # STATION_ALL=true
+  button_four  = STATION:F   # STATION_ALL=false
+
+  button_five  = RETURN:T  # RETURN_ALL=true
+  button_six   = RETURN:F  # RETURN_ALL=false
+
+  button_7  = ALL_STOP  # DEPLOY_ALL=false
+  button_8  = RESUME    # DEPLOY_ALL=true
+
+	//button_9  = COMPRESS_10 # UP_CONVOY_ALL=compression=0.1
+	//button_10 = COMPRESS_25 # UP_CONVOY_ALL=compression=0.25
+
+  button_9 = STOP_VIEW # VISUALIZE_HM_NAV=false
+  button_9 = STOP_VIEW # VISUALIZE_TARGET=false 
+  button_9 = STOP_VIEW # VISUALIZE_NAV=false
+
+  button_10 = VIEW_TARGET:T # VISUALIZE_TARGET=true
+  button_11 = VIEW_NAV:T # VISUALIZE_NAV=true
+  button_12 = VIEW_HM_NAV:T # VISUALIZE_HM_NAV=true 
+
+  button_13 = GPS_Jing:T # BLOCK_GPS_JING=false
+  button_14 = GPS_Jing:F # BLOCK_GPS_JING=true 
+
+  button_15 = GPS_Kirk:T # BLOCK_GPS_KIRK=false
+  button_16 = GPS_Kirk:F # BLOCK_GPS_KIRK=true
+
+  button_17 = GPS_Ida:T # BLOCK_GPS_IDA=false
+  button_18 = GPS_Ida:F # BLOCK_GPS_IDA=true
+
+  button_19 = GPS_Gus:T # BLOCK_GPS_GUS=false
+  button_20 = GPS_Gus:F # BLOCK_GPS_GUS=true
+
+  cmd = label=DEPLOY, var=DEPLOY,  sval=true,  receivers=all:$(VNAMES)
+  cmd = label=DEPLOY, var=MOOS_MANUAL_OVERRIDE,  sval=false,  receivers=all:$(VNAMES)
+  cmd = label=DEPLOY, var=AVOID,  sval=true,  receivers=all:$(VNAMES)
+  cmd = label=DEPLOY, var=RETURN,  sval=false,  receivers=all:$(VNAMES)
+  cmd = label=DEPLOY, var=STATION_KEEP,  sval=false,  receivers=all:$(VNAMES)
+
+  cmd = label=RETURN, var=RETURN, sval=true, receivers=all:$(VNAMES)
+  cmd = label=RETURN, var=STATION_KEEP, sval=false, receivers=all:$(VNAMES)
+
+   cmd = label=STATION, var=STATION_KEEP,  sval=true,  receivers=all:$(VNAMES)
+
+  cmd = label=STATION, var=STATION_KEEP,  sval=true,  receivers=all:$(VNAMES)
+
+  cmd = label=FASTER, var=WPT_UPDATE,  sval=speed=1.8,  receivers=all:$(VNAMES)
+  cmd = label=SLOWER, var=WPT_UPDATE,  sval=speed=0.6,  receivers=all:$(VNAMES)
+
+}
+
+
+//--------------------------------------------------------
+// uProcessWatch Configuration Block
+
+ProcessConfig = uProcessWatch
+{
+  AppTick   = 1
+  CommsTick = 1
+
+  allow_retractions = true
+  
+  watch_all = true      // default is true
+
+  nowatch = uXMS*
+  nowatch = uPokeDB*
+
+  summary_wait = 12
+}
+
+//-------------------------------------------- uFldContactRangeSensor
+ProcessConfig = uFldContactRangeSensor
+{
+  AppTick   = 4
+  CommsTick = 4
+
+  ground_truth = false
+  ignore_group = normal
+
+  //push_distance = cadmus = 50
+  //push_distance = archie = 190
+
+  push_distance = default = 1000
+  ping_wait = default = 4
+  //ping_wait     = jing_GT = 10  
+  //ping_wait     = kirk_GT = 10
+  //ping_wait     = ida_GT = 10
+  //ping_wait     = gus_GT = 10
+
+  ping_color    = invisible
+  echo_color    = invisible
+  display_pulses    = false
+
+  report_vars = long
+
+  allow_echo_types = uuv,auv,glider,kayak
+
+  //rn_uniform_pct = 0.04
+  rn_gaussian_sigma = 0.5
+
+}
+
+//------------------------------------------------
+// uChangeMyName config block
+
+ProcessConfig = uChangeMyName
+{
+   AppTick   = 4
+   CommsTick = 4
+
+
+   trigger = CRS_RANGE_REPORT_JING_GT, trigger_type = on_receipt, in = TARGET_TRACK_JING, out = TARGET_TRACK_OUT
+   trigger = CRS_RANGE_REPORT_KIRK_GT, trigger_type = on_receipt, in = TARGET_TRACK_KIRK, out = TARGET_TRACK_OUT
+   trigger = CRS_RANGE_REPORT_GUS_GT, trigger_type = on_receipt, in = TARGET_TRACK_GUS, out = TARGET_TRACK_OUT
+   trigger = CRS_RANGE_REPORT_IDA_GT, trigger_type = on_receipt, in = TARGET_TRACK_IDA, out = TARGET_TRACK_OUT
+
+
+   trigger = VISUALIZE_TARGET, trigger_type = true, in = VIEW_SEGLIST_TARGET, out = VIEW_SEGLIST
+   trigger = VISUALIZE_NAV, trigger_type = true, in = VIEW_SEGLIST_NAV, out = VIEW_SEGLIST
+   trigger = VISUALIZE_HM_NAV, trigger_type = true, in = VIEW_SEGLIST_HM_NAV, out = VIEW_SEGLIST
+
+   trigger = VISUALIZE_NAV, trigger_type = true, in = VIEW_RANGE_JING, out = VIEW_CIRCLE
+   trigger = VISUALIZE_NAV, trigger_type = true, in = VISUALIZE_RANGE_CENTER_JING, out = VIEW_POINT
+
+
+
+}
+
+//--------------------------------------------------
+// uFldShoreBroker Configuration Block
+
+ProcessConfig = uFldShoreBroker
+{
+  AppTick       = 1
+  CommsTick     = 1
+
+  // Note: [QBRIDGE = FOO]  is shorthand for                    
+  //       [BRIDGE = src=FOO_$V,  alias=FOO] and                
+  //       [BRIDGE = src=FOO_ALL, alias=FOO]
+
+  qbridge  = DEPLOY, RETURN, STATION, NODE_MESSAGE , NODE_REPORT
+  qbridge  = MOOS_MANUAL_OVERRIDE, APPCAST_REQ, AVOID, UP_LOITER
+  qbridge  = RETURN_UPDATES, BCM_DISPLAY_RADII, USMT_ENABLED, REALMCAST_REQ
+  qbridge  = USMT_MOD_TOWLEN, USMT_SET_TOWLEN, TOM_WELCOME, TOM_PURSUE
+  qbridge  = MISSION_TASK, UP_CONVOY
+  qbridge  = BLOCK_GPS
+
+  bridge   = src=UP_LOITER_$N, alias=UP_LOITER
+  bridge   = src=DRIFT_VECTOR_ADD, alias=DRIFT_VECTOR_ADD
+  bridge   = src=HELM_MAP_CLEAR, alias=HELM_MAP_CLEAR
+  bridge   = src=TARGET_TRACK_OUT, alias=TARGET_TRACK
+  bridge   = src=CRS_RANGE_REPORT_$V_GT, alias=CRS_RANGE_REPORT
+}

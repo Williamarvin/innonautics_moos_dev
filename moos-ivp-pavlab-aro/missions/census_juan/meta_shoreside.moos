@@ -1,0 +1,249 @@
+//*******************************************************
+// ShoreSide Configuration File
+
+ServerHost = localhost
+ServerPort = 9000
+Community  = shoreside
+
+#include plugs.moos <origin_warp>
+
+//#define REGION1 x=100,y=-200
+//#define REGION2 x=-135,y=-300
+//#define REGION3 x=-185,y=-200
+//#define REGION4 x=35,y=-110
+//#define REGION5 x=-65,y=-220
+
+#define REGION1 x=40,y=-70
+#define REGION2 x=135.1,y=-139.1
+#define REGION3 x=99.8,y=-250.9
+#define REGION4 x=-18.8,y=-250.9
+#define REGION5 x=-55.1,y=-139.1
+
+#define REGION1_COLOR red
+#define REGION2_COLOR green
+#define REGION3_COLOR yellow
+#define REGION4_COLOR orange
+#define REGION5_COLOR pink
+
+#define BOTTOM_ZONE pts={82524,-9394:46544, -6277:50941,-25399:85338,-22811}
+#define TOP_ZONE pts={44677,1481:40143,21077:72470,38439:80910,-1782}
+  
+//--------------------------------------------------------
+Processconfig = ANTLER
+{
+  MSBetweenLaunches = 100
+
+  Run = MOOSDB          @ NewConsole = false
+#ifdef LAUNCH_GUI yes
+  Run = pMarineViewer   @ NewConsole = false
+#endif
+
+  Run = pLogger         @ NewConsole = false
+  Run = pShare          @ NewConsole = false
+  Run = pHostInfo       @ NewConsole = false
+  Run = uFldShoreBroker @ NewConsole = false
+  Run = uFldNodeComms   @ NewConsole = false
+  Run = uProcessWatch   @ NewConsole = false
+  Run = pRealm          @ NewConsole = false
+  Run = uTimerScript    @ NewConsole = false
+  //Run = uTimerScript    @ NewConsole = false ~uTimerScript_reset
+}
+
+#include plugs.moos <pShare>
+#include plugs.moos <pHostInfo>
+#include plugs.moos <uProcessWatch>
+
+
+
+//--------------------------------------------------
+// uFldNodeComms Config Block
+
+ProcessConfig = uFldNodeComms
+{
+  AppTick   = 2
+  CommsTick = 2
+
+           comms_range = 3500
+        critical_range = 30
+      min_msg_interval = 0
+        max_msg_length = 10000
+  view_node_rpt_pulses = false
+    	        groups = false
+      fixed_beam_width = 100.0
+       beam_opaqueness = 0.0
+       post_percentage = 10.0
+}
+
+//--------------------------------------------------
+// uFldShoreBroker Config Block
+
+ProcessConfig = uFldShoreBroker
+{
+  AppTick   = 1
+  CommsTick = 1
+
+  qbridge = DEPLOY, NODE_REPORT, NODE_MESSAGE
+  qbridge = STATION_KEEP, APPCAST_REQ, LR_UPDATE, RETURN_UPDATES
+  qbridge = MOOS_MANUAL_OVERIDE, LOITER, WPT_UPDATE, LOITER_UPDATE
+
+  bridge  = src=AVOID, alias=AVOID
+ 
+  bridge  = src=RETURN_ALL, alias=RETURN
+  bridge  = src=RETURN_$V,  alias=RETURN
+  qbridge = RESET_OPINIONS, OPTIONS_ACTIVE, REGROUP
+}
+
+//--------------------------------------------------
+// pLogger Configuration Block
+
+ProcessConfig = pLogger
+{
+  AppTick   = 10
+  CommsTick = 10
+  
+  File          = XLOG_SHORESIDE
+  PATH          = ./
+  AsyncLog      = true
+  FileTimeStamp = true
+
+  Log = GIVEN_OBSTACLE @ 0 nosync
+
+  // Log it all!!!!!
+  WildCardLogging = true 
+  WildCardOmitPattern = *_STATUS
+  WildCardOmitPattern = *_ITER_GAP
+  WildCardOmitPattern = *_ITER_LEN
+  WildCardOmitPattern = APPCAST
+  WildCardOmitPattern = DB_VARSUMMARY
+  WildCardOmitPattern = DB_RWSUMMARY
+}
+
+
+//--------------------------------------------------------
+ProcessConfig = pMarineViewer
+{
+  AppTick   = 4
+  CommsTick = 4
+
+  tiff_file            = juan_de_fuca_streetmap_12.tif
+  set_pan_x            = -3540
+  set_pan_y            = -40
+  zoom                 = 1.25
+  vehicles_shape_scale = 1.5
+  vehicles_name_mode   = names+shortmode
+
+  polygon_viewable_all    = true
+  polygon_viewable_labels = false
+  seglist_viewable_all    = true
+  seglist_viewable_labels = false
+  point_viewable_all    = true
+  point_viewable_labels = false
+
+  appcast_viewable     = true
+  appcast_color_scheme = indigo
+
+  action = AVOID="true"
+  action = LR_UPDATE_ALL="speed=1.5"
+  action = LR_UPDATE_ALL="speed=1.6"
+  action = LR_UPDATE_ALL="speed=1.7"
+  action = LR_UPDATE_ALL="speed=1.8"
+  action = LR_UPDATE_ALL="speed=1.9"
+  action = LR_UPDATE_ALL="speed=2.0"
+
+  comms_pulse_viewable_all = true
+  range_pulse_viewable_all = false
+  node_pulse_viewable_all  = false
+
+  vehicles_name_mode = names
+
+  stale_report_thresh = 2
+  stale_remove_thresh = 20000
+  
+  scope = UFJ_ARRIVALS
+
+  left_context[return] = RETURN_UPDATES_$[UP_VNAME_CLOSEST] = point=$[X],$[Y]
+  left_context[return] = RETURN_$[UP_VNAME_CLOSEST] = true
+  left_context[return] = STATION_KEEP_$[UP_VNAME_CLOSEST] = false
+	
+  button_1 = DEPLOY  # DEPLOY_ALL=true 
+  button_1 = DEPLOY  # MOOS_MANUAL_OVERIDE_ALL=false 
+  button_1 = RETURN_ALL=false #
+  button_1 = STATION_KEEP_ALL=false #
+
+  button_2 = STATION  # DEPLOY_ALL=true 
+  button_2 = MOOS_MANUAL_OVERIDE_ALL=false 
+  button_2 = RETURN_ALL=false #
+  button_2 = STATION_KEEP_ALL=true
+
+  button_3 = RETURN  # RETURN_ALL=true # LOITER_ALL=false
+
+  button_4 = RESET # RESET_OPINIONS_ALL=true
+  button_4 = OPTIONS_ACTIVE_ALL=true
+
+  button_5 = HOLD # OPTIONS_ACTIVE_ALL=false
+
+  button_6 = OPT_ACTIVE # OPTIONS_ACTIVE_ALL=true
+  //button_5 = REGROUP # REGROUP_ALL=true
+  //button_6 = DISPERSE # REGROUP_ALL=false
+
+  //button_7 = INC_BIAS_1 # BIAS_REGION1_INC_ALL=1
+  //button_8 = DEC_BIAS_1 # BIAS_REGION1_DEC_ALL=1
+
+  //button_9 = INC_BIAS_2 # BIAS_REGION2_INC_ALL=1
+  //button_10 = DEC_BIAS_2 # BIAS_REGION2_DEC_ALL=1
+
+  //button_11 = INC_BIAS_3 # BIAS_REGION3_INC_ALL=1
+  //button_12 = DEC_BIAS_3 # BIAS_REGION3_DEC_ALL=1
+
+}
+
+
+
+//------------------------------------------
+// uTimerScript configuration  block
+   
+  ProcessConfig = uTimerScript
+  {
+    AppTick   = 2
+    CommsTick = 2
+ 
+    paused        = false
+    reset_max     = 0
+    reset_time    = end
+    delay_reset   = 3
+    script_name   = PLOT_LABELS
+    script_atomic = true
+    
+ // event = var=VIEW_POLYGON, val="$(BOTTOM_ZONE),fill_color=orange,edge_color=orange", time=5
+ // event = var=VIEW_POLYGON, val="$(TOP_ZONE),fill_color=blue,edge_color=blue", time=6
+ // event = var=VIEW_TEXTBOX, val="x=65000,y=-16000,msg=BOTTOM_ZONE,fsize=80,mcolor=black", time=7
+ // event = var=VIEW_TEXTBOX, val="x=60500,y=14200,msg=TOP_ZONE,fsize=80,mcolor=black", time=8
+ // event = var=VIEW_TEXTBOX, val="x=37000,y=-2500,msg=SHIPPING_LANE,fsize=80,mcolor=black", time=9
+ }
+
+
+
+//------------------------------------------
+// uTimerScript configuration  block
+   
+ProcessConfig = uTimerScript_reset
+{
+    AppTick   = 2
+    CommsTick = 2
+
+   paused        = false
+    reset_max     = unlimited
+    reset_time    = end
+    delay_reset   = 120 //3000    // time of executing group choice
+    script_name   = RESET_OPINIONS
+    script_atomic = true
+
+  event = var=RESET_OPINIONS_ALL, val="true", time=0
+  event = var=OPTIONS_ACTIVE_ALL, val="true", time=0
+
+  event = var=OPTIONS_ACTIVE_ALL, val="false", time=60
+
+
+}
+
+

@@ -1,0 +1,32 @@
+//------------------------------------------------------------
+// iBlueRoboticsPing configuration block
+  
+ProcessConfig = iPingSim
+{
+  AppTick   = 10
+  CommsTick = 10
+
+  mode = file   // file, function, or random
+  filename = FullGrids/FullGrid$(GRIDFILE)v2.grd
+
+
+  //  Grid config needed to
+  //  mirror the grid.
+  //  Follows the same numbering convention
+  //  as pRoutePlan
+  GRID_CONFIG = pts={$(X_1),$(Y_1): $(X_2),$(Y_2): $(X_3),$(Y_3): $(X_4),$(Y_4)}
+  GRID_CONFIG = cell_size=$(CELLSIZE)   
+
+  GRID_CONFIG = cell_vars=depth:0:var:1000
+  GRID_CONFIG = cell_min=depth:0
+#ifdef XMODE SIM
+  GRID_CONFIG = cell_max=depth:26
+#else
+  GRID_CONFIG = cell_max=depth:26
+#endif
+  GRID_CONFIG = cell_min=var:0.00001
+  GRID_CONFIG = cell_max=var:1000
+  
+  mirror_grid = $(MIRROR)    
+}
+

@@ -1,0 +1,265 @@
+//*******************************************************
+// ShoreSide Configuration File
+
+ServerHost = localhost
+ServerPort = $(MOOS_PORT)
+Community  = shoreside
+
+#include plug_origin_warp.moos
+
+//#define REGION1 -300,-250:-28.9,-121.5:121,-437.8:-171.5,-566.3
+//#define REGION2 125,-50:394.1,78.5:546,-237.8:253.5,-366.3
+
+#define REGION1 -321.4,-204.8:-50.3,-76.3:99.6,-392.6:-192.9,-521.1
+#define REGION2 114.3,-27.4:383.4,101.1:535.3,-214.4:242.8,-343.7
+
+
+
+#define VNAMES abe:ben:cal:deb:eve:fin:max:ned:oak
+
+//--------------------------------------------------------
+Processconfig = ANTLER
+{
+  MSBetweenLaunches = 100
+
+  Run = MOOSDB          @ NewConsole = false
+  Run = pRealm          @ NewConsole = false
+  Run = pMarineViewer   @ NewConsole = false
+  Run = pLogger         @ NewConsole = false
+
+  Run = pShare          @ NewConsole = false
+  Run = pHostInfo       @ NewConsole = false
+  Run = uFldShoreBroker @ NewConsole = false
+
+  Run = uProcessWatch   @ NewConsole = false
+  Run = uFldNodeComms   @ NewConsole = false
+  Run = uFldBloomStormSim @ NewConsole = false
+
+  Run = uTimerScript    @ NewConsole = false	
+  
+}
+
+#include plug_pShare.moos
+#include plug_pHostInfo.moos
+
+//--------------------------------------------------
+// ufldnodecomms Configuration Block
+
+ProcessConfig = uFldNodeComms
+{
+  AppTick       = 2
+  CommsTick     = 2
+
+  comms_range      = 160
+  critical_range   = 25
+
+  min_msg_interval = 0
+  max_msg_length   = 10000
+  groups           = false
+
+  view_node_rpt_pulses = false
+  //fixed_beam_width = 1.0
+  //beam_opaqueness = 0.0
+  //post_percentage = 100.0
+}
+
+//--------------------------------------------------
+// uFldShoreBroker Configuration Block
+
+ProcessConfig = uFldShoreBroker
+{
+  AppTick       = 1
+  CommsTick     = 1
+
+  qbridge  = DEPLOY, RETURN, STATION_KEEP, NODE_REPORT, NODE_MESSAGE
+  qbridge  = MOOS_MANUAL_OVERRIDE, APPCAST_REQ, AVOID
+  qbridge  = SAY_MOOS
+
+  bridge   = src=HEARTBEAT
+  
+  bridge   = src=HELM_MAP_CLEAR, alias=HELM_MAP_CLEAR
+  qbridge  = MEDIATED_MESSAGE, ACK_MESSAGE
+
+  qbridge  = OPTION, PROX_UP_REGION, UP_MOVE, CURR_REGION
+  qbridge  = BLOOM_DETECTED, STORM_DETECTED
+  qbridge  = VECTOR_UPDATE, SAMPLE_LIST, OP_REGION_RESET
+  qbridge  = SENSOR_MEAS
+}
+
+//--------------------------------------------------
+// pLogger Configuration Block
+
+ProcessConfig = pLogger
+{
+  AppTick       = 10
+  CommsTick     = 10
+
+  File          = LOG_SHORESIDE
+  PATH          = ./
+  SyncLog       = true @ 0.2
+  AsyncLog      = true
+  FileTimeStamp = true
+
+  LogAuxSrc     = true
+
+  // Log it all!!!!!
+  //WildCardLogging = true
+  //WildCardOmitPattern = *_STATUS
+  //WildCardOmitPattern = DB_VARSUMMARY
+  //WildCardOmitPattern = DB_RWSUMMARY
+  
+  Log = MIXED_STRAT_RNG_AVG @ 0
+  Log = UNSAMP_UNDETECT_BLOOMS_COMPLETED @ 0
+  Log = SAMPLED_BLOOMS_COMPLETED @ 0
+  Log = DETECTED_BLOOMS_COMPLETED @ 0
+}
+
+//--------------------------------------------------------
+ProcessConfig = pMarineViewer
+{
+  AppTick    = 4
+  CommsTick  = 4
+
+  //tiff_file            = forrest19.tif
+  //tiff_file            = MIT_SP.tif
+  tiff_file            = mit_sp_wide.tif
+  set_pan_x            = 129
+  set_pan_y            = -364
+  zoom                 = 2.5
+  vehicles_shape_scale = 1.5
+  vehicles_name_mode   = names
+
+  circle_viewable_all = true
+
+	//beat_flag = HEARTBEAT=true
+	
+  appcast_viewable = true
+  appcast_color_scheme = indigo
+
+  scope  = DEPLOY_ALL
+
+  action = STATION_KEEP_ALL = false
+  action = STATION_KEEP_ALL = true
+  action = RETURN_abe = true
+  action = menu_key = RETURN_BEN # RETURN_BEN = true  # STATION_KEEP_BEN = false
+  action = RETURN_cal = true
+  action = RETURN_deb = true
+  action = RETURN_eve = true
+  action = RETURN_fin = true
+  action = RETURN_max = true
+  action = RETURN_ned = true
+  action = RETURN_oak = true
+  
+
+  button_one   = DEPLOY  # DEPLOY_ALL=true
+  button_one   = MOOS_MANUAL_OVERRIDE_ALL=false
+  button_one   = RETURN_ALL=false # STATION_KEEP_ALL=false
+
+
+  button_two   = RETURN  # RETURN_ALL=true
+  button_two   = RETURN  # STATION_KEEP_ALL=false
+
+  button_three = ALLSTOP # DEPLOY_ALL=false
+
+  button_four  = STATION # STATION_KEEP_ALL=true
+
+  button_five   = SEARCH  # OPTION_ALL=explore
+
+  button_six   = SAMPLE # OPTION_ALL=exploit
+
+  button_seven   = SWITCH # OPTION_ALL=migrate
+
+  button_nine   = REGION_1 #PROX_UP_REGION_ALL=$(REGION1)
+  button_nine   = UP_MOVE_ALL=region=pts={$(REGION1)},label=one
+  button_nine   = VECTOR_UPDATE_ALL=op_region=pts={$(REGION1)}
+  button_nine   = CURR_REGION_ALL=pts={$(REGION1)}
+  button_nine   = OP_REGION_RESET_ALL=true
+
+  button_ten   = REGION_2 #PROX_UP_REGION_ALL=$(REGION2)
+  button_ten   = UP_MOVE_ALL=region=pts={$(REGION2)},label=two
+  button_ten   = VECTOR_UPDATE_ALL=op_region=pts={$(REGION2)}
+  button_ten   = CURR_REGION_ALL=pts={$(REGION2)}
+  button_ten   = OP_REGION_RESET_ALL=true
+
+  button_eleven = SAMPLE_LIST #SAMPLE_LIST_ALL=abe,ben
+
+
+  cmd = label=DEPLOY, var=DEPLOY,  sval=true,  receivers=all:$(VNAMES)
+  cmd = label=DEPLOY, var=MOOS_MANUAL_OVERRIDE,  sval=false,  receivers=all:$(VNAMES)
+  cmd = label=DEPLOY, var=AVOID,  sval=true,  receivers=all:$(VNAMES)
+  cmd = label=DEPLOY, var=RETURN,  sval=false,  receivers=all:$(VNAMES)
+  cmd = label=DEPLOY, var=STATION_KEEP,  sval=false,  receivers=all:$(VNAMES)
+
+  cmd = label=RETURN, var=RETURN, sval=true, receivers=all:$(VNAMES)
+  cmd = label=RETURN, var=STATION_KEEP, sval=false, receivers=all:$(VNAMES)
+
+  cmd = label=STATION, var=STATION_KEEP,  sval=true,  receivers=all:$(VNAMES), color=pink
+
+  cmd = label=DEPLOY_OFF, var=DEPLOY,  sval=false,  receivers=all:$(VNAMES)
+}
+
+//--------------------------------------------------------
+// uProcessWatch Configuration Block
+
+ProcessConfig = uProcessWatch
+{
+  AppTick   = 1
+  CommsTick = 1
+
+  allow_retractions = true
+
+  watch_all = true      // default is true
+
+  nowatch = uXMS*
+  nowatch = uPokeDB*
+
+  summary_wait = 10
+}
+
+//------------------------------------------------------------
+// uTimerScript configuration block
+
+ProcessConfig = uTimerScript
+{
+  AppTick   = 4
+  CommsTick = 4
+
+  paused      = false
+  reset_max   = unlimited
+  reset_time  = end
+
+  script_name = HEARTBEAT_SCRIPT
+
+  event = var=HEARTBEAT, val="true", time=5
+}
+
+
+//------------------------------------------------
+// uFldBloomStormSim config block
+
+ProcessConfig = uFldBloomStormSim
+{
+   AppTick   = 1
+   CommsTick = 1
+
+   region1 = $(REGION1)
+   region2 = $(REGION2)
+
+   bloom_rad_max = 50
+   bloom_rad_min = 25
+   bloom_duration_min = 1200
+   bloom_duration_max = 1260
+   probability_of_new_bloom = 0.1
+   time_between_bloom_attempts = 90 //180 // seconds
+   only_post_in_region_one = true
+
+   allow_storms = false
+   storm_radius = 180
+   storm_max_angle = 2 // degrees
+   storm_speed = 0.75 // m/s
+   time_between_storms = 600000  // seconds
+   storm_region = -1000,500:1000,500:1000,-1000:-1000,-1000
+
+   //app_logging=log
+   
+}

@@ -1,0 +1,344 @@
+ServerHost = localhost
+ServerPort = $(MOOS_PORT)
+Community  = $(VNAME)
+
+#include plug_origin_warp.moos
+
+//------------------------------------------------------------
+ProcessConfig = ANTLER
+{
+  MSBetweenLaunches = 100
+
+  Run = MOOSDB             @ NewConsole = false
+  Run = uProcessWatch      @ NewConsole = false
+  Run = pShare             @ NewConsole = false
+  Run = pLogger            @ NewConsole = false
+  Run = pNodeReporter      @ NewConsole = false
+  Run = pMarinePID         @ NewConsole = false
+  Run = pContactMgrV20     @ NewConsole = false
+  Run = pHelmIvP           @ NewConsole = false
+  Run = pHostInfo          @ NewConsole = false
+  Run = uFldNodeBroker     @ NewConsole = false
+  Run = pDeadManPost       @ NewConsole = false
+  Run = pRealm             @ NewConsole = false
+  Run = uFldMessageHandler @ NewConsole = false
+  Run = pOpinionManager    @ NewConsole = false
+  Run = pHVUProtectNodeCtrl    @ NewConsole = false
+  //Run = pTaskManager       @ NewConsole = false
+  Run = pMediator          @ NewConsole = false
+  Run = pRealm             @ NewConsole = false
+  Run = pProxonoi2          @ NewConsole = false
+  Run = pMediator          @ NewConsole = false
+  Run = pGroupComboAlloc   @ NewConsole = false
+  Run = pMultiAgentColFilt @ NewConsole = false	
+  
+#ifdef XMODE SIM
+  Run = uSimMarine         @ NewConsole = false
+#elseifdef XMODE M300
+  Run = iM300              @ NewConsole = false
+  Run = iM300Health        @ NewConsole = false
+#endif
+}
+
+
+#ifdef XMODE SIM
+       	     #include plug_uSimMarine.moos
+#elseifdef XMODE M300
+	   #include plug_iM300.moos
+	   #include plug_iM300Health.moos
+#endif
+
+#include plug_pShare.moos
+
+#include plug_pLogger.moos
+#include plug_pHostInfo.moos
+#include plug_uProcessWatch.moos
+
+#include plug_pOpinionManager.moos
+
+//---------------------------------------
+ProcessConfig = pHelmIvP
+{
+  AppTick    = 4
+  CommsTick  = 4
+
+     ok_skew   = any
+  behaviors    = targ_$(VNAME).bhv
+  verbose      = false
+  domain       = course:0:359:360
+  domain       = speed:0:2.0:21
+  hold_on_apps = pContactMgrV20 //, pTaskManager
+}
+
+//---------------------------------------
+// pNodeReporter Config Block
+	
+ProcessConfig = pNodeReporter
+{
+  AppTick     = 2
+  CommsTick   = 2
+
+  vessel_type = heron
+  group       = blue_team
+}
+
+//------------------------------------------
+ProcessConfig = pDeadManPost
+{
+  AppTick   = 4
+  CommsTick = 4
+
+  heartbeat_var   = HEARTBEAT
+  max_noheart     = 15
+  post_policy     = reset
+  active_at_start = false
+  deadflag        = DEPLOY = false
+}
+
+	
+//--------------------------------------------------
+// uFldMessageHandler Config Block
+	
+ProcessConfig = uFldMessageHandler
+{
+  AppTick   = 3
+  CommsTick = 3
+
+  strict_addressing = false
+}
+
+//--------------------------------------------------
+// uFldNodeBroker Config Block
+
+ProcessConfig = uFldNodeBroker
+{
+  AppTick   = 1
+  CommsTick = 1
+
+  try_shore_host = pshare_route=$(SHORE_IP):$(SHORE_PSHARE)
+
+  bridge = src=VIEW_POLYGON
+  bridge = src=VIEW_POINT
+  bridge = src=VIEW_SEGLIST
+  bridge = src=VIEW_CIRCLE
+  bridge = src=APPCAST
+  bridge = src=TASK_MGR_STAT
+  bridge = src=BVOI_STATE
+  bridge = src=VOI_REGION_POLY
+  bridge = src=CONVOY_RECAP
+  bridge = src=CONVOY_STAT_RECAP
+  bridge = src=CONVOY_SPD_POLICY
+  bridge = src=NODE_REPORT_LOCAL,  alias=NODE_REPORT
+  
+  //bridge = src=NODE_MESSAGE_LOCAL, alias=NODE_MESSAGE
+  bridge = src=MEDIATED_MESSAGE_LOCAL, alias=MEDIATED_MESSAGE
+  bridge = src=ACK_MESSAGE_LOCAL, alias=ACK_MESSAGE
+  bridge = src=NODE_STATUS_MSG
+}
+
+//---------------------------------------
+// pMarinePIDV22 Config Block
+	
+ProcessConfig = pMarinePID
+{
+  AppTick    = 10
+  CommsTick  = 10
+
+  verbose       = true
+  depth_control = false
+  active_start  = true
+
+  // Yaw PID controller (Set for M300)
+  yaw_pid_kp             = 0.9 
+  yaw_pid_kd             = 0.6 
+  yaw_pid_ki             = 0.3  
+  yaw_pid_integral_limit = 0.3 
+
+  // Speed PID controller
+  speed_pid_kp           = 1.0
+  speed_pid_kd           = 0.0
+  speed_pid_ki           = 0.0
+  speed_pid_integral_limit = 0.07
+
+  // Maximums
+  maxrudder  = 100 // 100
+  maxthrust  = 100
+
+  // A non-zero SPEED_FACTOR overrides use of SPEED_PID
+  // Will set DESIRED_THRUST = DESIRED_SPEED * SPEED_FACTOR
+  //SPEED_FACTOR = 20
+  deprecated_ok = true
+}
+
+//--------------------------------------------------------
+// pContactMgrV20 config block
+
+ProcessConfig = pContactMgrV20
+{
+  AppTick   = 2
+  CommsTick = 2
+
+  decay = 30,60
+
+  alert_verbose = true
+
+	post_all_ranges = true
+	
+  contact_max_age = 35
+	display_radii_id = avd
+  display_radii = false
+  alert_range_color = gray70
+  cpa_range_color   = gray30
+}
+
+
+
+//------------------------------------------
+// pMediator config block
+
+ProcessConfig = pMediator
+{
+  AppTick   = 4
+  CommsTick = 4
+
+	//app_logging = true
+
+	no_ack_vars = OPINION_MESSAGE
+	no_ack_vars = PROX_POLY_AREA
+	
+	resend_thresh = 3
+	max_tries = 20
+}
+
+
+//------------------------------------------
+// pTaskManager config block
+
+ProcessConfig = pTaskManager
+{
+  AppTick   = 4
+  CommsTick = 4
+
+	//app_logging = true
+	
+	//task_utc_mandatory = true
+	
+	max_appcast_events = 10
+	//ignore_msg = CONVOY_STAT_RECAP_ALLY
+}
+
+//------------------------------------------
+// pRealm config block
+
+ProcessConfig = pRealm
+{
+  AppTick   = 4
+  CommsTick = 4
+
+	msg_max_hist = 20
+	trunc_length = 270
+	wrap_length  = 90
+
+	summary_interval = 2.0
+	relcast_interval  = 0.8
+	
+	hist_var = MISSION_TASK
+	hist_var = TASK_BID
+	//hist_var = NODE_MESSAGE
+	//hist_var = NODE_MESSAGE_LOCAL
+	hist_var = TASK_STATE
+	hist_var = TASK_MGR_STATUS
+	hist_var = NODE_STATUS_MSG
+}
+
+                                        
+
+//-------------------------------------------------------------
+ProcessConfig = pProxonoi2                                   
+{                                                               
+  AppTick   = 4
+  CommsTick = 2                                                 
+                                                                 
+  post_region  = false                  
+  post_poly    = false 
+									
+}                                            
+
+//-------------------------------------------------------------
+// pHVUProtectCtrl
+
+ProcessConfig = pHVUProtectNodeCtrl
+{
+  AppTick   = 4 
+  CommsTick = 4
+
+  //inside_zone = format=ellipse, x=80, y=-180, major=160, minor=120, degs=25.0, pts=20, snap=0.1, label=inside_zone
+  //outside_zone =format=ellipse, x=80, y=-180, major=400, minor=300, degs=25.0, pts=20, snap=0.1, label=outside_zone
+
+  // these are smaller
+  inside_zone = format=ellipse, x=60, y=-135, major=150, minor=113, degs=25.0, pts=20, snap=0.1, label=inside_zone
+  outside_zone =format=ellipse, x=60, y=-135, major=300, minor=225, degs=25.0, pts=20, snap=0.1, label=outside_zone
+  
+  hvu_name = WAMV
+
+  stop_zone_buffer = 10.0
+
+  min_batt = 11.5
+  max_batt = 15.5
+
+
+  // inputs for this option are from [-100, 100]
+  intercept_input_range_of_max_val = 25
+  intercept_input_range_of_min_val = 100
+  intercept_input_max_val = 100
+  
+}
+
+
+//-------------------------------------------------------------
+// pGroupTrail
+
+ProcessConfig = pGroupComboAlloc
+{
+  AppTick   = 4 
+  CommsTick = 4
+
+  post_behavior_updates = true
+
+  hvu_protect = true
+  hvu_name = WAMV
+
+  primary_trail_range = 25 // meters
+  group_trail_range_offset = 25 // meters
+  group_trail_angle_offset = 30 // degrees
+  
+  app_logging = log
+  
+
+}
+
+
+//------------------------------------------------
+// pMultiAgentColFilt config block
+
+ProcessConfig = pMultiAgentColFilt
+{
+   AppTick   = 4
+   CommsTick = 4
+
+   	     verbose_visuals = true    // default is false
+   post_moos_manual_override = true    // default is true
+   	     post_rev_thrust = false    // default is false
+
+    emergency_rev_thrust_cmd = -70.0
+   
+   own_state_stale_thresh = 1.0
+   stale_node_rec_thresh  = 2.0
+
+   //nominal_fwd_reachable_set = pts={0.0,0.0:0.5,5.0:-0.5,5.0}
+   nominal_fwd_reachable_set = pts={0.0,0.0:1.5,7.0:-1.5,7.0}
+   nominal_fwd_speed = 1.0
+
+
+}
+

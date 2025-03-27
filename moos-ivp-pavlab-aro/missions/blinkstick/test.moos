@@ -1,0 +1,27 @@
+ServerHost = localhost
+ServerPort = 9000
+Community  = alpha
+MOOSTimeWarp = 1
+LatOrigin = 42.358436
+LongOrigin = -71.087448
+
+//------------------------------------------------------------
+ProcessConfig = ANTLER
+{
+  MSBetweenLaunches = 100
+
+  Run = MOOSDB             @ NewConsole = false
+  Run = iBlinkStick        @ NewConsole = false
+}
+
+//--------------------------------------------------
+// iBlinkStick Config Block
+
+ProcessConfig = iBlinkStick
+{
+  AppTick 	= 1
+  CommsTick = 1
+
+	qblink = QBLINK
+}
+

@@ -1,0 +1,14 @@
+//---------------------------------------
+// pNodeReporter Config Block
+	
+ProcessConfig = pNodeReporter
+{
+  AppTick     = 2
+  CommsTick   = 2
+
+  #ifdef SYS hydrolink
+    vessel_type = ship
+  #elseifdef SYS heron
+    vessel_type = kayak
+  #endif
+}

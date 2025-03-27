@@ -1,0 +1,9 @@
+//------------------------------------------------
+// pOpinionInput config block
+
+ProcessConfig = pOpinionInput
+{
+   AppTick   = 4
+   CommsTick = 4
+}
+

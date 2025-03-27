@@ -1,0 +1,527 @@
+
+ServerHost	= localhost
+ServerPort 	= $(HYDROMAN_MPORT)
+Community	= HydroMAN
+
+#include plug_origin_warp.moos
+
+//------------------------------------
+// Antler Configuration block
+ProcessConfig = ANTLER
+{
+	MSBetweenLaunches = 200
+
+	Run = MOOSDB	            @ NewConsole = false
+   Run = uProcessWatch        @ NewConsole = false
+   Run = pLogger              @ NewConsole = false
+
+   Run = iHydroMAN_Gateway    @ NewConsole = false
+	Run = pHM_BasicModel       @ NewConsole = false
+	Run = pHM_ModelCalibrator  @ NewConsole = false
+   //Run = pHM_LBLProcessor     @ NewConsole = false
+   Run = pHM_SensorFusion     @ NewConsole = false
+   Run = pHM_Manager          @ NewConsole = false
+   Run = pHM_TargetSLAM       @ NewConsole = false
+}
+
+//------------------------------------------------
+// pHM_TargetSLAM config block
+
+ProcessConfig = pHM_TargetSLAM
+{
+   AppTick   = 4
+   CommsTick = 4
+
+   group_members        =jing,kirk,ida,gus
+   ownship_name         =$(VNAME)
+
+   target_heading_stdev = 2.0                      // deg/s
+   target_speed_stdev   = 1.0                      // m/s^2
+
+   // Particle filters related
+   number_of_particles           = 300
+   spread_particle_percentage    = 10              // %
+   spread_particle_distance      = 20             // in meters
+   
+}
+
+//------------------------------------------------
+// pHydroMAN_SensorFusion config block
+
+ProcessConfig = pHM_SensorFusion
+{
+   AppTick   = 4
+   CommsTick = 4
+   ekf_process_noise = 0.4
+   fusing_ins_velocity = 0 // Fusing INS velocity inputs = 1, Fusing INS acceleration inputs = 0
+
+   // ERROR STATE EKF
+   ESekf_dvl_bias_process_noise = 0.1
+   ESekf_ins_bias_process_noise = 0.1
+
+   calibrated_model_stdev = 0.4
+   dvl_stdev = 0.4
+   ins_vel_stdev = 0.4
+   depth_sensor_stdev = 0.1
+
+   lbl_outlier_rejection_scale = 1.0
+
+   #ifdef hydroman_replay
+      initializing_depth = -1 // Set this to -1 for immediate initialization
+   #else
+      initializing_depth = -1 // Set this to -1 for immediate initialization
+   #endif
+
+   enable_dvl_bias_estmation = 0 // enable = 1, disable = 0
+
+   ekf_auto_reset_period = 1800 // in seconds. EKF will be automatically reset in order to avoid numerical instabilities.
+
+   #ifdef dvl_ice_track_mode
+      ice_drift_vel_stdev = 0.1
+   #else
+      ice_drift_vel_stdev = 0
+   #endif
+
+   log_path=$(HYDROMAN_LOG_DIR)
+
+}
+
+//------------------------------------------------
+// iHydroMAN_Gateway config block
+
+ProcessConfig = iHydroMAN_Gateway
+{
+   AppTick   = 4
+   CommsTick = 4
+
+   //LatOrigin = 42.358436
+   //LongOrigin = -71.087448 
+
+   tcp_port = $(HYDROMAN_IPORT)
+   hydroman_client_ip = 127.0.0.1
+}
+
+
+//------------------------------------------------
+// pHydroMAN_BasicModel config block
+
+ProcessConfig = pHM_BasicModel
+{
+AppTick   = 4
+CommsTick = 4
+
+#ifdef  XMODE SIM
+
+   surge_parameter_qRate = 0
+   surge_parameter_rRate = 0
+   surge_parameter_hydrostatic = 0
+   surge_parameter_rpm = 0
+   surge_parameter_pp = 0
+   surge_parameter_qq = 0
+   surge_parameter_rr = 0                  //087631654
+   surge_parameter_pq = 0
+   surge_parameter_q = 0
+   surge_parameter_pr = 0
+   surge_parameter_r = 0.000661428                  //605933
+   surge_parameter_zdot = 0
+   surge_parameter_rpmrpm = 0
+   surge_parameter_leftRpm = 0.0146615            //7332419
+   surge_parameter_rightRpm = -0.0127741           //60559170
+   surge_parameter_leftRpmRpm = -0.0000295649          //78448899
+   surge_parameter_rightRpmRpm = 0.00020377315         //29599631
+   surge_parameter_leftRpmRpmRpm = 0      //7454404865
+   surge_parameter_rightRpmRpmRpm = 0     //82139805121
+   surge_parameter_thrust_df = 0           //8573944
+   surge_parameter_thrust_ave = 0         //5868453
+   // --------------------------------
+   sway_parameter_pRate = 0
+   sway_parameter_rRate = 0
+   sway_parameter_hydrostatic = 0
+   sway_parameter_pq = 0
+   sway_parameter_qr = 0
+   sway_parameter_pp = 0
+   sway_parameter_q = 0
+   sway_parameter_qq = 0
+   sway_parameter_rr = 0
+   sway_parameter_r = 0
+   sway_parameter_zdot = 0
+   // --------------------------------
+   heave_parameter_pRate = 0
+   heave_parameter_qRate = 0
+   heave_parameter_hydrostatic = 0
+   heave_parameter_pr = 0
+   heave_parameter_pp = 0
+   heave_parameter_q = 0
+   heave_parameter_r = 0
+   heave_parameter_qq = 0
+   heave_parameter_zdot = 0
+
+#elseifdef VNAME ida
+
+   // Initial parameters
+   //surge_parameter_qRate = 0
+   //surge_parameter_rRate = 0
+   //surge_parameter_hydrostatic = 0
+   //surge_parameter_rpm = 0
+   //surge_parameter_pp = 0
+   //surge_parameter_qq = 0
+   //surge_parameter_rr = 0.0000181470                  
+   //surge_parameter_pq = 0
+   //surge_parameter_q = 0
+   //surge_parameter_pr = 0
+   //surge_parameter_r = -0.0108292548                 
+   //surge_parameter_zdot = 0
+   //surge_parameter_rpmrpm = 0
+   //surge_parameter_leftRpm = -0.0046587856            
+   //surge_parameter_rightRpm = -0.0009210085          
+   //surge_parameter_leftRpmRpm = 0.0002717102         
+   //surge_parameter_rightRpmRpm = 0.0001611109         
+   //surge_parameter_leftRpmRpmRpm = -0.0000011134      
+   //surge_parameter_rightRpmRpmRpm = -0.0000004981     
+   //surge_parameter_thrust_df = 0.0081047563           
+   //surge_parameter_thrust_ave = -0.0027899027
+   //surge_parameter_current_sin = 0
+   //surge_parameter_current_cos = 0
+
+   // Parameters with ID run
+   surge_parameter_qRate = 0
+   surge_parameter_rRate = 0
+   surge_parameter_hydrostatic = 0
+   surge_parameter_rpm = 0
+   surge_parameter_pp = 0
+   surge_parameter_qq = 0
+   surge_parameter_rr = 0.000004527876                  
+   surge_parameter_pq = 0
+   surge_parameter_q = 0
+   surge_parameter_pr = 0
+   surge_parameter_r = -0.00357926                 
+   surge_parameter_zdot = 0
+   surge_parameter_rpmrpm = 0
+   surge_parameter_leftRpm = 0.00246517           
+   surge_parameter_rightRpm = 0.02003011207          
+   surge_parameter_leftRpmRpm = 0.0002315809         
+   surge_parameter_rightRpmRpm = -0.00031384       
+   surge_parameter_leftRpmRpmRpm = -0.00000227675      
+   surge_parameter_rightRpmRpmRpm = 0.000001556177     
+   surge_parameter_thrust_df = 0.00491800           
+   surge_parameter_thrust_ave = 0.01124787
+   surge_parameter_current_sin = 0
+   surge_parameter_current_cos = 0
+
+   // Parameters with ID run and heading based current estimation
+   // surge_parameter_qRate = 0
+   // surge_parameter_rRate = 0
+   // surge_parameter_hydrostatic = 0
+   // surge_parameter_rpm = 0
+   // surge_parameter_pp = 0
+   // surge_parameter_qq = 0
+   // surge_parameter_rr = 0.000001834091
+   // surge_parameter_pq = 0
+   // surge_parameter_q = 0
+   // surge_parameter_pr = 0
+   // surge_parameter_r =  -0.001331868                
+   // surge_parameter_zdot = 0
+   // surge_parameter_rpmrpm = 0
+   // surge_parameter_leftRpm = 0.007075072          
+   // surge_parameter_rightRpm = 0.015785239         
+   // surge_parameter_leftRpmRpm = 0.0000898378203          
+   // surge_parameter_rightRpmRpm = -0.000193473      
+   // surge_parameter_leftRpmRpmRpm = -0.0000012430778    
+   // surge_parameter_rightRpmRpmRpm = 0.000000711387  
+   // surge_parameter_thrust_df = 0.0050766358          
+   // surge_parameter_thrust_ave = 0.011430115
+   // surge_parameter_current_sin = 0.08594766
+   // surge_parameter_current_cos = 0.126564781
+
+   // --------------------------------
+   sway_parameter_pRate = 0
+   sway_parameter_rRate = 0
+   sway_parameter_hydrostatic = 0
+   sway_parameter_pq = 0
+   sway_parameter_qr = 0
+   sway_parameter_pp = 0
+   sway_parameter_q = 0
+   sway_parameter_qq = 0
+   sway_parameter_rr = 0
+   sway_parameter_r = 0
+   sway_parameter_zdot = 0
+   // --------------------------------
+   heave_parameter_pRate = 0
+   heave_parameter_qRate = 0
+   heave_parameter_hydrostatic = 0
+   heave_parameter_pr = 0
+   heave_parameter_pp = 0
+   heave_parameter_q = 0
+   heave_parameter_r = 0
+   heave_parameter_qq = 0
+   heave_parameter_zdot = 0
+
+#elseifdef VNAME jing
+
+   // Parameters with ID run and heading based current estimation
+   surge_parameter_qRate = 0
+   surge_parameter_rRate = 0
+   surge_parameter_hydrostatic = 0
+   surge_parameter_rpm = 0
+   surge_parameter_pp = 0
+   surge_parameter_qq = 0
+   surge_parameter_rr = -0.0000005247003571                 
+   surge_parameter_pq = 0
+   surge_parameter_q = 0
+   surge_parameter_pr = 0
+   surge_parameter_r = 0.0005446258                
+   surge_parameter_zdot = 0
+   surge_parameter_rpmrpm = 0
+   surge_parameter_leftRpm = 0.0081190028          
+   surge_parameter_rightRpm = 0.011257787         
+   surge_parameter_leftRpmRpm =  0.00003661968048       
+   surge_parameter_rightRpmRpm = -0.000175235      
+   surge_parameter_leftRpmRpmRpm = -0.000000763743047    
+   surge_parameter_rightRpmRpmRpm = 0.000001009389341     
+   surge_parameter_thrust_df =  0.0036108528         
+   surge_parameter_thrust_ave = 0.009688845
+   surge_parameter_current_sin = 0.209649313
+   surge_parameter_current_cos = -0.02930146
+
+   // --------------------------------
+   sway_parameter_pRate = 0
+   sway_parameter_rRate = 0
+   sway_parameter_hydrostatic = 0
+   sway_parameter_pq = 0
+   sway_parameter_qr = 0
+   sway_parameter_pp = 0
+   sway_parameter_q = 0
+   sway_parameter_qq = 0
+   sway_parameter_rr = 0
+   sway_parameter_r = 0
+   sway_parameter_zdot = 0
+   // --------------------------------
+   heave_parameter_pRate = 0
+   heave_parameter_qRate = 0
+   heave_parameter_hydrostatic = 0
+   heave_parameter_pr = 0
+   heave_parameter_pp = 0
+   heave_parameter_q = 0
+   heave_parameter_r = 0
+   heave_parameter_qq = 0
+   heave_parameter_zdot = 0
+
+#elseifdef VNAME gus
+
+   // Parameters with ID run and heading based current estimation
+   surge_parameter_qRate = 0
+   surge_parameter_rRate = 0
+   surge_parameter_hydrostatic = 0
+   surge_parameter_rpm = 0
+   surge_parameter_pp = 0
+   surge_parameter_qq = 0
+   surge_parameter_rr = 0.000001447978106                 
+   surge_parameter_pq = 0
+   surge_parameter_q = 0
+   surge_parameter_pr = 0
+   surge_parameter_r =  -0.002088617              
+   surge_parameter_zdot = 0
+   surge_parameter_rpmrpm = 0
+   surge_parameter_leftRpm = 0.0006620638         
+   surge_parameter_rightRpm =  0.019377839       
+   surge_parameter_leftRpmRpm = 0.000146446       
+   surge_parameter_rightRpmRpm = -0.0002026664     
+   surge_parameter_leftRpmRpmRpm = -0.0000013128007036    
+   surge_parameter_rightRpmRpmRpm = 0.0000005045823728     
+   surge_parameter_thrust_df = 0.0047962643         
+   surge_parameter_thrust_ave = 0.010019803
+   surge_parameter_current_sin = 0.159823188
+   surge_parameter_current_cos = 0.0338922714
+
+   // --------------------------------
+   sway_parameter_pRate = 0
+   sway_parameter_rRate = 0
+   sway_parameter_hydrostatic = 0
+   sway_parameter_pq = 0
+   sway_parameter_qr = 0
+   sway_parameter_pp = 0
+   sway_parameter_q = 0
+   sway_parameter_qq = 0
+   sway_parameter_rr = 0
+   sway_parameter_r = 0
+   sway_parameter_zdot = 0
+   // --------------------------------
+   heave_parameter_pRate = 0
+   heave_parameter_qRate = 0
+   heave_parameter_hydrostatic = 0
+   heave_parameter_pr = 0
+   heave_parameter_pp = 0
+   heave_parameter_q = 0
+   heave_parameter_r = 0
+   heave_parameter_qq = 0
+   heave_parameter_zdot = 0
+
+#elseifdef VNAME kirk
+
+   // Parameters with ID run and heading based current estimation
+   surge_parameter_qRate = 0
+   surge_parameter_rRate = 0
+   surge_parameter_hydrostatic = 0
+   surge_parameter_rpm = 0
+   surge_parameter_pp = 0
+   surge_parameter_qq = 0
+   surge_parameter_rr = 0.000003293847030                 
+   surge_parameter_pq = 0
+   surge_parameter_q = 0
+   surge_parameter_pr = 0
+   surge_parameter_r =  -0.002868661              
+   surge_parameter_zdot = 0
+   surge_parameter_rpmrpm = 0
+   surge_parameter_leftRpm = 0.009759318         
+   surge_parameter_rightRpm = 0.011434519        
+   surge_parameter_leftRpmRpm = 0.0000495281845       
+   surge_parameter_rightRpmRpm = -0.0000127345023     
+   surge_parameter_leftRpmRpmRpm = -0.00000123208713    
+   surge_parameter_rightRpmRpmRpm = -0.000000668877568     
+   surge_parameter_thrust_df =  0.0057635141        
+   surge_parameter_thrust_ave = 0.010596910
+   surge_parameter_current_sin = 0.1551391626
+   surge_parameter_current_cos = 0.035108514
+
+   // --------------------------------
+   sway_parameter_pRate = 0
+   sway_parameter_rRate = 0
+   sway_parameter_hydrostatic = 0
+   sway_parameter_pq = 0
+   sway_parameter_qr = 0
+   sway_parameter_pp = 0
+   sway_parameter_q = 0
+   sway_parameter_qq = 0
+   sway_parameter_rr = 0
+   sway_parameter_r = 0
+   sway_parameter_zdot = 0
+   // --------------------------------
+   heave_parameter_pRate = 0
+   heave_parameter_qRate = 0
+   heave_parameter_hydrostatic = 0
+   heave_parameter_pr = 0
+   heave_parameter_pp = 0
+   heave_parameter_q = 0
+   heave_parameter_r = 0
+   heave_parameter_qq = 0
+   heave_parameter_zdot = 0
+
+#endif
+
+max_vehicle_surge_speed=2.0;
+min_vehicle_surge_speed=0;
+max_vehicle_sway_speed=0.1;
+min_vehicle_sway_speed=-0.1;
+max_vehicle_heave_speed=0.1;
+min_vehicle_heave_speed=-0.1;
+
+reset_ekf_with_gps=1;
+
+}
+
+//------------------------------------------------
+// pHydroMAN_ModelCalibrator config block
+
+ProcessConfig = pHM_ModelCalibrator
+{
+AppTick   = 4
+CommsTick = 4
+
+model_standard_deviation=0
+no_of_position_fixes_for_model_calibration=5;
+
+calibrate_using_pos_updates = 0    // 1 for yes, 0 for no
+pos_update_type = GPS    // 'TRACK' or 'GPS'
+
+max_current_flow=0.3      // in m/s
+
+}
+
+//------------------------------------------------
+// pHydroMAN_LBLProcessor config block
+
+ProcessConfig = pHM_LBLProcessor
+{
+AppTick   = 4
+CommsTick = 4
+
+using_icex_tracker=1; // 0 IF USING THE SIMULATED LBL (uSimLBL), 1 IF USING ICEX TRACKER
+
+forward_time_correct_with=DVL_CALIB_MODEL  // options are: 'DVL_CALIB_MODEL', 'LBL_CALIB_MODEL', 'BASE_MODEL'
+}
+
+
+//------------------------------------------------
+// pHydroMAN_Manager config block
+
+ProcessConfig = pHM_Manager
+{
+   AppTick   = 4
+   CommsTick = 4
+
+   max_drift=15   // this is temp parameter for engineering tests
+
+
+   // EKF will be reset if difference between hydroman and LBL is above 'ekf_reset_drift' and below 'ekf_reset_stdev_scale_factor' * EKF-running-stdev
+   // for 'ekf_reset_no_of_lbl_updates' number of consecutive LBL updates
+#ifdef EKF_RESET_DRIFT
+   ekf_reset_drift = $(EKF_RESET_DRIFT)         // in m
+#else
+   ekf_reset_drift = 15       // in m
+#endif
+   ekf_reset_no_of_lbl_updates = 3
+   ekf_reset_stdev_scale_factor = 32
+   ekf_reset_no_of_lbl_stdevs = 1.5
+
+
+   // Hydroman health DCCL msg triggering parameters
+   trig_time_since_first_dvl_loss = 62 // in seconds
+   dvl_loss_republish_interval = 182   // in seconds
+
+   trig_max_esekf_bias = 0.5     // in m/s
+
+   dvl_inversion_check_vel = 0.2    // in m/s - A warning will be posted if DVL and INS observed opposite signed velocities with magnitudes above the 'dvl_inversion_check_vel'
+
+}
+
+//--------------------------------------------------
+// pLogger Configuration Block
+
+ProcessConfig = pLogger
+{
+  AppTick       = 10
+  CommsTick     = 10
+  
+  File          = LOG_HYDROMAN_%(VNAME)
+  PATH          = ./
+  SyncLog       = true @ 0.2
+  AsyncLog      = true
+  FileTimeStamp = true
+
+  LogAuxSrc     = true
+
+  // Log it all!!!!!
+  WildCardLogging = true 
+
+  WildCardOmitPattern = *_STATUS
+  WildCardOmitPattern = DB_VARSUMMARY
+  WildCardOmitPattern = DB_RWSUMMARY
+}
+
+//--------------------------------------------------------
+// uProcessWatch Configuration Block
+
+ProcessConfig = uProcessWatch
+{
+  AppTick   = 1
+  CommsTick = 1
+
+  allow_retractions = true
+  
+  watch_all = true      // default is true
+
+  nowatch = uXMS*
+  nowatch = uPokeDB*
+
+  summary_wait = 12
+}

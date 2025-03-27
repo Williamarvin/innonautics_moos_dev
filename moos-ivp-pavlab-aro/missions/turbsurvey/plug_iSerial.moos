@@ -1,0 +1,11 @@
+//------------------------------------------
+ProcessConfig = iSerial                              
+{                                                               
+  AppTick   = 10                                                
+  CommsTick = 10                                                
+                                                                
+  SERIAL_PORT    = /dev/ttyUSB0                                 
+  //SERIAL_BAUD    = 38400
+  SERIAL_BAUD    = 9600                                        
+  MOOS_PUB_VAR   = SERIAL_READ_RAW                                   
+} 

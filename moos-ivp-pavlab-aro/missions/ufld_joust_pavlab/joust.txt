@@ -1,0 +1,5 @@
+# Start Position seed file created by pickjoust
+# pickjoust --circle=x=23,y=-82,rad=32 --amt=2 --file=joust.txt --spd=1.4,2.2 --maxtries=8000 --hdrs --ang_min_diff=15 --ang_max_diff=170
+cx=23,cy=-82,rad=32
+px1=0.851,py1=-58.90367,px2=45.14858,py2=-105.09633,hdg=136.2,spd=1.74,vname=abe,vcolor=yellow
+px1=2.345,py1=-106.44147,px2=43.65465,py2=-57.55853,hdg=40.2,spd=1.75,vname=ben,vcolor=red

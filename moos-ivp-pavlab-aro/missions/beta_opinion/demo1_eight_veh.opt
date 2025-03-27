@@ -1,0 +1,98 @@
+
+// Configuration file for pOpinionManager
+// The vehicle's opinion for every option is configured below
+//
+// General assumptions for reasonable group behavior:
+// gamma - delta > 0 : Cooperative
+// gamma - delta < 0 : Competitive
+// alpha >= 0
+// beta  < 0
+
+
+// -------------------------------------------
+// Sampling
+social_option
+{
+               name = exploit
+   active_condition = DEPLOY=true    // default options is 'always'
+              input = EXPLOIT_INPUT
+      option_output = OPTION=EXPLOIT
+
+         social_mode = custom
+   resistance_weight = 0.25
+   
+    intra_agent_same_option_coupling = 0.05   // Self reinforcement  (alpha)
+   intra_agent_inter_option_coupling = explore = -0.01            //  (beta)
+   intra_agent_inter_option_coupling = migrate = -0.01            //  (beta)	
+    inter_agent_same_option_coupling = -0.05  // influence of others (gamma)
+   inter_agent_inter_option_coupling = explore = 0.01           //  (delta)
+   inter_agent_inter_option_coupling = migrate = 0.0           //  (delta)
+   
+   input_function_type =  none
+            input_max  =  100
+            input_min  = -100
+            input_gain =  1.0
+}
+
+
+
+// -------------------------------------------
+// Searching
+social_option
+{
+               name = explore
+   active_condition = DEPLOY=true    // default options is 'always'
+              input = EXPLORE_INPUT
+      option_output = OPTION=EXPLORE
+
+         social_mode = custom
+   resistance_weight = 0.25
+   
+    intra_agent_same_option_coupling = 0.05    // self reinforcement (alpha)
+   intra_agent_inter_option_coupling = exploit = -0.01            //  (beta)
+   intra_agent_inter_option_coupling = migrate = -0.01            //  (beta)
+    inter_agent_same_option_coupling = -0.05  // influence of others (gamma)
+   inter_agent_inter_option_coupling = exploit = 0.01          //  (delta)
+   inter_agent_inter_option_coupling = migrate = 0.0           //  (delta)	
+
+   input_function_type =  none
+            input_max  =  100
+            input_min  = -100
+            input_gain =  1.0	
+
+}
+
+
+// -------------------------------------------
+// Migrate
+social_option
+{
+               name = migrate
+              input = MIGRATE_INPUT
+   active_condition = DEPLOY=true    // default options is 'always'
+      option_output = OPTION=MIGRATE
+
+         social_mode = custom
+   resistance_weight = 0.25
+   
+    intra_agent_same_option_coupling = 1.0  // self reinforcement (alpha)
+   intra_agent_inter_option_coupling = explore = 0.0            //  (beta)
+   intra_agent_inter_option_coupling = exploit = 0.0            //  (beta)
+    inter_agent_same_option_coupling = 8.0  // influence of others (gamma) 
+   inter_agent_inter_option_coupling = explore = 0.00          //  (delta)
+   inter_agent_inter_option_coupling = exploit = 0.00          //  (delta)
+
+   input_function_type =  none
+            input_max  =  100
+            input_min  = -100
+            input_gain =  40.0
+}
+
+
+
+
+
+
+
+
+

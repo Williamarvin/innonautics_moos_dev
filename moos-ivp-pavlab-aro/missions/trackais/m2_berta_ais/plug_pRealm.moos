@@ -1,0 +1,15 @@
+//---------------------------------------------------------
+// pRealm Config Block
+
+ProcessConfig = pRealm
+{
+  AppTick    = 2
+  CommsTick  = 2
+
+  relcast_interval = 1.0
+	summary_interval = 5.0
+  wrap_length      = 80
+  trunc_length     = 320
+  msg_max_hist     = 10
+  
+}

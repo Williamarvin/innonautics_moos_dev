@@ -1,0 +1,7 @@
+//pRealm plugin
+
+ProcessConfig = pRealm
+{
+	AppTick = 4
+	CommsTick = 4
+}

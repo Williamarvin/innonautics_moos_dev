@@ -1,0 +1,34 @@
+//--------------------------------------------------
+ProcessConfig = pLogger
+{
+  AppTick     = 10
+  CommsTick   = 10
+
+  File    = LOG_%(VNAME)
+  PATH    = ./
+  SyncLog   = true @ 0.2
+  AsyncLog   = true
+  FileTimeStamp = true
+
+  Log = IVPHELM_LIFE_EVENT @ 0 nosync
+  // Log = NAV_X @ 0
+  // Log = NAV_Y @ 0
+  // Log = NAV_HEADING @ 0
+  // Log = NAV_SPEED @ 0
+  // Log = DESIRED_SPEED @ 0
+  // Log = COMPASS_HEADING @ 0
+  // Log = DESIRED_THRUST @ 0
+  // Log = PYDIR_THRUST_L @ 0
+  // Log = PYDIR_THRUST_R @ 0
+  // Log = DUBIN_UPDATE @ 0
+  // Log = DEADLOCKED @ 0
+  // Log = DEMUSTER_BEGIN @ 0
+  // Log = DEMUSTER_COMPLETE @ 0
+
+  // Log it all!!!!!
+  LogAuxSrc = true
+  WildCardLogging = true
+  WildCardOmitPattern = *_STATUS
+  WildCardOmitPattern = DB_VARSUMMARY
+  WildCardOmitPattern = DB_RWSUMMARY
+}

@@ -1,0 +1,9 @@
+//------------------------------------------------
+// pPingProfileDetect config block
+
+ProcessConfig = pPingProfileDetect
+{
+   AppTick   = 4
+   CommsTick = 4
+}
+

@@ -1,0 +1,121 @@
+//-------------------------------------------------
+//  NAME: Michael Benjamin, MIT
+//  FILE: meta_heron.moos
+//-------------------------------------------------
+ServerHost   = localhost
+ServerPort   = $(MPORT)
+Community    = heron
+MOOSTimeWarp = 1
+
+//------------------------------------------
+// Antler configuration  block
+
+ProcessConfig = ANTLER
+{
+  MSBetweenLaunches = 400
+  Run = MOOSDB       @ NewConsole = false
+  Run = uSimHeron    @ NewConsole = false
+  Run = uXMS         @ NewConsole = false
+  Run = uTimerScript @ NewConsole = false
+  //Run = pLogger      @ NewConsole = false
+}
+
+//------------------------------------------
+// uSimHeron config block
+
+ProcessConfig = uSimHeron
+{
+  AppTick    = 4
+  CommsTick  = 4
+
+	comms_type = $(COMMS_TYPE)
+  port       = $(PORT)
+	ip_addr    = $(IP_ADDR)
+}
+
+//------------------------------------------
+// pLogger config block
+
+ProcessConfig = pLogger
+{
+  AppTick    = 4
+  CommsTick  = 4
+
+	AsyncLog = true
+
+  Log  = M300_RAW_INBUFF @ 0 NOSYNC
+  file = heron
+  LogAuxSrc = true
+  WildCardLogging = true
+  WildCardOmitPattern = *_STATUS
+}
+
+//------------------------------------------
+// uXMS config block
+
+ProcessConfig = uXMS
+{
+  AppTick    = 4
+  CommsTick  = 4
+
+  VAR = DB_CLIENTS, NAV_LAT, NAX_LONG
+	var = NAV_HEADING, NAV_SPEED
+  VAR = USH_RAW_NMEA
+
+	source = uSimHeron
+}
+
+//------------------------------------------
+// uTimerScript
+
+ProcessConfig = uTimerScript
+{
+  AppTick    = 4
+  CommsTick  = 4
+
+  event = var=NAV_SPEED, val=0,  time=0
+  event = var=NAV_SPEED, val=0.2, time=5
+  event = var=NAV_SPEED, val=0.4, time=10
+  event = var=NAV_SPEED, val=0.6, time=15
+  event = var=NAV_SPEED, val=0.8, time=20
+  event = var=NAV_SPEED, val=0.6, time=25
+  event = var=NAV_SPEED, val=0.4, time=30
+  event = var=NAV_SPEED, val=0.4, time=35
+
+  event = var=DESIRED_HEADING, val=0,  time=1
+  event = var=DESIRED_HEADING, val=5,  time=2
+  event = var=DESIRED_HEADING, val=10, time=3
+  event = var=DESIRED_HEADING, val=15, time=4
+  event = var=DESIRED_HEADING, val=20, time=5
+  event = var=DESIRED_HEADING, val=30, time=6
+  event = var=DESIRED_HEADING, val=35, time=7
+  event = var=DESIRED_HEADING, val=40, time=8
+  event = var=DESIRED_HEADING, val=35, time=9
+  event = var=DESIRED_HEADING, val=30, time=10
+  event = var=DESIRED_HEADING, val=25, time=11
+  event = var=DESIRED_HEADING, val=20, time=12
+  event = var=DESIRED_HEADING, val=15, time=13
+  event = var=DESIRED_HEADING, val=10, time=14
+  event = var=DESIRED_HEADING, val=5,  time=15
+  event = var=DESIRED_HEADING, val=0,  time=16
+
+  event = var=DESIRED_HEADING, val=355, time=17
+  event = var=DESIRED_HEADING, val=350, time=18
+  event = var=DESIRED_HEADING, val=345, time=19
+  event = var=DESIRED_HEADING, val=340, time=2
+  event = var=DESIRED_HEADING, val=335, time=21
+  event = var=DESIRED_HEADING, val=330, time=22
+  event = var=DESIRED_HEADING, val=325, time=23
+  event = var=DESIRED_HEADING, val=320, time=24
+  event = var=DESIRED_HEADING, val=325, time=25
+  event = var=DESIRED_HEADING, val=330, time=26
+  event = var=DESIRED_HEADING, val=335, time=27
+  event = var=DESIRED_HEADING, val=340, time=28
+  event = var=DESIRED_HEADING, val=245, time=29
+  event = var=DESIRED_HEADING, val=350, time=30
+  event = var=DESIRED_HEADING, val=355,  time=31
+
+	reset_time = all-posted
+	reset_max  =  nolimit
+}
+

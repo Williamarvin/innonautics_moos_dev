@@ -1,0 +1,10 @@
+//------------------------------------------------
+// pSonarSimDetect config block
+
+ProcessConfig = pSonarSimDetect
+{
+   AppTick   = 4
+   CommsTick = 4
+   
+}
+

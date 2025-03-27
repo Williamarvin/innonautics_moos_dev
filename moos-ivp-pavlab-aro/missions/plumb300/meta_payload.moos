@@ -1,0 +1,145 @@
+//-------------------------------------------------
+//  NAME: Michael Benjamin, MIT
+//  FILE: meta_payload.moos
+//-------------------------------------------------
+ServerHost   = localhost
+ServerPort   = $(MPORT)
+Community    = payload
+MOOSTimeWarp = 1
+
+// Forest Lake, Maine
+LatOrigin  = 43.825300
+LongOrigin = -70.330400
+	
+//------------------------------------------
+// Antler configuration  block
+
+ProcessConfig = ANTLER
+{
+  MSBetweenLaunches = 400
+
+  Run = MOOSDB       @ NewConsole = false
+  Run = iM300        @ NewConsole = false
+  Run = uXMS         @ NewConsole = false
+  Run = uTimerScript @ NewConsole = false
+  //Run = pLogger      @ NewConsole = false
+}
+
+//------------------------------------------
+// iM300 config block
+
+ProcessConfig = iM300
+{
+  AppTick    = 4
+  CommsTick  = 4
+
+	comms_type = $(COMMS_TYPE)
+  port       = $(PORT)
+	ip_addr    = $(IP_ADDR)
+
+	stale_thresh = 15
+	
+	max_rudder  = 50
+	max_thrust  = 100
+	drive_mode  = normal
+
+	max_appcast_events = 8
+//	max_appcast_run_warnings = 10
+}
+
+//------------------------------------------
+// pLogger config block
+
+ProcessConfig = pLogger
+{
+  AppTick    = 4
+  CommsTick  = 4
+
+	AsyncLog = true
+
+  Log = M300_RAW_INBUFF @ 0 NOSYNC
+
+  file = payload
+
+  LogAuxSrc = true
+  WildCardLogging = true
+  WildCardOmitPattern = *_STATUS
+}
+
+//------------------------------------------
+// uXMS config block
+
+ProcessConfig = uXMS
+{
+  AppTick    = 4
+  CommsTick  = 4
+
+  display_source = true
+	display_time = true
+	
+  VAR = DB_CLIENTS, NAV_X, NAV_Y, NAV_HEADING, NAV_SPEED
+  VAR = PYDIR_THRUST_L, PYDIR_THRUST_R
+  VAR = IM300_RAW_NMEA, IM300_ALL_NMEA
+	VAR = DESIRED_THRUST, DESIRED_RUDDER
+
+	source = iM300
+}
+
+//------------------------------------------
+// uTimerScript
+
+ProcessConfig = uTimerScript
+{
+  AppTick    = 4
+  CommsTick  = 4
+
+	paused = false
+
+	event = var=IVPHELM_ALLSTOP, val=clear, time=0
+	
+  event = var=DESIRED_THRUST, val=0,  time=0
+  event = var=DESIRED_THRUST, val=10, time=5
+  event = var=DESIRED_THRUST, val=20, time=10
+  event = var=DESIRED_THRUST, val=30, time=15
+  event = var=DESIRED_THRUST, val=40, time=20
+  event = var=DESIRED_THRUST, val=30, time=25
+  event = var=DESIRED_THRUST, val=20, time=30
+  event = var=DESIRED_THRUST, val=10, time=35
+
+  event = var=DESIRED_RUDDER, val=0,  time=1
+  event = var=DESIRED_RUDDER, val=5,  time=2
+  event = var=DESIRED_RUDDER, val=10, time=3
+  event = var=DESIRED_RUDDER, val=15, time=4
+  event = var=DESIRED_RUDDER, val=20, time=5
+  event = var=DESIRED_RUDDER, val=30, time=6
+  event = var=DESIRED_RUDDER, val=35, time=7
+  event = var=DESIRED_RUDDER, val=40, time=8
+  event = var=DESIRED_RUDDER, val=35, time=9
+  event = var=DESIRED_RUDDER, val=30, time=10
+  event = var=DESIRED_RUDDER, val=25, time=11
+  event = var=DESIRED_RUDDER, val=20, time=12
+  event = var=DESIRED_RUDDER, val=15, time=13
+  event = var=DESIRED_RUDDER, val=10, time=14
+  event = var=DESIRED_RUDDER, val=5,  time=15
+  event = var=DESIRED_RUDDER, val=0,  time=16
+
+  event = var=DESIRED_RUDDER, val=-5,  time=17
+  event = var=DESIRED_RUDDER, val=-10, time=18
+  event = var=DESIRED_RUDDER, val=-15, time=19
+  event = var=DESIRED_RUDDER, val=-20, time=2
+  event = var=DESIRED_RUDDER, val=-30, time=21
+  event = var=DESIRED_RUDDER, val=-35, time=22
+  event = var=DESIRED_RUDDER, val=-40, time=23
+  event = var=DESIRED_RUDDER, val=-35, time=24
+  event = var=DESIRED_RUDDER, val=-30, time=25
+  event = var=DESIRED_RUDDER, val=-25, time=26
+  event = var=DESIRED_RUDDER, val=-20, time=27
+  event = var=DESIRED_RUDDER, val=-15, time=28
+  event = var=DESIRED_RUDDER, val=-10, time=29
+  event = var=DESIRED_RUDDER, val=-5,  time=30
+  event = var=DESIRED_RUDDER, val=0,   time=31
+
+	reset_time = all-posted
+	reset_max  =  nolimit
+}
+

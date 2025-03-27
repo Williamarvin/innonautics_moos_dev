@@ -1,0 +1,56 @@
+/-------------------------------------------------
+// NAME: M. Benjamin, MIT
+// FILE: mission.moos
+//-------------------------------------------------
+ServerHost   = localhost
+ServerPort   = 9000
+Community    = alpha
+
+//------------------------------------------
+// Antler configuration  block
+
+ProcessConfig = ANTLER
+{
+  MSBetweenLaunches = 600
+  Run = MOOSDB      @ NewConsole = false
+  Run = uSockComms  @ NewConsole = false
+  Run = uSimHeron   @ NewConsole = false
+  Run = uXMS        @ NewConsole = false
+}
+
+//------------------------------------------
+// uSimHeron config block
+
+ProcessConfig = uSimHeron
+{
+  AppTick    = 4
+  CommsTick  = 4
+
+  ip_addr = 127.0.0.1
+	comms_type = client
+  port = 29500
+}
+
+//------------------------------------------
+// uSockComms config block
+
+ProcessConfig = uSockComms
+{
+  AppTick    = 4
+  CommsTick  = 4
+
+	comms_type = server
+  port = 29500
+}
+
+//------------------------------------------
+// uXMS config block
+
+ProcessConfig = uXMS
+{
+  AppTick    = 4
+  CommsTick  = 4
+
+  VAR = DB_CLIENTS
+}
+

@@ -1,0 +1,12 @@
+ProcessConfig = pSonarSimDetect                              
+{                                                               
+  AppTick   = 4                                                 
+  CommsTick = 4                                                 
+                                                                
+  beam_angle = 30 //Default is 30 degrees                         
+  target_name = ADVERSARY //must provide name of target          
+  target_depth = 40 //Default is 10 m do not need to provide     
+  //if the depth is properly reported in NodeReport                                                             
+  sonar_frequency = .5 //Default is 1 Hz 
+  enforce_limit = true                                                           
+} 

@@ -1,0 +1,13 @@
+#Run as source
+#i.e.
+# $ source setup_herons
+
+#Adds this folder to your path
+_path="$path_ps/herons/"
+export PATH="$PATH:$_path"
+
+#Sets up the variables
+source herons_set_vars
+
+#Configure aliases
+source setup_aliases

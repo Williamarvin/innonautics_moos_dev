@@ -1,0 +1,209 @@
+//*******************************************************
+// Vehicle behavior configuration file
+
+initialize   DEPLOY = false
+initialize   RETURN = false
+initialize   STATION_KEEP = false
+initialize   LEG_RUNNING = false
+initialize   ATURNING = false
+initialize   ZIGGING = false
+initialize   FULL_STOPPING = false
+initialize   FIX_TURNING = false
+initialize   START = false
+	
+set MODE = ACTIVE {
+  DEPLOY = true
+} INACTIVE
+
+set MODE = STATION-KEEPING {
+  MODE = ACTIVE
+  STATION_KEEP = true
+}
+
+set MODE = RETURNING {
+  MODE = ACTIVE
+  RETURN = true
+}
+
+set MODE = FULL_STOP {
+  MODE = ACTIVE
+  FULL_STOPPING = true
+}
+
+set MODE = STARTLINE {
+    MODE = ACTIVE
+    START = true
+}
+
+set MODE = FIX_TURN {
+  MODE = ACTIVE
+  FIX_TURNING = true
+}
+
+set MODE = LEGRUN {
+  MODE = ACTIVE
+  LEG_RUNNING = true
+}
+
+
+set MODE = ENDLINE {
+  MODE = ACTIVE
+  END_LINE = true
+}
+
+//----------------------------------------------
+Behavior = BHV_LegRunX
+{ 
+  name      = legs
+  pwt       = 100
+  condition = MODE == LEGRUN
+  updates   = LEG_UPDATE
+  perpetual = true
+  endflag   = LEG_RUNNING = false
+  endflag   = RETURN = true
+
+            lead = 5
+     lead_damper = 4
+           speed = 1
+    capture_line = true
+  capture_radius = 5
+     slip_radius = 15
+
+             vx1 = 40, -50
+	     vx2 = -20, -50
+		repeat = 3
+	    turn1_dir  = port
+	    turn2_dir  = star
+	    turn1_rad  = 25
+	    turn2_rad  = 25
+	    turn1_bias = 100
+	    turn2_bias = 100
+	    leg_angle  = 245
+         mid_pct = 20
+
+	legflag = PCT_TO_NEXT=$[PCT_NP]
+	wptflag = START_LOOP="id=$[LEG_ID]"
+//	midflag = MIDFLAG=true
+//	midflag = FIX_TURNING=true
+	//leg_spds = 2, 3:1.8, 1.5
+	//leg_spds = 2, 1.8, 1.6, 1.4, 1.2
+
+//#ifdef VNAME ben
+//	shift_point  = 30,-80
+//#elseifdef VNAME cal
+//	shift_point  = 30,-120
+//#elseifdef VNAME deb
+//	shift_point  = 30,-140
+//#elseifdef VNAME eve
+//	shift_point  = 30,-160
+//#elseifdef VNAME fin
+//	shift_point  = 30,-180
+//#endif
+
+  visual_hints = nextpt_color=yellow
+  visual_hints = nextpt_vertex_size=8
+  visual_hints = nextpt_lcolor=gray70
+  visual_hints = vertex_color=dodger_blue, edge_color=white
+  visual_hints = vertex_size=6, edge_size=1
+  visual_hints = turn_edge_color=gray80
+  visual_hints = turn_vertex_color=green
+}
+
+
+
+//----------------------------------------------
+Behavior = BHV_FixedTurn
+{ 
+  name      = fturn
+  pwt       = 100
+  condition = MODE==FIX_TURN
+	endflag   = FIX_TURNING = false
+
+  updates   = FTURN_UPDATE
+  perpetual = true
+
+	fix_turn  = 675
+	mod_hdg   = 25
+	turn_dir  = star
+        speed     = auto
+	
+	turn_spec = key=1, spd=1.0, mhdg=20, fix=350, turn=port
+	turn_spec = key=1, flag=SAY_MOOS=one
+	turn_spec = key=1, flag=SAY_MOOS="distance is $[TURN_DIST]"
+
+
+	turn_spec = spd=1.0, mhdg=20, fix=270, turn=star, flag=SAY_MOOS=two
+	turn_spec = spd=1.0, mhdg=30, fix=360, turn=port, flag=SAY_MOOS=three
+	turn_spec = spd=1.0, mhdg=30, fix=360, turn=star, flag=SAY_MOOS=four
+
+	schedule_repeat = true
+	
+	stale_nav_thresh = 5
+	
+	endflag = TURNING_TIME = $[TURN_TIME]
+	endflag = TURNING_DIST = $[TURN_DIST]
+}
+
+
+
+
+	
+//----------------------------------------------
+Behavior=BHV_Waypoint
+{
+  name       = waypt_return
+  pwt        = 100
+  condition  = MODE==RETURNING
+  perpetual  = true
+  updates    = RETURN_UPDATE
+  endflag    = RETURN = false
+  endflag    = DEPLOY = false
+  endflag    = MISSION = complete
+ 
+            lead = 8
+     lead_damper = 1
+   lead_to_start = true
+           speed = 1.0
+  capture_radius = 2.0
+     slip_radius = 8.0
+           point = $(START_POS)
+}
+
+//----------------------------------------------
+Behavior=BHV_Waypoint
+{
+  name       = waypt_startline
+  pwt        = 100
+  condition  = MODE==STARTLINE
+  perpetual  = true
+  endflag    = START = false
+  endflag    = LEG_RUNNING = true
+ 
+            lead = 5
+     lead_damper = 4
+   lead_to_start = true
+           speed = 1.0
+  capture_radius = 2.0
+     slip_radius = 8.0
+           points = -2,-35:4,-43:14,-44:25,-42
+}
+
+
+//----------------------------------------------
+Behavior=BHV_Waypoint
+{
+  name       = waypt_endline
+  pwt        = 100
+  condition  = MODE==ENDLINE
+  perpetual  = true
+  endflag    = RETURN = true
+  endflag    = END_LINE = false
+ 
+            lead = 8
+     lead_damper = 1
+   lead_to_start = true
+           speed = 1.0
+  capture_radius = 2.0
+     slip_radius = 8.0
+           point = 25,-42
+}

@@ -1,0 +1,3 @@
+# Pablo add to path
+# Source ~/moos-ivp-pavlab/scripts/patp
+export PATH=$PATH:~/moos-ivp-pavlab/scripts

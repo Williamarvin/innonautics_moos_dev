@@ -1,0 +1,12 @@
+////////////////////////////////////////
+ProcessConfig = nav_stub
+{
+  @ANTLER Run = nav_stub @ $(CONSOLE_COMMAND)
+
+  AppTick = 5
+
+  std_x = 15
+  std_y = 15
+  track_interval = 30
+}
+

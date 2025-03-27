@@ -1,0 +1,3 @@
+TODO
+ - Make task waypoint and task formation template behaviors for handling the ordering of agents. It will need to use the formation utility library.
+ - An index argument will be passed off in the parameter file, where an agent observes the lead agent as the contact, the number of vehicles in the formation, and the index is incremented on each bid, and the agent references the lead agent's state and the index, to propose a bid on the projected waypoint which all the agents compete on

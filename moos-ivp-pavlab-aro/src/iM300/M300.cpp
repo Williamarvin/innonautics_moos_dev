@@ -23,6 +23,7 @@
 #include <poll.h>
 #include <stdio.h>
 #include <errno.h>
+#include <vector>
 
 using namespace std;
 
@@ -188,7 +189,7 @@ void M300::commFloatie() {
 
 // Helper function to update GPS data and send notifications
 void M300::updateGPSData(double lat, double lon, double x, double y, double speed) {
-  const std::vector<std::pair<std::string, double>> gpsData = {
+  const std::vector<std::pair<std::string, double> > gpsData = {
       {m_nav_prefix + "_LAT", lat}, {m_nav_prefix + "_LON", lon}, {m_nav_prefix + "_LONG", lon},
       {m_gps_prefix + "_LAT", lat}, {m_gps_prefix + "_LON", lon}, {m_gps_prefix + "_LONG", lon},
       {m_nav_prefix + "_X", x}, {m_nav_prefix + "_Y", y},

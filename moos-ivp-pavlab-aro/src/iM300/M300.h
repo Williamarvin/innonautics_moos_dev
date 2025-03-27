@@ -12,6 +12,7 @@
 #ifndef M300_HEADER
 #define M300_HEADER
 
+#include <vector>
 #include <string>
 #include "SockNinja.h"
 #include "Thruster.h"
@@ -184,3 +185,4 @@ private: // State variables
 };
 
 #endif 
+

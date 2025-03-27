@@ -12,14 +12,808 @@
 #include "MBUtils.h"
 #include "LatLonFormatUtils.h"
 #include "M300.h"
+#include "c_library_v2/common/mavlink.h"
+#include <fcntl.h>
+#include <termios.h>
+#include <unistd.h>
+#include <iostream>
+#include <sstream>
+#include <cstring>
+#include <list>
+#include <poll.h>
+#include <stdio.h>
+#include <errno.h>
 
 using namespace std;
 
+// trim space in a string
+string trim_spaces(const string &str) {
+    string result;
+    bool in_space = false;
+
+    for (char ch : str) {
+        if (ch != ' ') {
+            result += ch;
+            in_space = false;
+        } else if (!in_space) {
+            result += ' ';
+            in_space = true;
+        }
+    }
+
+    // Remove any trailing space
+    if (!result.empty() && result.back() == ' ') {
+        result.pop_back();
+    }
+
+    return result;
+}
+
+// connect to correct port and vehicle (match)
+void M300::vehicleConnection(){
+    for(int i = 0; i < portList.size(); i++){
+
+      pik_port = open(portList[i].c_str(), O_RDWR | O_NOCTTY | O_NDELAY);
+      setBaudRate(B57600);
+      
+      if(pik_port == -1){
+        continue;
+      }
+
+      memset(vehicle_buffer, 0, BUFFER_SIZE);
+      ssize_t num_bytes = read(pik_port, vehicle_buffer, BUFFER_SIZE);
+
+      // floatie requirement
+      // check if floatie
+
+      if(m_vname == "floatie"){
+          for (int i = 0; i < num_bytes; ++i) {
+
+              mavlink_message_t msg;
+              mavlink_status_t status;
+
+              if (mavlink_parse_char(MAVLINK_COMM_0, vehicle_buffer[i], &msg, &status)) {
+
+                  checkVehicle = true;
+                  portList.erase(portList.begin() + i);
+                  // thrusterSafety();
+                  return;
+              }
+            } 
+        }
+      
+      else if(m_vname == "beacon"){
+
+          if(num_bytes <= 0)
+            continue;
+
+          string beaconOutput(vehicle_buffer, num_bytes);
+
+          trim_spaces(beaconOutput);
+
+          istringstream iss(beaconOutput);
+
+          string mode = "";
+
+          iss >> mode;
+          serial_output = beaconOutput;
+
+          if(mode == "BE"){
+              // beacon
+              checkVehicle = true;
+              portList.erase(portList.begin() + i);
+              return;
+          }
+      }
+
+      // No port found
+      close(pik_port);
+      // continue until port is found
+    }
+}
+
+void M300::commFloatie() {
+  ssize_t num_bytes = read(pik_port, vehicle_buffer, BUFFER_SIZE);
+
+  // If GPS is not found, use fake GPS
+  if (!gpsFound) {
+      fakeGpsFloatie();
+  }
+
+  for (int i = 0; i < num_bytes; ++i) {
+      mavlink_message_t msg;
+      mavlink_status_t status;
+
+      if (mavlink_parse_char(MAVLINK_COMM_0, vehicle_buffer[i], &msg, &status)) {
+          switch (msg.msgid) {
+              case MAVLINK_MSG_ID_GLOBAL_POSITION_INT: {
+                  mavlink_global_position_int_t packets;
+                  mavlink_msg_global_position_int_decode(&msg, &packets);
+
+                  // Convert heading from centidegrees to degrees
+                  double hdg = packets.hdg / 100.0;
+                  if (hdg > 360) {
+                      hdg -= 360;
+                  }
+
+                  // Notify heading
+                  Notify(m_nav_prefix + "_HEADING", hdg, "GPRMC");
+                  Notify("GPS_HEADING", hdg, "GPRMC");
+
+                  m_nav_hdg = hdg;
+                  hdg_found = true;
+                  break;
+              }
+
+              case MAVLINK_MSG_ID_RC_CHANNELS: {
+                  mavlink_rc_channels_raw_t packets;
+                  mavlink_msg_rc_channels_raw_decode(&msg, &packets);
+
+                  // Assign thrust values directly
+                  f_Thrust_L = packets.chan1_raw;
+                  f_Thrust_R = packets.chan3_raw;
+
+                  // f_Thrust_L = (((packets.chan1_raw - 1500)/500) * 100) + 1500;
+                  // f_Thrust_R = (((packets.chan3_raw - 1500)/500) * 100) + 1500;
+                  
+                  break;
+              }
+
+              case MAVLINK_MSG_ID_GPS_RAW_INT: {
+                  mavlink_gps_raw_int_t packet;
+                  mavlink_msg_gps_raw_int_decode(&msg, &packet);
+                  
+                  double dbl_lat = packet.lat / 1e7;
+                  double dbl_lon = packet.lon / 1e7;
+                  double x, y;
+                  double speed = 0.5;
+
+                  // Convert lat/lon to local grid coordinates
+                  m_geodesy.LatLong2LocalGrid(dbl_lat, dbl_lon, y, x);
+
+                  // Validate GPS coordinates before using them
+                  if (dbl_lat > 22.0 && dbl_lat < 24.0) {
+                      updateGPSData(dbl_lat, dbl_lon, x, y, speed);
+                      gpsFound = true;
+                  }
+                  break;
+              }
+
+              default:
+                  break;
+          }
+      }
+  }
+}
+
+// Helper function to update GPS data and send notifications
+void M300::updateGPSData(double lat, double lon, double x, double y, double speed) {
+  const std::vector<std::pair<std::string, double>> gpsData = {
+      {m_nav_prefix + "_LAT", lat}, {m_nav_prefix + "_LON", lon}, {m_nav_prefix + "_LONG", lon},
+      {m_gps_prefix + "_LAT", lat}, {m_gps_prefix + "_LON", lon}, {m_gps_prefix + "_LONG", lon},
+      {m_nav_prefix + "_X", x}, {m_nav_prefix + "_Y", y},
+      {m_gps_prefix + "_X", x}, {m_gps_prefix + "_Y", y},
+      {m_nav_prefix + "_SPEED", speed}
+  };
+
+  for (const auto& [key, value] : gpsData) {
+      Notify(key, value, "GPRMC");
+  }
+
+  // Store GPS Data
+  m_nav_spd = speed;
+  m_nav_x = x;
+  m_nav_y = y;
+}
+
+// Reading input from pikhawk
+// void M300::commFloatie(){
+//       // memset(vehicle_buffer, 0, BUFFER_SIZE);
+//       ssize_t num_bytes = read(pik_port, vehicle_buffer, BUFFER_SIZE);
+
+//       // if gps not found, use fake gps
+//       if(!gpsFound){
+//         fakeGpsFloatie();
+//       }
+
+//       for (int i = 0; i < num_bytes; ++i) {
+//           mavlink_message_t msg;
+//           mavlink_status_t status;
+
+//           if (mavlink_parse_char(MAVLINK_COMM_0, vehicle_buffer[i], &msg, &status)) {
+//               // Message parsed successfully
+//               switch (msg.msgid) {
+
+//                 case MAVLINK_MSG_ID_GLOBAL_POSITION_INT:
+//                   {
+//                       mavlink_global_position_int_t packets;
+//                       mavlink_msg_global_position_int_decode(&msg, &packets);
+
+//                       double hdg = double((float(packets.hdg)/100));
+                      
+//                       Notify(m_nav_prefix+"_HEADING", hdg, "GPRMC");
+//                       Notify("GPS_HEADING", hdg, "GPRMC");
+
+//                       if (hdg > 360){
+//                         hdg = hdg - 360;
+//                       }
+
+//                       m_nav_hdg = hdg;
+//                       hdg_found = true;
+//                       // cout << "heading: " << packets.hdg << "relativealt" << packets.relative_alt << endl;
+//                   }
+
+//                   case MAVLINK_MSG_ID_RC_CHANNELS:
+//                   {
+//                     mavlink_rc_channels_raw_t packets;
+//                     mavlink_msg_rc_channels_raw_decode(&msg, &packets);       
+
+//                     // static_cast<int16_t>packets.chan1_raw // left
+//                     // static_cast<int16_t>packets.chan3_raw // right
+
+//                     // f_Thrust_L = ((packets.chan1_raw-1500)/500)*100 + 1500;
+//                     // f_Thrust_R = ((packets.chan3_raw-1500)/500)*100 + 1500;
+
+//                     f_Thrust_L = packets.chan1_raw;
+//                     f_Thrust_R = packets.chan3_raw;
+//                   }
+                  
+//                   case MAVLINK_MSG_ID_GPS_RAW_INT:
+//                   {
+//                     mavlink_gps_raw_int_t packet;
+//                     mavlink_msg_gps_raw_int_decode(&msg, &packet);
+                    
+//                     double x, y;
+//                     double dbl_lat = (float(packet.lat)/10000000);
+//                     double dbl_lon = (float(packet.lon)/10000000);
+//                     double speed = 0.5;
+
+//                     bool ok = m_geodesy.LatLong2LocalGrid(dbl_lat, dbl_lon, y, x); 
+
+//                     if(dbl_lat < 24 && dbl_lat > 22){
+//                         Notify(m_nav_prefix+"_LAT", dbl_lat, "GPRMC");
+//                         Notify(m_nav_prefix+"_LON", dbl_lon, "GPRMC");
+//                         Notify(m_nav_prefix+"_LONG", dbl_lon, "GPRMC");
+//                         Notify(m_gps_prefix+"_LAT", dbl_lat, "GPRMC");
+//                         Notify(m_gps_prefix+"_LON", dbl_lon, "GPRMC");
+//                         Notify(m_gps_prefix+"_LONG", dbl_lon, "GPRMC");      
+//                         Notify(m_nav_prefix+"_X", x, "GPRMC");
+//                         Notify(m_nav_prefix+"_Y", y, "GPRMC");
+//                         Notify(m_gps_prefix+"_X", x, "GPRMC");
+//                         Notify(m_gps_prefix+"_Y", y, "GPRMC");    
+//                         Notify(m_nav_prefix+"_SPEED", speed, "GPRMC");         
+                        
+//                         m_nav_spd = speed;
+//                         m_nav_x = x;
+//                         m_nav_y = y;
+                        
+//                         gpsFound = true;
+//                     }
+
+//                     else{
+//                       // if Gps out of range
+//                       // ignore GPS input
+//                     }
+//                   }
+
+//                   // Get actual thruster outputs
+//                   // case MAVLINK_MSG_ID_SERVO_OUTPUT_RAW:
+//                   // {
+//                   //     mavlink_servo_output_raw_t packet;
+//                   //     mavlink_msg_servo_output_raw_decode(&msg, &packet);
+//                   //     cout << "thruster: " << packet.servo1_raw << " " << packet.servo3_raw << endl; 
+//                   // }
+
+//                   // Add cases for other message types as needed
+//                   default:
+//                     break;
+//               }
+//           }
+//       }
+// }
+
+// Function to check if there is number in a string
+bool containsNumber(const string& str) {
+    for (string::size_type i = 0; i < str.length(); ++i) {
+        char c = str[i];
+        if (isdigit(c) || c == '.' || c == '-' || c == '+') {
+            return true;
+        }
+        else{
+          return false;
+        }
+    }
+    return false;
+}
+
+// Function to read input from beacon
+void M300::commBeacon(){
+    // memset(vehicle_buffer, 0, BUFFER_SIZE);
+    num_bytes = read(pik_port, vehicle_buffer, BUFFER_SIZE);
+
+    if(num_bytes <= 0)
+      return;
+
+    string beaconInput(vehicle_buffer, num_bytes);
+    trim_spaces(beaconInput);
+
+    serial_output = beaconInput;
+
+    istringstream iss(beaconInput);
+    
+    string device, lat, lon, mode = "";
+
+    // Try extracting the four parts from the string
+    if (iss >> device >> lat >> lon) {
+        if(containsNumber(lat) && containsNumber(lon)){
+
+            double lat_b = stod(lat);
+            double lon_b = stod(lon);
+
+            double x = 0;
+            double y = 0;
+            bool ok = m_geodesy.LatLong2LocalGrid(lat_b, lon_b, y, x); 
+
+            Notify(m_nav_prefix+"_LAT", lat_b, "GPRMC");
+            Notify(m_nav_prefix+"_LON", lon_b, "GPRMC");
+            Notify(m_nav_prefix+"_LONG", lon_b, "GPRMC");
+            Notify(m_gps_prefix+"_LAT", lat_b, "GPRMC");
+            Notify(m_gps_prefix+"_LON", lon_b, "GPRMC");
+            Notify(m_gps_prefix+"_LONG", lon_b, "GPRMC");      
+            Notify(m_nav_prefix+"_X", x, "GPRMC");
+            Notify(m_nav_prefix+"_Y", y, "GPRMC");
+            Notify(m_gps_prefix+"_X", x, "GPRMC");
+            Notify(m_gps_prefix+"_Y", y, "GPRMC");  
+
+            if(iss >> mode && !containsNumber(mode)){
+                // Activate mode
+                beaconMode = mode;
+                for (string::size_type i = 0; i < mode.size(); ++i) {
+                    mode[i] = tolower(mode[i]);
+                }
+
+                if(mode == "sos"){
+                    Notify("MOOS_MANUAL_OVERRIDE", "false");
+                    Notify("STATION_KEEP", "true");
+                    Notify("station-keep", "true");
+                    Notify("STATION_KEEP_ALL", "true");
+                    Notify("return", "false");
+                    Notify("RETURN", "false");
+                    Notify("deploy", "false");
+                    Notify("DEPLOY", "false");
+
+                    Notify("status", status);
+                }
+
+                else if(mode == "return"){
+                    Notify("MOOS_MANUAL_OVERRIDE", "false");
+                    Notify("deploy", "true");
+                    Notify("DEPLOY", "true");
+                    Notify("return", "true");
+                    Notify("RETURN", "true");
+                    Notify("STATION_KEEP", "false");
+                    Notify("station-keep", "false");
+                    Notify("STATION_KEEP_ALL", "false");
+
+                    Notify("status", status);
+                }
+
+                else if(mode == "normal"){
+                    // stop vehicle
+                    // idk if work
+
+                    Notify("MOOS_MANUAL_OVERRIDE", "true");
+                    Notify("deploy", "false");
+                    Notify("DEPLOY", "false");
+                    Notify("return", "false");
+                    Notify("RETURN", "false");
+                    Notify("STATION_KEEP", "false");
+                    Notify("station-keep", "false");
+                    Notify("STATION_KEEP_ALL", "false");
+                }
+            }
+
+            else{
+                // No mode specified
+            }
+        }
+        else{
+            // lat and lon wrong format
+            // ignore
+            fakeGpsBeacon();
+        }
+
+    } else {
+        // If the input doesn't have exactly three parts, do nothing
+        fakeGpsBeacon();
+    }
+}
+
+// Function to connect to on board control
+void M300::onBoardConnection(){
+    for(int i = 0; i < portList.size(); i++){
+
+        board_port = open(portList[i].c_str(), O_RDWR | O_NOCTTY | O_NDELAY);
+        setBaudRate(B57600);
+        
+        if(board_port == -1){
+          continue;
+        }
+
+        memset(onBoard_buffer, 0, BUFFER_SIZE);
+        ssize_t num_bytes = read(board_port, onBoard_buffer, BUFFER_SIZE);
+
+        if(num_bytes <= 0)
+          continue;
+
+        string output(onBoard_buffer, num_bytes);
+
+        trim_spaces(output);
+
+        istringstream iss(output);
+
+        string mode = "";
+
+        iss >> mode;
+
+        if(mode == "ON" && m_vname == "floatie"){
+            // on board control
+            onBoard = true;   
+            return;       
+        }
+
+        // No port found
+        close(board_port);
+        // continue until port is found
+      }
+}
+
+
+// read in board input
+void M300::commOnBoard(){
+    memset(onBoard_buffer, 0, BUFFER_SIZE);
+    num_bytes = read(board_port, onBoard_buffer, BUFFER_SIZE);
+
+    if(num_bytes <= 0)
+      return;
+
+    string boardInput(onBoard_buffer, num_bytes);
+    trim_spaces(boardInput);
+    serial_output = onBoard_buffer;
+
+    istringstream iss(boardInput);
+    
+    string mode, thrustL, thrustR = "";
+    float l_thrust, r_thrust = 0;
+
+    iss >> mode >> thrustL >> thrustR;
+
+    // on board with differential
+    if(containsNumber(thrustL) && containsNumber(thrustR)){
+        l_thrust = stod(thrustL);
+        r_thrust = stod(thrustR);
+
+        l_thrust = l_thrust/2 + 1500;
+        r_thrust = r_thrust/2 + 1500;
+
+        o_Thrust_L = l_thrust;
+        o_Thrust_R = r_thrust;
+    }
+}
+
+// void M300::commOnBoard() {
+//   char onBoard_buffer[BUFFER_SIZE];  // Declare buffer
+//   ssize_t num_bytes = read(board_port, onBoard_buffer, BUFFER_SIZE);
+
+//   if (num_bytes <= 0) return;
+
+//   // Convert buffer to string and trim spaces
+//   std::string boardInput(onBoard_buffer, num_bytes);
+//   trim_spaces(boardInput);
+
+//   std::istringstream iss(boardInput);
+//   std::string mode, thrustL, thrustR;
+//   float l_thrust = 0, r_thrust = 0;
+
+//   // Read mode and thrust values
+//   if (!(iss >> mode >> thrustL >> thrustR)) return;
+
+//   // Validate and convert thrust values
+//   if (containsNumber(thrustL) && containsNumber(thrustR)) {
+//       o_Thrust_L = normalizeThrust(thrustL);
+//       o_Thrust_R = normalizeThrust(thrustR);
+//   }
+// }
+
+// // Helper function to normalize thrust values
+// float M300::normalizeThrust(const std::string& thrust) {
+//   try {
+//       return std::stof(thrust) / 2 + 1500;
+//   } catch (...) {
+//       return 1500;  // Default to neutral thrust on error
+//   }
+// }
+
+// Convert 0, 100 to 1000, 1500, 2000
+int MapToMavlink(float pwmValue){
+  int mappedValue = 0;
+  int inputValue = pwmValue;
+
+  if (inputValue >= 0) {
+    // Map the range [0, 100] to [1500, 2000]
+    inputValue = max(0, min(inputValue, 100));
+    float coefficient = static_cast<float>(inputValue) / 100;
+    mappedValue = 1500 + (coefficient * 500);
+} else {
+    // Map the range [-100, 0] to [1000, 1500]
+    inputValue = max(-100, min(inputValue, 0));
+    float coefficient = static_cast<float>(inputValue + 100) / 100;
+    mappedValue = 1000 + (coefficient * 500);
+  }
+
+  return mappedValue;
+}
+
+// Fake gps when beacon is not present
+void M300::fakeGpsBeacon(){
+  double lat = 103;
+  double lon = 2;
+  double hdg = 189;
+  double speed = 0;
+
+  Notify(m_nav_prefix+"_LAT", lat, "GPRMC");
+  Notify(m_nav_prefix+"_LON", lon, "GPRMC");
+  Notify(m_nav_prefix+"_LONG", lon, "GPRMC");
+  Notify(m_gps_prefix+"_LAT", lat, "GPRMC");
+  Notify(m_gps_prefix+"_LON", lon, "GPRMC");
+  Notify(m_gps_prefix+"_LONG", lon, "GPRMC");      
+  Notify(m_nav_prefix+"_X", lat, "GPRMC");
+  Notify(m_nav_prefix+"_Y", lon, "GPRMC");
+  Notify(m_gps_prefix+"_X", lat, "GPRMC");
+  Notify(m_gps_prefix+"_Y", lon, "GPRMC");    
+  Notify(m_nav_prefix+"_SPEED", speed, "GPRMC");      
+  Notify(m_nav_prefix+"_HEADING", hdg, "GPRMC");
+  Notify("GPS_HEADING", hdg, "GPRMC");
+
+  m_nav_hdg = hdg;
+  m_nav_spd = speed;
+  m_nav_x = lat;
+  m_nav_y = lon;
+}
+
+// Fake gps when pikhawk is not present
+void M300::fakeGpsFloatie(){
+  double lat = -45;
+  double lon = -26;
+  double speed = 0;
+  double hdg = 0;
+
+  Notify(m_nav_prefix+"_LAT", lat, "GPRMC");
+  Notify(m_nav_prefix+"_LON", lon, "GPRMC");
+  Notify(m_nav_prefix+"_LONG", lon, "GPRMC");
+  Notify(m_gps_prefix+"_LAT", lat, "GPRMC");
+  Notify(m_gps_prefix+"_LON", lon, "GPRMC");
+  Notify(m_gps_prefix+"_LONG", lon, "GPRMC");      
+  Notify(m_nav_prefix+"_X", lat, "GPRMC");
+  Notify(m_nav_prefix+"_Y", lon, "GPRMC");
+  Notify(m_gps_prefix+"_X", lat, "GPRMC");
+  Notify(m_gps_prefix+"_Y", lon, "GPRMC");    
+  Notify(m_nav_prefix+"_SPEED", speed, "GPRMC");  
+
+  if(!hdg_found){
+    Notify(m_nav_prefix+"_HEADING", hdg, "GPRMC");
+    Notify("GPS_HEADING", hdg, "GPRMC"); 
+    m_nav_hdg = hdg;
+  }
+
+  m_nav_spd = speed;
+  m_nav_x = lat;
+  m_nav_y = lon;
+}
+
+// parse mode depending on intervehicle communication mode
+string parseBeaconMode(string data){
+  // parse beacon mode
+  // NAME=beacon,X=0,Y=0,MODE=PARK
+
+    string modeValue = "";
+
+    string modePrefix = "MODE=";
+    size_t startPos = data.find(modePrefix);
+    if (startPos != string::npos) {
+        startPos += modePrefix.length();
+        size_t endPos = data.find(',', startPos);
+        modeValue = data.substr(startPos, endPos - startPos);
+        cout << "MODE value: " << modeValue << endl;
+    } else {
+        cout << "MODE not found" << endl;
+    }
+
+    return modeValue;
+}
+
+// set floatie mode from inter vehicle connection(beacon)
+void M300::setFloatieMode(){
+  // Deploy 
+  // MODE@ACTIVE:TRAVERSING
+  // Return
+  // MODE@ACTIVE:RETURNING
+  // Beacon call
+  // MODE@INACTIVE
+  // Park
+  // PARK
+
+  if(beaconMode == "MODE@ACTIVE:TRAVERSING"){
+      // traversing
+      // testing
+
+      Notify("MOOS_MANUAL_OVERRIDE", "false");
+      Notify("deploy", "true");
+      Notify("DEPLOY", "true");
+      Notify("return", "false");
+      Notify("RETURN", "false");
+      Notify("STATION_KEEP", "false");
+      Notify("station-keep", "false");
+      Notify("STATION_KEEP_ALL", "false");
+
+      status = "transverse";
+
+      Notify("status", status);
+  }
+
+  else if(beaconMode == "MODE@ACTIVE:RETURNING"){
+      // return
+
+      Notify("MOOS_MANUAL_OVERRIDE", "false");
+      Notify("deploy", "true");
+      Notify("DEPLOY", "true");
+      Notify("return", "true");
+      Notify("RETURN", "true");
+      Notify("STATION_KEEP", "false");
+      Notify("station-keep", "false");
+      Notify("STATION_KEEP_ALL", "false");
+
+      status = "return";
+      Notify("status", status);
+  }
+
+  else if(beaconMode == "MODE@INACTIVE"){
+      // SOS
+
+      Notify("MOOS_MANUAL_OVERRIDE", "false");
+      Notify("STATION_KEEP", "true");
+      Notify("station-keep", "true");
+      Notify("STATION_KEEP_ALL", "true");
+      Notify("return", "false");
+      Notify("RETURN", "false");
+      Notify("deploy", "false");
+      Notify("DEPLOY", "false");
+
+      status = "sos";
+      Notify("status", status);
+  }
+
+  else if (beaconMode == "PARK"){
+      // park
+      // test mode
+
+      Notify("MOOS_MANUAL_OVERRIDE", "true");
+      Notify("deploy", "false");
+      Notify("DEPLOY", "false");
+      Notify("return", "false");
+      Notify("RETURN", "faslse");
+      Notify("STATION_KEEP", "false");
+      Notify("station-keep", "false");
+      Notify("STATION_KEEP_ALL", "false");
+
+      status = "park";
+      Notify("status", status);
+  }
+}
+
+// Send output to servo
+void M300::sendServo(uint8_t servoNumber, float pwmValue){
+    mavlink_message_t msg;
+    
+    mavlink_msg_command_long_pack( 
+        1,
+        0,
+        &msg,
+        0,
+        0,
+        MAV_CMD_DO_SET_SERVO, 
+        0,
+        servoNumber,
+        pwmValue,0,0,0,0,0
+    );
+
+    uint8_t vehicle_buffer[MAVLINK_MAX_PACKET_LEN];
+
+    uint16_t len = mavlink_msg_to_send_buffer(vehicle_buffer, &msg);
+   
+    ssize_t bytesWritten = write(pik_port, vehicle_buffer, len);
+}
+
+// Disabled safety switch
+void M300::thrusterSafety(){
+    mavlink_message_t msg;
+    int8_t base_mode = MAV_MODE_FLAG_DECODE_POSITION_SAFETY;
+    uint32_t custom_mode = 0;  // Custom mode (set as needed)
+    
+    mavlink_msg_set_mode_pack(
+        1,                                // system_id
+        0,                                // component_id
+        &msg,                             // mavlink_message_t pointer
+        0,                                // target_system (replace with actual target system ID)
+        base_mode,                        // Base mode (e.g., MAV_MODE_FLAG_DECODE_POSITION_SAFETY)
+        custom_mode                       // Custom mode (usually 0 if not using a specific custom mode)
+    );
+
+    uint8_t onBoard_buffer[MAVLINK_MAX_PACKET_LEN];
+
+    // Convert the MAVLink message to a byte array
+    uint16_t len = mavlink_msg_to_send_buffer(onBoard_buffer, &msg);
+
+    // Send the byte array over the serial port (or other communication channel)
+    ssize_t bytesWritten = write(pik_port, onBoard_buffer, len);
+}
+
+// checks the global variable of automate, remote, and on board, and overrides depending on priority
+void M300::ThrustOutputPriority(){
+  // Automate
+  a_Thrust_L = MapToMavlink(m_thrust.getThrustLeft());
+  a_Thrust_R = MapToMavlink(m_thrust.getThrustRight());
+
+  // on board control
+  if((o_Thrust_L >= 1525 && o_Thrust_L <= 2000) || (o_Thrust_R >= 1525 && o_Thrust_R <= 2000) || (o_Thrust_L <= 1475 && o_Thrust_L >= 1000) || (o_Thrust_R <= 1475 && o_Thrust_R >= 1000)){
+    sendServo(3, o_Thrust_L);
+    sendServo(1, o_Thrust_R);
+  }
+
+  // Remote 
+  else if((f_Thrust_L >= 1525 && f_Thrust_L <= 2015) || (f_Thrust_R >= 1525 && f_Thrust_R <= 2015) || (f_Thrust_L <= 1475 && f_Thrust_L >= 1000) || (f_Thrust_R <= 1475 && f_Thrust_R >= 1000)){
+    sendServo(3, f_Thrust_L);
+    sendServo(1, f_Thrust_R);
+  }
+
+  // Automation
+  else if((a_Thrust_L >= 1525 && a_Thrust_L <= 2000) || (a_Thrust_R >= 1525 && a_Thrust_R <= 2000) || (a_Thrust_L <= 1475 && a_Thrust_L >= 1000) || (a_Thrust_R <= 1475 && a_Thrust_R >= 1000)){
+    sendServo(3, a_Thrust_L);
+    sendServo(1, a_Thrust_R);
+  }
+
+  // if no input, stop
+  else{
+    sendServo(3, 1500);
+    sendServo(1, 1500);
+  }
+}
+
+// Set baud rate depending on device
+void M300::setBaudRate(int baud){
+    struct termios tty;
+    memset(&tty, 0, sizeof(tty));
+
+    cfsetospeed(&tty, baud);  // Set baud rate (57600 in this example)
+    cfsetispeed(&tty, baud);
+    tty.c_cflag |= (CLOCAL | CREAD);  // Enable receiver and set local mode
+    tty.c_cflag &= ~CSIZE;            // Mask the character size bits
+    tty.c_cflag |= CS8;               // 8-bit data
+    tty.c_cflag &= ~PARENB;           // No parity
+    tty.c_cflag &= ~CSTOPB;           // 1 stop bit
+
+    if (tcsetattr(pik_port, TCSANOW, &tty) != 0) {
+      close(pik_port);
+    }
+}
+
+
 //---------------------------------------------------------
 // Constructor()
-
+//
 M300::M300()
 {
+  fstream serial;
   // Configuration variables  (overwritten by .moos params)
   m_max_rudder   = 30.0;        // default MAX_RUDDER (+/-)
   m_max_thrust   = 100.0;       // default MAX_THRUST (+/-)
@@ -27,7 +821,6 @@ M300::M300()
 
   m_ivp_allstop      = true;
   m_moos_manual_override = true;
-  m_ignore_ivphelm_allstop = false;
 
   // Stale Message Detection
   m_stale_check_enabled = false;
@@ -37,7 +830,6 @@ M300::M300()
   m_tstamp_des_rudder   = 0;
   m_tstamp_des_thrust   = 0;
   m_tstamp_compass_msg  = 0;
-  m_compass_speed_thresh = 0.4;
 
   m_num_satellites      = 0;
   m_batt_voltage        = 0;
@@ -47,7 +839,6 @@ M300::M300()
   m_nav_y   = -1;
   m_nav_hdg = -1;
   m_nav_spd = -1;
-  m_compass_hdg = -1;
 
   m_heading_source        = "auto";
   m_stale_gps_msg_thresh  = 1.5;
@@ -57,9 +848,6 @@ M300::M300()
   m_gps_prefix      = "GPS";
   m_compass_prefix  = "COMPASS";
   m_gps_blocked     = false;
-
-  m_ninja.disableWarningBadNMEALen();
-  m_ninja.disableWarningBadNMEAForm();
 
   m_publish_body_vel = false;
   m_use_nvg_msg_for_nav_x_nav_y = false; 
@@ -72,9 +860,7 @@ M300::M300()
   m_fault_factor_rudder = 1.0;
   m_add_thruster_fault = false;
   m_rudder_bias_L = 0.0;
-  m_rudder_bias_R = 0.0; 
-  
-
+  m_rudder_bias_R = 0.0;  
   
 }
 
@@ -83,7 +869,8 @@ M300::M300()
 
 M300::~M300()
 {
-  m_ninja.closeSockFDs();
+  close(pik_port);
+  close(board_port);
 }
 
 //---------------------------------------------------------
@@ -91,8 +878,8 @@ M300::~M300()
 
 bool M300::OnStartUp()
 {
-  AppCastingMOOSApp::OnStartUp();
 
+  AppCastingMOOSApp::OnStartUp();
   //------------------------------------------------------
   // HANDLE PARAMETERS IN .MOOS FILE ---------------------
   //------------------------------------------------------
@@ -100,6 +887,7 @@ bool M300::OnStartUp()
   m_MissionReader.EnableVerbatimQuoting(false);
   if(!m_MissionReader.GetConfiguration(GetAppName(), sParams))
     reportConfigWarning("No config block found for " + GetAppName());
+
 
   STRING_LIST::iterator p;
   for (p = sParams.begin(); p != sParams.end(); p++) {
@@ -109,18 +897,21 @@ bool M300::OnStartUp()
     string value = line;
 
     bool handled = false;
-    if((param == "port") && isNumber(value)) {
+
+   if((param == "port") && isNumber(value)) {
       int port = atoi(value.c_str());
       handled = m_ninja.setPortNumber(port);
     }
-    else if(param == "ip_addr")
-      handled = m_ninja.setIPAddr(value);
+    else if(param == "ip_addr"){
+      //handled = m_ninja.setIPAddr(value);
+      handled = true;
+      mode = value;
+    }
+
     else if(param == "ivp_allstop")
       handled = setBooleanOnString(m_ivp_allstop, value);
     else if(param == "stale_check_enabled")
       handled = setBooleanOnString(m_stale_check_enabled, value);
-    else if(param == "comms_type")
-      handled = m_ninja.setCommsType(value);
     else if(param == "stale_thresh")
       handled = setPosDoubleOnString(m_stale_threshold, value);
     else if(param == "max_rudder")
@@ -131,34 +922,22 @@ bool M300::OnStartUp()
       handled = m_thrust.setDriveMode(value);
       m_drive_mode = value;
     }
-    else if(param == "rev_factor") {
-      handled = m_thrust.setRevFactor(value);
-    }	
     else if(param == "ignore_msg") 
       handled = handleConfigIgnoreMsg(value);
     else if(param == "heading_source"){
       if (value == "gps") {
-	m_heading_source = "gps";
-	handled = true;
+  m_heading_source = "gps";
+  handled = true;
       } else if (value == "imu") {
-	m_heading_source = "imu";
-	handled = true;
+  m_heading_source = "imu";
+  handled = true;
       } else if (value == "auto") {
-	m_heading_source = "auto";
-	handled = true;
-      } else if (value == "auto_speed") {
-	m_heading_source = "auto_speed";
-	handled = true;
+  m_heading_source = "auto";
+  handled = true;
       }
     }
     else if(param == "stale_gps_msg_thresh")
       handled = setPosDoubleOnString(m_stale_gps_msg_thresh, value);
-    else if(param == "ignore_checksum_errors") {
-      bool bool_val;
-      bool ok1 = setBooleanOnString(bool_val, value);
-      bool ok2 = m_ninja.setIgnoreCheckSum(bool_val);
-      handled = ok1 && ok2;
-    }
     else if(param == "nav_prefix") { 
       if(!strContainsWhite(value)) {m_nav_prefix=value; handled=true;}
     }
@@ -168,35 +947,8 @@ bool M300::OnStartUp()
     else if(param == "compass_prefix") { 
       if(!strContainsWhite(value)){m_compass_prefix=value; handled=true;}
     }
-    else if((param == "warn_bad_nmea_len") && (tolower(value) == "false")) {
-      m_ninja.disableWarningBadNMEALen();
-      handled = true;
-    }
-    else if((param == "warn_bad_nmea_nend") && (tolower(value) == "false")) {
-      m_ninja.disableWarningBadNMEANend();
-      handled = true;
-    }      
-    else if((param == "warn_bad_nmea_rend") && (tolower(value) == "false")) {
-      m_ninja.disableWarningBadNMEARend();
-      handled = true;
-    }
-    else if((param == "warn_bad_nmea_form") && (tolower(value) == "false")) {
-      m_ninja.disableWarningBadNMEAForm();
-      handled = true;
-    }
-    else if((param == "warn_bad_nmea_chks") && (tolower(value) == "false")) {
-      m_ninja.disableWarningBadNMEAChks();
-      handled = true;
-    }
-    else if((param == "warn_bad_nmea_key") && (tolower(value) == "false")) {
-      m_ninja.disableWarningBadNMEAKey();
-      handled = true;
-    }
     else if (param == "publish_body_vel")  {
       handled = setBooleanOnString(m_publish_body_vel, value);
-    }
-    else if (param == "ignore_ivphelm_allstop")  {
-      handled = setBooleanOnString(m_ignore_ivphelm_allstop, value);
     }
     else if (param == "use_nvg_msg_for_nav_x_nav_y")  {
       handled = setBooleanOnString(m_use_nvg_msg_for_nav_x_nav_y, value);
@@ -221,9 +973,6 @@ bool M300::OnStartUp()
     }
     else if (param == "mag_declination_deg"){
       handled = setDoubleOnString(m_declination, value);
-    }
-    else if (param == "compass_speed_thresh"){
-      handled = setDoubleOnString(m_compass_speed_thresh, value);
     }
     if(!handled){
       reportUnhandledConfigWarning(orig);
@@ -280,8 +1029,21 @@ void M300::registerVariables()
   Register("SIM_THR_L_BIAS",0);
   Register("SIM_THR_R_BIAS",0);
   Register("SIM_RUDDER_FAULT", 0);
-  Register("CHANGE_DRIVE_MODE", 0);
+
+  Register("DEPLOY", 0);
+  Register("STATION_KEEP", 0);
+  Register("station-keep", 0);
+
+  Register("STATION_KEEP_ALL", 0);
+  Register("DEPLOY_ALL", 0);
+  Register("deploy", 0);
+  Register("status", 0);
+
+
+  Register("NODE_REPORT_FLOATIE", 0);
+  Register("NODE_REPORT_BEACON", 0);
 }
+
 
 //---------------------------------------------------------
 // Procedure: OnNewMail
@@ -291,6 +1053,7 @@ bool M300::OnNewMail(MOOSMSG_LIST &NewMail)
   AppCastingMOOSApp::OnNewMail(NewMail);
   
   MOOSMSG_LIST::iterator p;
+  STRING_LIST::iterator s;
   for(p=NewMail.begin(); p!=NewMail.end(); p++) {
     CMOOSMsg &msg = *p;
     double mtime  = msg.GetTime();
@@ -302,21 +1065,29 @@ bool M300::OnNewMail(MOOSMSG_LIST &NewMail)
     string comm  = msg.GetCommunity(); 
     string msrc  = msg.GetSource();  
 #endif
-
    
     if(key == "IVPHELM_ALLSTOP")
       m_ivp_allstop = (toupper(sval) != "CLEAR");
+
+    else if(key == "NODE_REPORT_FLOATIE"){
+      beaconMode = parseBeaconMode(sval);
+    }
+
+    else if(key == "status"){
+      status = sval;
+    }
+
     else if (key == "DESIRED_RUDDER" ){
       if ( m_thrust.getDriveMode() != "direct" ) {
-	m_tstamp_des_rudder = mtime;
-	m_thrust.setRudder(dval);
+  m_tstamp_des_rudder = mtime;
+  m_thrust.setRudder(dval);
       }
     }
     else if (key == "DESIRED_THRUST") {
       if ( m_thrust.getDriveMode() != "direct" ) {
-	m_tstamp_des_thrust = mtime;
-	m_thrust.setThrust(dval);
-	Notify("M3_DEBUG", m_thrust.getThrust());
+  m_tstamp_des_thrust = mtime;
+  m_thrust.setThrust(dval);
+  Notify("M3_DEBUG", m_thrust.getThrust());
       }
     }
 
@@ -331,41 +1102,40 @@ bool M300::OnNewMail(MOOSMSG_LIST &NewMail)
     }
     else if(key == "SIM_THR_FAULT_L") {
       if(m_add_thruster_fault){
-	m_fault_factor_thr_L = dval;
-	sendPulse();
+  m_fault_factor_thr_L = dval;
+  sendPulse();
       }
     }
     else if(key == "SIM_THR_FAULT_R") {
       if(m_add_thruster_fault){
-	m_fault_factor_thr_R = dval;
-	sendPulse();
+  m_fault_factor_thr_R = dval;
+  sendPulse();
       }
     }
     else if(key == "SIM_THR_SYM_BIAS") {
       if(m_add_thruster_fault){
-	m_fault_bias_thr_L = dval;
-	m_fault_bias_thr_R = dval;
-	sendPulse();
+  m_fault_bias_thr_L = dval;
+  m_fault_bias_thr_R = dval;
+  sendPulse();
       }
     }
     else if(key == "SIM_THR_ROT_BIAS") {
       if(m_add_thruster_fault){
-	m_fault_bias_thr_L = dval;
-	m_fault_bias_thr_R = -dval;
-	sendPulse();
+  m_fault_bias_thr_L = dval;
+  m_fault_bias_thr_R = -dval;
+  sendPulse();
       }
     }
 
     else if(key == "SIM_THR_L_BIAS") {
       if(m_add_thruster_fault){
-	m_fault_bias_thr_L = dval;
-	//sendPulse();
+  m_fault_bias_thr_L = dval;
+  //sendPulse();
       }
     }
     else if(key == "SIM_THR_R_BIAS") {
       if(m_add_thruster_fault){
-	m_fault_bias_thr_R = dval;
-	//sendPulse();
+  m_fault_bias_thr_R = dval;
       }
     }
 
@@ -384,10 +1154,10 @@ bool M300::OnNewMail(MOOSMSG_LIST &NewMail)
       m_rot_ctrl.setRotateInPlace(bval);
       
       if (ok1 && bval ) {
-	// Record the time and location
-	m_rot_ctrl.setCmdTimeStamp(mtime);
-	m_rot_ctrl.setStartRotX(m_nav_x);
-	m_rot_ctrl.setStartRotY(m_nav_y);
+  // Record the time and location
+  m_rot_ctrl.setCmdTimeStamp(mtime);
+  m_rot_ctrl.setStartRotX(m_nav_x);
+  m_rot_ctrl.setStartRotY(m_nav_y);
       }
     }
     else if(key == "ROTATE_HDG_TARGET") {
@@ -400,18 +1170,12 @@ bool M300::OnNewMail(MOOSMSG_LIST &NewMail)
       
       bool ok2 = m_rot_ctrl.handlePoint(sval);
       if (ok2)
-	Notify("ROTATE_HDG_TARGET", m_rot_ctrl.getHeadingTarget() );  // for debugging. 
+  Notify("ROTATE_HDG_TARGET", m_rot_ctrl.getHeadingTarget() );  // for debugging. 
       
     }
     else if(key == "MOOS_MANUAL_OVERRIDE") {
       setBooleanOnString(m_moos_manual_override, sval);
 
-    }
-    else if (key == "CHANGE_DRIVE_MODE"){
-      bool ok = m_thrust.setDriveMode(sval);
-      if (ok){
-        m_drive_mode = sval;
-      }
     }
     
     else if(key != "APPCAST_REQ") // handled by AppCastingMOOSApp
@@ -425,7 +1189,6 @@ bool M300::OnNewMail(MOOSMSG_LIST &NewMail)
 
 //---------------------------------------------------------
 // Procedure: Iterate()
-
 bool M300::Iterate()
 {
   AppCastingMOOSApp::Iterate();
@@ -434,20 +1197,49 @@ bool M300::Iterate()
   checkForStalenessOrAllStop();
     
   // Part 2: Connect if needed, and write/read from socket
-  if(m_ninja.getState() != "connected")
-    m_ninja.setupConnection();
+  m_ninja.setCommsType("client");
 
-  if(m_ninja.getState() == "connected") {
-    sendMessagesToSocket();
-    readMessagesFromSocket();
+  // gps initialisation
+  if(m_vname == "floatie" && checkVehicle == false)
+  fakeGpsFloatie();
+  else if(m_vname == "beacon" && checkVehicle == false)
+  fakeGpsBeacon();
+
+  // serial connection automation
+  if(checkVehicle == false || pik_port == -1){
+      checkVehicle = false;
+      vehicleConnection();
+  }
+
+  // Check for on board control even if no pikhawk
+  if(onBoard == false || board_port == -1){
+    onBoard = false;
+    onBoardConnection();
+  }
+  else if(onBoard == true)
+  commOnBoard();
+
+  // if vehicle is floatie and vehicle is connected
+  if(checkVehicle == true && m_vname == "floatie") {
+      sendMessagesToSocket();
+      ThrustOutputPriority();
+      commFloatie();
+      setFloatieMode();
+  }
+
+  // if vehicle is beacon and beacon is connected
+  else if(checkVehicle == true && m_vname == "beacon"){
+      commBeacon();
+  }
+
+  else{
+    // vehicle not detected
   }
 
   // Part 3: Get Appcast events from ninja and report them
-  reportWarningsEvents();
   AppCastingMOOSApp::PostReport();
   return(true);
 }
-
 
 //---------------------------------------------------------
 // Procedure: GeodesySetup()
@@ -554,7 +1346,7 @@ void M300::sendMessagesToSocket()
 
   msg = "$" + msg + "*" + checksumHexStr(msg) + "\r\n";
 
-  m_ninja.sendSockMessage(msg);
+  // m_ninja.sendSockMessage(msg);
 
   // Publish command to MOOSDB for logging/debugging
   if (m_add_thruster_fault)
@@ -575,11 +1367,13 @@ void M300::sendMessagesToSocket()
 
 void M300::readMessagesFromSocket()
 {
-  list<string> incoming_msgs = m_ninja.getSockMessages();
-  list<string>::iterator p;
-  for(p=incoming_msgs.begin(); p!=incoming_msgs.end(); p++) {
-    string msg = *p;
-    msg = biteString(msg, '\r'); // Remove CRLF
+
+  string line = "";
+  getline(serial, line);
+
+    //cout << line << endl;
+
+    string msg = line;
     Notify("IM300_RAW_NMEA", msg);
 
     bool handled = false;
@@ -599,33 +1393,33 @@ void M300::readMessagesFromSocket()
       bool cond2 = m_heading_source == "auto";
       // check if using gps or ekf position from the front seat
       if (m_use_nvg_msg_for_nav_x_nav_y)
-	handled = handleMsgCPNVG(msg); 
+  handled = handleMsgCPNVG(msg); 
       else if (cond1 or cond2)
-	handled = handleMsgCPNVG_heading(msg);  // Only using NVG for low speed heading!
+  handled = handleMsgCPNVG_heading(msg);  // Only using NVG for low speed heading!
       else   // ignore it
-	handled = true;
+  handled = true;
     }
     else if(strBegins(msg, "$CPRBS"))
       handled = handleMsgCPRBS(msg);
     
     else if(strBegins(msg, "$CPRCM")){
       if (m_publish_body_vel)
-	handled = handleMsgCPRCM(msg);
+  handled = handleMsgCPRCM(msg);
       else
-	handled = true;
+  handled = true;
     }
     else if(strBegins(msg, "$CPNVR")){
       if (m_publish_body_vel)
-	handled = handleMsgCPNVR(msg);
+  handled = handleMsgCPNVR(msg);
       else
-	handled = true;
+  handled = true;
     }
     else
       reportBadMessage(msg, "Unknown NMEA Key");
             
     if(!handled)
       m_bad_nmea_semantic++;
-  }
+  
 }
 
 //---------------------------------------------------------
@@ -659,7 +1453,7 @@ bool M300::handleConfigIgnoreMsg(string str)
 
 void M300::checkForStalenessOrAllStop()
 {
-  if ( m_ivp_allstop && !m_ignore_ivphelm_allstop ) {
+  if(m_ivp_allstop) {
     m_thrust.setRudder(0);
     m_thrust.setThrust(0);
     if ( m_thrust.getDriveMode() == "direct" ) {
@@ -734,8 +1528,7 @@ bool M300::handleMsgGPRMC(string msg)
 
   vector<string> flds = parseString(msg, ',');
   if(flds.size() != 13) {
-    if(!m_ninja.getIgnoreCheckSum())
-      return(reportBadMessage(msg, "Wrong field count"));
+    return(reportBadMessage(msg, "Wrong field count"));
   } 
   
   if((flds[4] != "N") && (flds[4] != "S"))
@@ -780,8 +1573,8 @@ bool M300::handleMsgGPRMC(string msg)
       Notify(m_nav_prefix+"_X", x, "GPRMC");
       Notify(m_nav_prefix+"_Y", y, "GPRMC");
       if (!m_gps_blocked){
-	Notify(m_gps_prefix+"_X", x, "GPRMC");
-	Notify(m_gps_prefix+"_Y", y, "GPRMC");
+  Notify(m_gps_prefix+"_X", x, "GPRMC");
+  Notify(m_gps_prefix+"_Y", y, "GPRMC");
       }
     }
   }
@@ -800,6 +1593,7 @@ bool M300::handleMsgGPRMC(string msg)
       m_nav_hdg = dbl_hdg;
       Notify(m_nav_prefix+"_HEADING", dbl_hdg, "GPRMC");
     } else{
+      Notify("GPS_HEADING", dbl_hdg, "GPRMC");
       Notify("GPS_HEADING", dbl_hdg, "GPRMC");
     }
     m_last_gps_msg_time = MOOSTime();
@@ -820,8 +1614,7 @@ bool M300::handleMsgGNRMC(string msg)
 
   vector<string> flds = parseString(msg, ',');
   if(flds.size() != 13){
-    if (!m_ninja.getIgnoreCheckSum() )
-      return(reportBadMessage(msg, "Wrong field count"));
+    return(reportBadMessage(msg, "Wrong field count"));
   } 
   
   if((flds[4] != "N") && (flds[4] != "S"))
@@ -863,8 +1656,8 @@ bool M300::handleMsgGNRMC(string msg)
       Notify(m_nav_prefix+"_X", x, "GNRMC");
       Notify(m_nav_prefix+"_Y", y, "GNRMC");
       if (!m_gps_blocked){
-	Notify(m_gps_prefix+"_X", x, "GNRMC");
-	Notify(m_gps_prefix+"_Y", y, "GNRMC");
+  Notify(m_gps_prefix+"_X", x, "GNRMC");
+  Notify(m_gps_prefix+"_Y", y, "GNRMC");
       }
     }
   }
@@ -883,17 +1676,9 @@ bool M300::handleMsgGNRMC(string msg)
     double dbl_hdg = atof(str_hdg.c_str());
     if (( m_heading_source == "gps" ) or ( m_heading_source == "auto")) {
       m_nav_hdg = dbl_hdg;
-      Notify(m_nav_prefix+"_HEADING", dbl_hdg, "GNRMC");
-    } else if (m_heading_source == "auto_speed") { // Added on 09-17-2024 by Filip for demustering
-      m_nav_hdg = dbl_hdg;
-
-      if (m_nav_spd > m_compass_speed_thresh) {
-        Notify(m_nav_prefix+"_HEADING", dbl_hdg, "GNRMC");
-      } else {
-        Notify(m_nav_prefix+"_HEADING", m_compass_hdg, "GNRMC"); // Declination and wrapping already applied
-      }
+      Notify(m_nav_prefix+"_HEADING", dbl_hdg, "GPRMC");
     } else{
-      Notify("GPS_HEADING", dbl_hdg, "GNRMC");
+      Notify("GPS_HEADING", dbl_hdg, "GPRMC");
     }
     m_last_gps_msg_time = MOOSTime();
   } 
@@ -937,8 +1722,7 @@ bool M300::handleMsgGPGGA(string msg)
 
   vector<string> flds = parseString(msg, ',');
   if(flds.size() != 14) {
-    if(!m_ninja.getIgnoreCheckSum())
-      return(reportBadMessage(msg, "Wrong field count"));
+    return(reportBadMessage(msg, "Wrong field count"));
   }
   
   string str_sats = flds[7];
@@ -968,8 +1752,7 @@ bool M300::handleMsgGNGGA(string msg)
 
   vector<string> flds = parseString(msg, ',');
   if(flds.size() != 14){
-    if (!m_ninja.getIgnoreCheckSum() )
-      return(reportBadMessage(msg, "Wrong field count"));
+    return(reportBadMessage(msg, "Wrong field count"));
   }
   
   string str_sats = flds[7];
@@ -1017,8 +1800,7 @@ bool M300::handleMsgCPNVG(string msg)
   rbiteString(msg, '*');
   vector<string> flds = parseString(msg, ',');
   if(flds.size() != 13) {
-    if(!m_ninja.getIgnoreCheckSum())
-      return(reportBadMessage(msg, "Wrong field count"));
+    return(reportBadMessage(msg, "Wrong field count"));
   }
   
   if((flds[3] != "N") && (flds[3] != "S"))
@@ -1106,10 +1888,9 @@ bool M300::handleMsgCPNVG_heading(string msg)
   rbiteString(msg, '*');
   vector<string> flds = parseString(msg, ',');
   if(flds.size() != 13) {
-    if(!m_ninja.getIgnoreCheckSum()) {
-      string warning = "Wrong field count:" + uintToString(flds.size());      
-      return(reportBadMessage(msg, warning));
-    }
+    string warning = "Wrong field count:" + uintToString(flds.size());      
+    return(reportBadMessage(msg, warning));
+    
   }
   
   string str_hdg = flds[9];
@@ -1152,10 +1933,8 @@ bool M300::handleMsgCPRBS(string msg)
   rbiteString(msg, '*');
   vector<string> flds = parseString(msg, ',');
   if(flds.size() != 7) {
-    if(!m_ninja.getIgnoreCheckSum()) {
-      string warning = "Wrong field count:" + uintToString(flds.size());
-      return(reportBadMessage(msg, warning));
-    }
+    string warning = "Wrong field count:" + uintToString(flds.size());
+    return(reportBadMessage(msg, warning));
   }
   
   string str_voltage = flds[3];
@@ -1191,10 +1970,8 @@ bool M300::handleMsgCPRCM(string msg)
   rbiteString(msg, '*');
   vector<string> flds = parseString(msg, ',');
   if(flds.size() != 7) {
-    if(!m_ninja.getIgnoreCheckSum()) {
-      string warning = "Wrong field count:" + uintToString(flds.size());
-      return(reportBadMessage(msg, warning));
-    }
+    string warning = "Wrong field count:" + uintToString(flds.size());
+    return(reportBadMessage(msg, warning));
   }
 
   string str_compass_hdg = flds[3];
@@ -1244,10 +2021,8 @@ bool M300::handleMsgCPNVR(string msg)
   rbiteString(msg, '*');
   vector<string> flds = parseString(msg, ',');
   if(flds.size() != 7) {
-    if(!m_ninja.getIgnoreCheckSum()) {
-      string warning = "Wrong field count:" + uintToString(flds.size());
-      return(reportBadMessage(msg, warning));
-    }
+    string warning = "Wrong field count:" + uintToString(flds.size());
+    return(reportBadMessage(msg, warning));
   }
   
   //  Check that compass msg is good
@@ -1323,14 +2098,14 @@ bool M300::handleMsgCPNVR(string msg)
   Notify("NAV_VEL_TWIST_LINEAR_Y", vel_sway);
   Notify("NAV_VEL_TWIST_ANGULAR_Z",dbl_rate_yaw_rad);
 
-  std::string unav_string = std::to_string(vel_surge);
-  std::string unav_header = "u(";
-  std::string vnav_string = std::to_string(vel_sway);
-  std::string vnav_header = ")v(";
-  std::string rnav_string = std::to_string(dbl_rate_yaw_rad);
-  std::string rnav_header = ")r(";
-  std::string end_char = ")";
-  std::string nav_full_state = unav_header + unav_string + vnav_header + vnav_string + rnav_header + rnav_string + end_char;
+  string unav_string = to_string(vel_surge);
+  string unav_header = "u(";
+  string vnav_string = to_string(vel_sway);
+  string vnav_header = ")v(";
+  string rnav_string = to_string(dbl_rate_yaw_rad);
+  string rnav_header = ")r(";
+  string end_char = ")";
+  string nav_full_state = unav_header + unav_string + vnav_header + vnav_string + rnav_header + rnav_string + end_char;
 
   Notify("NAV_FULL_STATE", nav_full_state);
   
@@ -1344,37 +2119,7 @@ bool M300::handleMsgCPNVR(string msg)
   node_message.setColor("invisible");
   string n_msg = node_message.getSpec();
   
-  Notify("NODE_MESSAGE_LOCAL", n_msg);
-
-   // send surge
- NodeMessage node_message_surge;
- node_message_surge.setSourceNode(m_vname);
- node_message_surge.setDestNode("all");
- node_message_surge.setVarName("NAV_VEL_TWIST_LINEAR_X_" + m_vname);
- node_message_surge.setDoubleVal(vel_surge);
- node_message_surge.setColor("invisible");
- n_msg = node_message_surge.getSpec();
- Notify("NODE_MESSAGE_LOCAL", n_msg);
-
- // send sway
- NodeMessage node_message_sway;
- node_message_sway.setSourceNode(m_vname);
- node_message_sway.setDestNode("all");
- node_message_sway.setVarName("NAV_VEL_TWIST_LINEAR_Y_" + m_vname);
- node_message_sway.setDoubleVal(vel_sway);
- node_message_sway.setColor("invisible");
- n_msg = node_message_sway.getSpec();
- Notify("NODE_MESSAGE_LOCAL", n_msg);
-
- // send yaw rate
- NodeMessage node_message_yaw_rate;
- node_message_yaw_rate.setSourceNode(m_vname);
- node_message_yaw_rate.setDestNode("all");
- node_message_yaw_rate.setVarName("NAV_VEL_TWIST_ANGULAR_Z_" + m_vname);
- node_message_yaw_rate.setDoubleVal(dbl_rate_yaw);
- node_message_yaw_rate.setColor("invisible");
- n_msg = node_message_yaw_rate.getSpec();
- Notify("NODE_MESSAGE_LOCAL", n_msg);
+  Notify("NODE_MESSAGE_LOCAL", n_msg); 
 
   return(true);
 }
@@ -1534,6 +2279,19 @@ bool M300::buildReport()
   m_msgs << "------------------------------------------------------" << endl;
   m_msgs << "System:    voltage: " << pd_volt << "   satellites: " << str_sats << endl;
   m_msgs << "------------------------------------------------------" << endl;
+  m_msgs << "status: " << status << endl;
+  m_msgs << "------------------------------------------------------" << endl;
+  // m_msgs << "serial output: " << serial_output << endl;
+
+  if(m_vname == "floatie"){
+    m_msgs << "On Board: " << "thrust " << o_Thrust_L<< " " << o_Thrust_R << " available: " << onBoard << endl;
+    m_msgs << "Remote: " << "thrust: " << f_Thrust_L << " " << f_Thrust_R << endl;
+    m_msgs << "Automation: " << a_Thrust_L << " " << a_Thrust_R << endl;
+    m_msgs << "gps found: " << gpsFound << " heading found: " << hdg_found << endl;
+  }
+
+  m_msgs << "beaconMode: " << beaconMode << endl;
+  m_msgs << "vehicle name: " << m_vname << " Vehicle port: " << checkVehicle << endl;
   
   if ( m_rot_ctrl.getRotateInPlace() ) {
     m_msgs << "Rotation target heading: " << str_rot_hdg_tgt << endl;
@@ -1541,6 +2299,7 @@ bool M300::buildReport()
       m_msgs << "All clear to rotate.                                " << endl;
     m_msgs << "------------------------------------------------------" << endl;
   }
+
 
   if (m_add_thruster_fault){
     m_msgs << "Simulated Thruster Fault: ON                         " << endl;
@@ -1559,7 +2318,6 @@ bool M300::buildReport()
     string pd_fault_factor_rudder   = padString(str_fault_factor_rudder, 10, false);
     string pd_total_bias_thr_L      = padString(str_total_bias_thr_L, 10, false);
     string pd_total_bias_thr_R      = padString(str_total_bias_thr_R, 10, false);
-    
  
     m_msgs << "Fault factors: L = " << pd_fault_factor_thr_L << "   R = " << pd_fault_factor_thr_R << endl;
     m_msgs << "Fault biases : L = " << pd_fault_bias_thr_L << "   R = " << pd_fault_bias_thr_R << endl;
@@ -1569,6 +2327,8 @@ bool M300::buildReport()
     
     
     m_msgs << "------------------------------------------------------" << endl;
+    m_msgs << "status: " << status << endl;
+
   }
   list<string> summary_lines = m_ninja.getSummary();
   list<string>::iterator p;
@@ -1579,6 +2339,3 @@ bool M300::buildReport()
 
   return(true);
 }
-
-
-

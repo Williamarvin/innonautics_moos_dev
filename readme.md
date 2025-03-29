@@ -20,8 +20,13 @@ cd moos-ivp-pavlab
 ```
 
 # Edit ~/.bashrc file for permanent addition to path in linux, check for mac
+linux
 ```
 nano ~/.bashrc
+```
+mac
+```
+nano ~/.zshrc
 ```
 
 ## Create an alias to navigate easily
@@ -44,6 +49,8 @@ export PATH="/home/e/Marine_automate/moos-ivp/ivp/bin:/home/e/Marine_automate/mo
 ## Update path
 ```
 source ~/.bashrc
+OR
+source ~/.zshrc
 ```
 
 # How to run mission file
@@ -55,6 +62,15 @@ cd moos-ivp-pavlab-aro/missions/alpha_heron/
 
 To Clean all log messages
 ./clean.sh
+```
+
+# Run file on startup
+Add startup.service to the service to start
+```
+# sudo systemctl daemon-reload
+# sudo systemctl enable startup.service
+# sudo systemctl start startup.service
+# sudo systemctl daemon-reload
 ```
 
 # If all else fails

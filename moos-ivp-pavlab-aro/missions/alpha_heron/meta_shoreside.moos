@@ -1,4 +1,4 @@
-//*******************************************************
+//*******************
 // ShoreSide Configuration File
 
 ServerHost = localhost
@@ -92,13 +92,17 @@ ProcessConfig = pMarineViewer
   AppTick    = 4
   CommsTick  = 4
 
-  //tiff_file            = forrest19.tif
-  tiff_file            = MIT_SP.tif
-  tiff_file            = mit_sp_osm18.tif
-  set_pan_x            = 129
-  set_pan_y            = -364
-  zoom                 = 2.5
-  vehicles_shape_scale = 1.5
+  //tiff_file          = forrest19.tif
+  tiff_file            = hkust_square.tif
+  //tiff_file            = map.tif
+  //tiff_file = 36.898021, 126.904492
+
+}
+
+  set_pan_x            = 0
+  set_pan_y            = 0
+  zoom                 = 1.0
+  vehicles_shape_scale = 4
   vehicles_name_mode   = names
 
   circle_viewable_all = true
@@ -122,10 +126,24 @@ ProcessConfig = pMarineViewer
 
   button_two   = RETURN  # RETURN_ALL=true
   button_two   = RETURN  # STATION_KEEP_ALL=false
+  button_two   = RETURN  # DEPLOY_ALL = true
+  button_two   = MOOS_MANUAL_OVERRIDE_ALL=false
 
-	button_three = ALLSTOP # DEPLOY_ALL=false
+	button_three   = BEACON_CALL
+  button_three   = MOOS_MANUAL_OVERRIDE_ALL=false
+  button_three   = DEPLOY_ALL = false
+  button_three   = STATION_KEEP_ALL = true
 
-	button_four  = STATION # STATION_KEEP_ALL=true	
+  //button_four   = DEPLOY  # DEPLOY_ALL=false
+  //button_four   = ManualOverride = true
+  //button_four = REMOTE # DEPLOY_ALL = true
+
+  button_four = ALL_STOP
+  button_four = MOOS_MANUAL_OVERRIDE_ALL=true
+  button_four = STATION_KEEP_ALL = false
+
+
+  left_context[view_point]  = VIEW_POINT = x=$(XPOS),y=$(YPOS),label=$(LAT)-------$(LON)
 }
 
 //--------------------------------------------------------

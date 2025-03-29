@@ -15,6 +15,7 @@ using namespace std;
 VoteRecord::VoteRecord()
 {
   m_hash = "not_set";
+  m_type_name = "";
   m_pop_size = 1;
   m_vote_start_time = 0.0; 
 }
@@ -36,7 +37,8 @@ bool VoteRecord::handleIncomingMsg(std::vector<std::string> spec, double time)
 
   bool got_name = false;
   std::map<std::string, double> new_varval_map;
-  std::string new_name = ""; 
+  std::string new_name = "";
+  std::string new_type = ""; 
   
   for (unsigned int i=0; i<spec.size(); i++) {
     string param = tolower(biteStringX(spec[i], '='));
@@ -44,12 +46,17 @@ bool VoteRecord::handleIncomingMsg(std::vector<std::string> spec, double time)
 
     // first check that the hash matches, just to be safe
     if (param == "hash"){
-      if (m_hash != m_hash)
+      if (m_hash != value)
 	  return(false);
 	  
     } else if (param == "vname"){
       new_name = value;
-      got_name = true; 
+      got_name = true;
+      
+    } else if (param == "type"){
+      if (value == "")
+	return(false);
+      new_type = value;
       
     } else if (param == "varval"){
       // varval=VAR_NAME:10.00
@@ -66,6 +73,7 @@ bool VoteRecord::handleIncomingMsg(std::vector<std::string> spec, double time)
   }
   
   if (got_name){
+    m_type_name = new_type; 
     m_vote_val[new_name] = new_varval_map;
     return(true);
   } 
@@ -149,7 +157,8 @@ std::string VoteRecord::getSpec(std::string vname)
     return(spec); 
 
   spec += "vname=" + vname + ",";
-  spec += "m_hash=" + m_hash + ",";
+  spec += "hash=" + m_hash + ",";
+  spec += "type=" + m_type_name + ","; 
 
   // already checked it exists
   std::map<std::string, double>::iterator it;
@@ -178,7 +187,7 @@ std::set<std::string> VoteRecord::getPrevVoteRecip(std::string voter_name)
   if (m_sent_record.count(voter_name) > 0)
     return(m_sent_record[voter_name]);
 
-  // it is empty, so send an empty set
+  // it is empty, so return an empty set
   std::set<std::string> recipients;
   return(recipients); 
 }
@@ -200,5 +209,41 @@ void VoteRecord::addVoteSent(std::string voter_name, std::string contact_name)
     new_set.insert(contact_name);
     m_sent_record[voter_name] = new_set; 
   }
+  return; 
+}
+
+
+
+
+//-----------------------------------------------------------
+//   bool allVotesIn(int population_size)
+//          Returns true if all votes are in
+bool VoteRecord::allVotesIn(int pop_size)
+{
+  return(pop_size == m_vote_val.size());
+}
+
+//-----------------------------------------------------------
+//   bool allVotesInByName(std::set<std::string> roster)
+//          Returns true if all votes are in
+bool VoteRecord::allVotesInByName(std::set<std::string> roster)
+{
+  std::set<std::string>::iterator sit;
+  for (sit = roster.begin(); sit != roster.end(); sit++){
+    if (m_vote_val.count(*sit) == 0)
+      return(false); 
+  }
+  return(true);
+}
+
+
+//-----------------------------------------------------------
+//   bool onComplete()
+//          Is called when all the votes are in and the
+//          function needs to complete
+void VoteRecord::onComplete()
+{
+  // do your thing here!
+  
   return; 
 }

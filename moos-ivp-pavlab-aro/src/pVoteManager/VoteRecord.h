@@ -13,7 +13,7 @@
  A new vote record is not created until we have a complete set
  of our own votes, once this is done, we will send out a message
  to our neighbors with the following
- MISSON_VOTE_REQ = vname=abe,hash=329foinf4,varval=UTIL1:10,varval=UTIL2:20
+ MISSON_VOTE_REQ = vname=abe,type=average,hash=329foinf4,varval=UTIL1:10,varval=UTIL2:20
 
  We also monitor MISSON_VOTE_REQ for new votes that are started
  others, and we will respond to them. 
@@ -42,6 +42,7 @@ class VoteRecord
   void setHash(std::string hash) {m_hash=hash; return;}
   void setVoteVars(std::set<std::string> vars) {m_vote_vars = vars; return;}
   void setVoteVal(std::string name, std::string var, double val);
+  void setVoteStartTime(double val) {m_vote_start_time = val; return;}
 
   // getters
   double getVoteStartTime() const {return(m_vote_start_time);}
@@ -52,17 +53,22 @@ class VoteRecord
 
   // operational 
   bool handleIncomingMsg(std::vector<std::string> spec, double time);
-  std::string getSpec(std::string vname); 
   bool areAllVotesSet(std::string name);
   bool isVoteSet(std::string name, std::string var);
 
-  void addVoteSent(std::string voter_name, std::string contact_name); 
-  
+  std::string getSpec(std::string vname); 
 
- 
+  void addVoteSent(std::string voter_name, std::string contact_name); 
+
+  bool allVotesIn(int pop_size);
+  bool allVotesInByName(std::set<std::string> roster);
+  
+  // Function to overload
+  virtual void onComplete(); 
 
  private:
-  std::string m_hash;
+  std::string m_hash;             // unique to each instance
+  std::string m_type_name;        // type of vote i.e. average, min
 
   int m_pop_size;
 

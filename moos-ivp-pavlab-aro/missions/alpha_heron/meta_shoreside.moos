@@ -97,8 +97,6 @@ ProcessConfig = pMarineViewer
   //tiff_file            = map.tif
   //tiff_file = 36.898021, 126.904492
 
-}
-
   set_pan_x            = 0
   set_pan_y            = 0
   zoom                 = 1.0

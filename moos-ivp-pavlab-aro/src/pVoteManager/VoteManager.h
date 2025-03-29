@@ -31,28 +31,30 @@ class VoteManager : public AppCastingMOOSApp
 
 protected: // Standard AppCastingMOOSApp function to overload 
    bool buildReport();
+
+   // handling functions
    bool handleContactsList(std::string msg);
    bool handleNewMissionVote(std::string msg, double time);
    bool handleMissionVoteRequest(std::string msg, double time);  
 
  protected:
    void registerVariables();
-   void processPendingStarts();
 
+   // main vote manager functions
+   void processPendingStarts();
    void addOwnData();
    void postAnyVotes();
    void postAnyVotesFor(std::string voter);
-   void finishAnyVotes();  // todo
+   void finishAnyVotes(); 
 
    bool checkOkToPost(std::set<std::string> new_vote_vars, double time);
 
-   // helper
+   // helper functions
    std::string getHash(std::string msg); 
 
  private: // Configuration variables
    int m_pop_size;
    double m_min_vote_interval;
-
    double m_stale_input_thresh; 
    
    

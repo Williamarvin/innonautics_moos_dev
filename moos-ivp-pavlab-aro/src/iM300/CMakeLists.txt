@@ -25,4 +25,3 @@ TARGET_LINK_LIBRARIES(iM300
   mbutil
   m
   pthread)
-

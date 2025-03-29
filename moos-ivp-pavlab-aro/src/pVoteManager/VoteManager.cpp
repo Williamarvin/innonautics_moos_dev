@@ -93,17 +93,14 @@ bool VoteManager::Iterate()
     processPendingStarts();
 
   // Do our own bookkeeping
-  // Check all vote records for:
+  // Check all vote records in these steps:
   //  1. Add own votes if needed
   addOwnData(); 
   //  2. Ship out if all own information is good.
   postAnyVotes(); 
   //  3. If the vote record is all complete, then
   //     post the results and clear the record.
-  // finishAnyVotes();  
-
-
-
+  finishAnyVotes();  
 
     
   // Do your thing here!
@@ -313,7 +310,7 @@ void VoteManager::processPendingStarts()
     VoteRecord new_vote_record;
     new_vote_record.setHash(it->first);
     new_vote_record.setPopSize(m_pop_size);
-    // don't set time until it ships out
+    new_vote_record.setVoteStartTime(MOOSTime()); 
     new_vote_record.setVoteVars(it->second); 
 
     m_vote_map[it->first] = new_vote_record;
@@ -444,6 +441,32 @@ void VoteManager::postAnyVotes()
 }
 
 
+
+//------------------------------------------------------------
+// Procedure: finishAnyVotes()
+//                 First checks if any vote records are complete
+//                 or, we have votes from everyone.  Then it calls
+//                 the possibly overloaded onComplete() function
+//                 in the VoteRecord.  Then it removes it from the
+//                 map
+
+void VoteManager::finishAnyVotes() 
+{
+  // For each vote record
+  std::map<std::string, VoteRecord>::iterator it;
+  for (it = m_vote_map.begin(); it != m_vote_map.end();){
+
+    // Step 1.  Check if complete
+    if (!it->second.allVotesIn(m_pop_size)){
+      ++it;   // keep active
+    } else {
+      // this one is complete
+      it->second.onComplete();
+      m_vote_map.erase(it++); 
+    }
+  }
+  return; 
+}
 
 
 

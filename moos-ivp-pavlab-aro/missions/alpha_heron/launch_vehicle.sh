@@ -139,9 +139,9 @@ MOOS_PORT=`expr $INDEX + 9000`
 PSHARE_PORT=`expr $INDEX + 9200`
 
 if [ "${XMODE}" = "M300" ]; then
-    IP_ADDR=`get_heron_info.sh --ip`
-    FSEAT_IP=`get_heron_info.sh --fseat`
-    VNAME=`get_heron_info.sh --name`
+
+    VNAME="floatie"
+
     if [ $? != 0 ]; then
 	echo "$ME: Problem getting Heron Name. Exit Code 2"
 	exit 2
@@ -223,4 +223,5 @@ fi
 # Part 8: Launch uMAC until the mission is quit
 #---------------------------------------------------------------
 uMAC targ_$VNAME.moos
+#uMAC targ_shoreside.moos
 kill -- -$$

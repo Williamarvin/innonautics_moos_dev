@@ -114,7 +114,11 @@ void M300::vehicleConnection(){
 }
 
 void M300::commFloatie() {
+  memset(vehicle_buffer, 0, BUFFER_SIZE);
+  
   ssize_t num_bytes = read(pik_port, vehicle_buffer, BUFFER_SIZE);
+
+  if(num_bytes <= 0) return;
 
   // If GPS is not found, use fake GPS
   if (!gpsFound) {

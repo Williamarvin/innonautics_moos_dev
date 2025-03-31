@@ -65,7 +65,7 @@ To Clean all log messages
 ```
 
 # Run file on startup
-Add startup.service to the service to start
+Read more in startup.service
 ```
 # sudo systemctl daemon-reload
 # sudo systemctl enable startup.service

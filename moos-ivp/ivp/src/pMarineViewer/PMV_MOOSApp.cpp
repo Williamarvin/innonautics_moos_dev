@@ -21,6 +21,7 @@
 /* <http://www.gnu.org/licenses/>.                               */
 /*****************************************************************/
 
+#include <opencv2/opencv.hpp>
 #include "PMV_MOOSApp.h"
 #include "HashUtils.h"
 #include "MBUtils.h"
@@ -30,7 +31,6 @@
 #include "VarDataPairUtils.h"
 #include "XYFormatUtilsPoly.h"
 #include <iostream>
-#include <opencv2/opencv.hpp>
 #include <opencv2/stitching.hpp>
 #include <unistd.h>
 

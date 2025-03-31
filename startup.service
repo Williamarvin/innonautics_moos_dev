@@ -1,3 +1,7 @@
+# sudo nano /etc/systemd/system/launch_all.service
+# sudo systemctl daemon-reload
+# paste the below command
+
 [Unit]
 Description=Launch Now Script
 After=network-online.target
@@ -6,8 +10,8 @@ Wants=network-online.target
 [Service]
 ExecStartPre=/bin/sleep 5
 # Update PATH and execute the script
-ExecStart=/bin/bash -c 'export PATH="/home/orangepi/Documents/moos-ivp-pavlab-a>
-WorkingDirectory=/home/orangepi/Documents/moos-ivp/ivp/missions/alpha_heron
+ExecStart=/bin/bash -c 'export PATH="/home/orangepi/Documents/innonautics_moos_dev/moos-ivp-pavlab-aro/bin:/home/orangepi/Documents/innonautics_moos_dev/moos-ivp/ivp/bin:$PATH"; cd /home/orangepi/Documents/innonautics_moos_dev/moos-ivp-pavlab-aro/missions/alpha_heron && echo | ./launch_all.sh'
+WorkingDirectory=/home/orangepi/Documents/innonautics_moos_dev/moos-ivp-pavlab-aro/missions/alpha_heron
 Restart=always
 StandardOutput=append:/home/orangepi/launch_now.log
 StandardError=append:/home/orangepi/launch_now_error.log
@@ -15,7 +19,7 @@ StandardError=append:/home/orangepi/launch_now_error.log
 [Install]
 WantedBy=default.target
 
-
-# sudo systemctl daemon-reload
-# sudo systemctl enable service 
-# sudo systemctl start service 
+# sudo systemctl start launch_all.service
+# sudo systemctl enable launch_all.service
+# sudo systemctl disable launch_all.service
+# sudo systemctl stop launch_all.service

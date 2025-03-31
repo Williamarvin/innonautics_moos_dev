@@ -179,7 +179,8 @@ private: // State variables
 
   // Others
   string serial_output = "";
-  ssize_t num_bytes;
+  ssize_t num_bytes_v = 0;
+  ssize_t num_bytes_o = 0;
 
   // Modified
 };

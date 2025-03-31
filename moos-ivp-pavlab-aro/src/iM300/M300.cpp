@@ -62,13 +62,13 @@ void M300::vehicleConnection(){
       }
 
       memset(vehicle_buffer, 0, BUFFER_SIZE);
-      ssize_t num_bytes = read(pik_port, vehicle_buffer, BUFFER_SIZE);
+      num_bytes_v = read(pik_port, vehicle_buffer, BUFFER_SIZE);
 
       // floatie requirement
       // check if floatie
 
       if(m_vname == "floatie"){
-          for (int i = 0; i < num_bytes; ++i) {
+          for (int i = 0; i < num_bytes_v; ++i) {
 
               mavlink_message_t msg;
               mavlink_status_t status;
@@ -85,10 +85,10 @@ void M300::vehicleConnection(){
       
       else if(m_vname == "beacon"){
 
-          if(num_bytes <= 0)
+          if(num_bytes_v <= 0)
             continue;
 
-          string beaconOutput(vehicle_buffer, num_bytes);
+          string beaconOutput(vehicle_buffer, num_bytes_v);
 
           trim_spaces(beaconOutput);
 
@@ -115,17 +115,16 @@ void M300::vehicleConnection(){
 
 void M300::commFloatie() {
   memset(vehicle_buffer, 0, BUFFER_SIZE);
-  
-  ssize_t num_bytes = read(pik_port, vehicle_buffer, BUFFER_SIZE);
+  num_bytes_v = read(pik_port, vehicle_buffer, BUFFER_SIZE);
 
-  if(num_bytes <= 0) return;
+  if(num_bytes_v <= 0) return;
 
-  // If GPS is not found, use fake GPS
+  // If GPS is not found, use fake GPSsyste
   if (!gpsFound) {
       fakeGpsFloatie();
   }
 
-  for (int i = 0; i < num_bytes; ++i) {
+  for (int i = 0; i < num_bytes_v; ++i) {
       mavlink_message_t msg;
       mavlink_status_t status;
 
@@ -334,12 +333,12 @@ bool containsNumber(const string& str) {
 // Function to read input from beacon
 void M300::commBeacon(){
     // memset(vehicle_buffer, 0, BUFFER_SIZE);
-    num_bytes = read(pik_port, vehicle_buffer, BUFFER_SIZE);
+    num_bytes_v = read(pik_port, vehicle_buffer, BUFFER_SIZE);
 
-    if(num_bytes <= 0)
+    if(num_bytes_v <= 0)
       return;
 
-    string beaconInput(vehicle_buffer, num_bytes);
+    string beaconInput(vehicle_buffer, num_bytes_v);
     trim_spaces(beaconInput);
 
     serial_output = beaconInput;
@@ -446,12 +445,12 @@ void M300::onBoardConnection(){
         }
 
         memset(onBoard_buffer, 0, BUFFER_SIZE);
-        ssize_t num_bytes = read(board_port, onBoard_buffer, BUFFER_SIZE);
+        num_bytes_o = read(board_port, onBoard_buffer, BUFFER_SIZE);
 
-        if(num_bytes <= 0)
+        if(num_bytes_o <= 0)
           continue;
 
-        string output(onBoard_buffer, num_bytes);
+        string output(onBoard_buffer, num_bytes_o);
 
         trim_spaces(output);
 
@@ -477,12 +476,12 @@ void M300::onBoardConnection(){
 // read in board input
 void M300::commOnBoard(){
     memset(onBoard_buffer, 0, BUFFER_SIZE);
-    num_bytes = read(board_port, onBoard_buffer, BUFFER_SIZE);
+    num_bytes_o = read(board_port, onBoard_buffer, BUFFER_SIZE);
 
-    if(num_bytes <= 0)
+    if(num_bytes_o <= 0)
       return;
 
-    string boardInput(onBoard_buffer, num_bytes);
+    string boardInput(onBoard_buffer, num_bytes_o);
     trim_spaces(boardInput);
     serial_output = onBoard_buffer;
 

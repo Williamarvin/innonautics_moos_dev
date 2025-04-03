@@ -154,9 +154,9 @@ private: // State variables
   vector<string> portList = {"/dev/ttyUSB0", "/dev/ttyUSB1", "/dev/ttyUSB2", "/dev/ttyACM0", "/dev/ttyUSB3", "/dev/ttyUSB4", "/dev/ttyFIQ0", "/dev/ttyS9"};
 
   // Message related
-  const int BUFFER_SIZE = 1000;
-  char vehicle_buffer[1000];
-  char onBoard_buffer[1000];
+  static const int BUFFER_SIZE = 1024;
+  char vehicle_buffer[BUFFER_SIZE];
+  char onBoard_buffer[BUFFER_SIZE];
 
   // Check bool variables
   bool checkVehicle = false;
@@ -179,7 +179,8 @@ private: // State variables
 
   // Others
   string serial_output = "";
-  ssize_t num_bytes;
+  ssize_t num_bytes_v = 0;
+  ssize_t num_bytes_o = 0;
 
   // Modified
 };

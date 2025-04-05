@@ -96,7 +96,7 @@ Execute into the terminal
 ```
 docker run -d \
   -p 8080:8080 \
-  --env DISPLAY=host.docker.internal:0.0 \
+  --env DISPLAY=$DISPLAY \
   --volume /tmp/.X11-unix:/tmp/.X11-unix \
   --name moos-debug \
   moos-app debug

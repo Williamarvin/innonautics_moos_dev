@@ -41,7 +41,14 @@ RUN chmod +x /app/moos-ivp/build.sh && \
     chmod +x /app/moos-ivp-pavlab-aro/missions/alpha_heron/*.sh
 
 # Run build scripts
-RUN /app/moos-ivp/build.sh
+RUN rm -rf /app/moos-ivp/build/MOOS/MOOSCore/CMakeCache.txt
+RUN rm -rf /app/moos-ivp/build/MOOS/MOOSEssentials/CMakeCache.txt
+RUN rm -rf /app/moos-ivp/build/MOOS/MOOSGeodesy/CMakeCache.txt
+RUN rm -rf /app/moos-ivp/build/MOOS/MOOSMatlab/CMakeCache.txt
+RUN rm -rf /app/moos-ivp/build/MOOS/MOOSToolsUI/CMakeCache.txt
+RUN rm -rf /app/moos-ivp/build/ivp/CMakeCache.txt
+
+RUN cd /app/moos-ivp && ./build.sh
 RUN cd /app/moos-ivp-pavlab-aro && ./build.sh
 
 # Add binary directories to the PATH permanently

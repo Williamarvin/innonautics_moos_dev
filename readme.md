@@ -83,6 +83,14 @@ Run the following command if you are building project for the first time, or whe
 ```
 docker build -t moos-app:latest .
 ```
+cached
+```
+docker build --progress=plain -t moos-app:latest .
+```
+not cached
+```
+docker build --no-cache --progress=plain -t moos-app:latest .
+```
 # Debug
 Execute into the terminal
 ```
@@ -90,7 +98,7 @@ docker run -it \
   -p 8080:8080 \
   --name moos-debug \
   moos-app debug
-docker exec -it moos-debug /bin/bash
+docker exec -it moos-debug bash
 ```
 # Run
 docker run -it --rm \

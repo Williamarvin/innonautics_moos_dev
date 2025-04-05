@@ -8,5 +8,6 @@ if [ "$1" == "debug" ]; then
 else
   echo "Launching the default application..."
   # Run the default application
-  ./moos-ivp-pavlab-aro/missions/alpha_heron/launch_all.sh
+  cd /app/moos-ivp-pavlab-aro/missions/alpha_heron
+  ./launch_all.sh
 fi

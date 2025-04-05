@@ -16,6 +16,7 @@ RUN apt-get update && \
         xterm \
         subversion \
         libfltk1.3-dev \
+        libcurl4-openssl-dev \
         libtiff5-dev \
         dos2unix \
         libopencv-dev && \
@@ -39,17 +40,16 @@ RUN chmod +x /app/moos-ivp/build.sh && \
     chmod +x /app/moos-ivp-pavlab-aro/build.sh && \
     chmod +x /app/moos-ivp-pavlab-aro/missions/alpha_heron/*.sh
 
-RUN /bin/bash -c "./moos-ivp/build.sh"
-RUN /bin/bash -c "./moos-ivp-pavlab-aro/build.sh"
+# Run build scripts
+RUN /app/moos-ivp/build.sh
+RUN cd /app/moos-ivp-pavlab-aro && ./build.sh
 
-# Create useful aliases for convenience
-RUN echo 'alias cdr="moos-ivp-pavlab-aro"' >> /root/.bashrc && \
-    echo 'alias cda="moos-ivp-pavlab-aro/missions/alpha_heron"' >> /root/.bashrc
+# Add binary directories to the PATH permanently
+ENV PATH="/app/moos-ivp/bin:/app/moos-ivp-pavlab-aro/bin:$PATH"
 
-# Add the binary directories to the PATH environment variable
-ENV PATH="/app/moos-ivp/ivp/bin:/app/moos-ivp-pavlab-aro/bin:$PATH"
-
-RUN bash -c "source /root/.bashrc"
+# Create useful aliases for convenience (add them to .bashrc)
+RUN echo 'alias cdr="cd /app/moos-ivp-pavlab-aro"' >> /root/.bashrc && \
+    echo 'alias cda="cd /app/moos-ivp-pavlab-aro/missions/alpha_heron"' >> /root/.bashrc
 
 # Copy and fix entrypoint script
 COPY entrypoint.sh /app/entrypoint.sh

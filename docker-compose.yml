@@ -1,0 +1,18 @@
+services:
+  moos-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080" # Map container's 8080 port to the host
+    environment:
+      - PORT=8080
+    volumes:
+      - cpp-binaries:/app/moos-ivp/ivp/bin
+      - cpp-pavlab-binaries:/app/moos-ivp-pavlab-aro/bin
+    stdin_open: true # Keep stdin open for interactive use
+    tty: true        # Allocate a pseudo-TTY for interaction
+
+volumes:
+  cpp-binaries:
+  cpp-pavlab-binaries:

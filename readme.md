@@ -79,6 +79,10 @@ Read more in startup.service
 
 # Docker (experimental)
 # Build
+connect screen to docker ubuntu screen
+```
+xhost +local:docker
+```
 Run the following command if you are building project for the first time, or whenever you change pom.xml, docker-compose.yaml, or Dockerfile
 ```
 docker build -t moos-app:latest .

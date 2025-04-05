@@ -3,6 +3,7 @@ build-utests/*
 lib/*
 !/bin/ipaddrs.sh
 bin/*
+include/
 *~
 */*~
 *attic*

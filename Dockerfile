@@ -12,6 +12,8 @@ RUN apt-get update && \
     dpkg-reconfigure -f noninteractive tzdata && \
     apt-get install --assume-yes \
         build-essential \
+        nano \
+        -y iputils-ping \
         cmake \
         xterm \
         subversion \
@@ -19,6 +21,7 @@ RUN apt-get update && \
         libcurl4-openssl-dev \
         libtiff5-dev \
         dos2unix \
+        x11-apps \
         libopencv-dev && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*

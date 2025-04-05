@@ -94,8 +94,10 @@ docker build --no-cache --progress=plain -t moos-app:latest .
 # Debug
 Execute into the terminal
 ```
-docker run -it \
+docker run -d \
   -p 8080:8080 \
+  --env DISPLAY=host.docker.internal:0.0 \
+  --volume /tmp/.X11-unix:/tmp/.X11-unix \
   --name moos-debug \
   moos-app debug
 docker exec -it moos-debug bash

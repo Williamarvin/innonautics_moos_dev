@@ -76,3 +76,53 @@ Read more in startup.service
 # If all else fails
 1. visit tutorial in: https://oceanai.mit.edu/2.680/pmwiki/pmwiki.php?n=Lab.Lab
 2. Set up in mac or other inquires of windows: https://oceanai.mit.edu/2.680/pmwiki/pmwiki.php?n=Lab.ClassSetup
+
+# Docker (experimental)
+# Build
+connect screen to docker ubuntu screen
+```
+xhost +local:docker
+```
+Run the following command if you are building project for the first time, or whenever you change pom.xml, docker-compose.yaml, or Dockerfile
+```
+docker build -t moos-app:latest .
+```
+cached
+```
+docker build --progress=plain -t moos-app:latest .
+```
+not cached
+```
+docker build --no-cache --progress=plain -t moos-app:latest .
+```
+# Debug
+Execute into the terminal
+```
+docker run -d \
+  -p 8080:8080 \
+  --env DISPLAY=$DISPLAY \
+  --volume /tmp/.X11-unix:/tmp/.X11-unix \
+  --name moos-debug \
+  --device=/dev/ttyUSB0:/dev/ttyUSB0 \
+  --privileged \
+  moos-app debug
+docker exec -it moos-debug bash
+```
+# Run
+docker run -it --rm \
+  -p 8080:8080 \
+  --env DISPLAY=$DISPLAY \
+  --volume /tmp/.X11-unix:/tmp/.X11-unix \
+  --name moos-app \
+  moos-app
+# Close container
+To shut down container, run the following command
+```
+docker stop moos-app
+docker stop moos-debug
+```
+# Once you’re finished with debugging and no longer need the container, remove it with:
+```
+docker rm moos-app
+docker rm moos-debug
+```

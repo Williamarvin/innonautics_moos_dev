@@ -50,6 +50,7 @@ RUN rm -rf /app/moos-ivp/build/MOOS/MOOSGeodesy/CMakeCache.txt
 RUN rm -rf /app/moos-ivp/build/MOOS/MOOSMatlab/CMakeCache.txt
 RUN rm -rf /app/moos-ivp/build/MOOS/MOOSToolsUI/CMakeCache.txt
 RUN rm -rf /app/moos-ivp/build/ivp/CMakeCache.txt
+RUN rm -rf /app/moos-ivp-pavlab-aro/build/CMakeCache.txt
 RUN touch MOOS
 
 RUN cd /app/moos-ivp && ./build.sh

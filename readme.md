@@ -109,6 +109,8 @@ docker exec -it moos-debug bash
 # Run
 docker run -it --rm \
   -p 8080:8080 \
+  --env DISPLAY=$DISPLAY \
+  --volume /tmp/.X11-unix:/tmp/.X11-unix \
   --name moos-app \
   moos-app
 # Close container

@@ -136,25 +136,13 @@ done
 #--------------------------------------------------------------
 #  Part 3: Apply INDEX to port vals. If Heron, set vals by vname. 
 #--------------------------------------------------------------
-MOOS_PORT=`expr $INDEX + 8990`
+MOOS_PORT=`expr $INDEX + 9000`
 PSHARE_PORT=`expr $INDEX + 9200`
 
 target=false
 # if dont do anything, then you have to plug pikhawk first
 
 if [ "${XMODE}" = "M300" ]; then
-    IP_ADDR='172.20.10.4'
-    FSEAT_IP='beacon'
-
-    if [[ "${ARGI}" == --ip=* ]]; then
-        comms_type="/dev/ttyUSB0"
-        target=true
-    else
-        target=false
-        comms_type="/dev/ttyUSB1"
-    fi
-
-    IP_ADDR=$comms_type
     VNAME="beacon"
 
     if [ $? != 0 ]; then
@@ -223,6 +211,8 @@ fi
 #  Part 6: Launch the processes
 #--------------------------------------------------------------
 
+#  launching beacon
+echo "launching beacon.."
 echo "Launching $VNAME MOOS Community. WARP="$TIME_WARP
 pAntler targ_${VNAME}.moos >& /dev/null &
 echo "Done Launching $VNAME MOOS Community"
@@ -232,13 +222,11 @@ echo "launching floatie.."
 pAntler targ_shoreside.moos >& /dev/null &
 echo "Done Launching Shoreside Community"
 
-echo "launching Shoreside.."
+# Launcing floatie
+./launch_vehicle.sh --shore=$SHORE_IP
 
-if [ $target = true ]; then
-    ./launch_vehicle.sh --shore=$SHORE_IP
-else
-    ./launch_vehicle.sh --shore=$SHORE_IP
-fi
+# Launching shoreside
+# ./launch_shoreside.sh --ip=$SHORE_IP
 
 #---------------------------------------------------------------
 #  Part 7: If launched from script, we're done, exit now

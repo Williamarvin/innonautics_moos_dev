@@ -103,18 +103,20 @@ docker run -d \
   --env DISPLAY=$DISPLAY \
   --volume /tmp/.X11-unix:/tmp/.X11-unix \
   --name moos-debug \
-  --device=/dev/ttyUSB0:/dev/ttyUSB0 \
   --privileged \
   moos-app debug
 docker exec -it moos-debug bash
 ```
 # Run
+```
 docker run -it --rm \
   -p 8080:8080 \
   --env DISPLAY=$DISPLAY \
   --volume /tmp/.X11-unix:/tmp/.X11-unix \
+  --privileged \
   --name moos-app \
   moos-app
+```
 # Close container
 To shut down container, run the following command
 ```

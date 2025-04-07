@@ -103,6 +103,8 @@ docker run -d \
   --env DISPLAY=$DISPLAY \
   --volume /tmp/.X11-unix:/tmp/.X11-unix \
   --name moos-debug \
+  --device=/dev/ttyUSB0:/dev/ttyUSB0 \
+  --privileged \
   moos-app debug
 docker exec -it moos-debug bash
 ```

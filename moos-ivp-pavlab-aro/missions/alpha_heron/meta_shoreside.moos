@@ -141,7 +141,7 @@ ProcessConfig = pMarineViewer
   button_four = STATION_KEEP_ALL = false
 
 
-  left_context[view_point]  = VIEW_POINT = x=$(XPOS),y=$(YPOS),label=$(LAT)-------$(LON)
+  //left_context[view_point]  = VIEW_POINT = x=$(XPOS),y=$(YPOS),label=$(LAT)-------$(LON)
 }
 
 //--------------------------------------------------------

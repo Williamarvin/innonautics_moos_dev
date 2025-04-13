@@ -212,6 +212,9 @@ echo "Launching $VNAME MOOS Community. WARP="$TIME_WARP
 pAntler targ_${VNAME}.moos >& /dev/null &
 echo "Done Launching $VNAME MOOS Community"
 
+# launching shoreside
+./launch_shoreside.sh --ip=$SHORE_IP
+
 #---------------------------------------------------------------
 #  Part 7: If launched from script, we're done, exit now
 #---------------------------------------------------------------

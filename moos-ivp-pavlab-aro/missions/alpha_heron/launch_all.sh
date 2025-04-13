@@ -219,9 +219,6 @@ echo "Done Launching $VNAME MOOS Community"
 
 echo "launching floatie.."
 
-pAntler targ_shoreside.moos >& /dev/null &
-echo "Done Launching Shoreside Community"
-
 # Launcing floatie
 ./launch_vehicle.sh --shore=$SHORE_IP
 

@@ -976,7 +976,7 @@ bool M300::OnStartUp()
       handled = setDoubleOnString(m_declination, value);
     }
     if(!handled){
-      reportUnhandledConfigWarning(orig);
+      // reportUnhandledConfigWarning(orig);
       list<string> warnings = m_thrust.getWarnings();
       while (!warnings.empty()){
         reportConfigWarning(warnings.front());
@@ -1031,8 +1031,8 @@ void M300::registerVariables()
   Register("SIM_THR_R_BIAS",0);
   Register("SIM_RUDDER_FAULT", 0);
 
-  Register("DEPLOY", 0);
-  Register("STATION_KEEP", 0);
+  // Register("DEPLOY", 0);
+  // Register("STATION_KEEP", 0);
   Register("station-keep", 0);
 
   Register("STATION_KEEP_ALL", 0);
@@ -1212,20 +1212,20 @@ bool M300::Iterate()
       vehicleConnection();
   }
 
-  // Check for on board control even if no pikhawk
-  if(onBoard == false || board_port == -1){
-    onBoard = false;
-    onBoardConnection();
-  }
-  else if(onBoard == true)
-  commOnBoard();
-
   // if vehicle is floatie and vehicle is connected
   if(checkVehicle == true && m_vname == "floatie") {
       sendMessagesToSocket();
       ThrustOutputPriority();
       commFloatie();
       setFloatieMode();
+
+      // Check for on board control even if no pikhawk
+      if(onBoard == false || board_port == -1){
+        onBoard = false;
+        onBoardConnection();
+      }
+      else if(onBoard == true)
+      commOnBoard();
   }
 
   // if vehicle is beacon and beacon is connected
@@ -2280,9 +2280,6 @@ bool M300::buildReport()
   m_msgs << "------------------------------------------------------" << endl;
   m_msgs << "System:    voltage: " << pd_volt << "   satellites: " << str_sats << endl;
   m_msgs << "------------------------------------------------------" << endl;
-  m_msgs << "status: " << status << endl;
-  m_msgs << "------------------------------------------------------" << endl;
-  // m_msgs << "serial output: " << serial_output << endl;
 
   if(m_vname == "floatie"){
     m_msgs << "On Board: " << "thrust " << o_Thrust_L<< " " << o_Thrust_R << " available: " << onBoard << endl;
@@ -2291,7 +2288,11 @@ bool M300::buildReport()
     m_msgs << "gps found: " << gpsFound << " heading found: " << hdg_found << endl;
   }
 
-  m_msgs << "beaconMode: " << beaconMode << endl;
+  else if (m_vname == "beacon"){
+    m_msgs << "serial output: " << serial_output << endl;
+  }
+
+  m_msgs << "beacon mode: " << beaconMode << endl;
   m_msgs << "vehicle name: " << m_vname << " Vehicle port: " << checkVehicle << endl;
   
   if ( m_rot_ctrl.getRotateInPlace() ) {

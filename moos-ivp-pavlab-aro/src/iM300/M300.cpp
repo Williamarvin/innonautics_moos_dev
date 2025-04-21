@@ -625,9 +625,8 @@ string parseBeaconMode(string data){
         startPos += modePrefix.length();
         size_t endPos = data.find(',', startPos);
         modeValue = data.substr(startPos, endPos - startPos);
-        cout << "MODE value: " << modeValue << endl;
     } else {
-        cout << "MODE not found" << endl;
+        // cout << "MODE not found" << endl;
     }
 
     return modeValue;
@@ -1031,18 +1030,17 @@ void M300::registerVariables()
   Register("SIM_THR_R_BIAS",0);
   Register("SIM_RUDDER_FAULT", 0);
 
-  // Register("DEPLOY", 0);
-  // Register("STATION_KEEP", 0);
+  Register("DEPLOY", 0);
+  Register("STATION_KEEP", 0);
   Register("station-keep", 0);
 
   Register("STATION_KEEP_ALL", 0);
   Register("DEPLOY_ALL", 0);
   Register("deploy", 0);
-  Register("status", 0);
-
+  // Register("status", 0);
 
   Register("NODE_REPORT_FLOATIE", 0);
-  Register("NODE_REPORT_BEACON", 0);
+  // Register("NODE_REPORT_BEACON", 0);
 }
 
 
@@ -1072,10 +1070,7 @@ bool M300::OnNewMail(MOOSMSG_LIST &NewMail)
 
     else if(key == "NODE_REPORT_FLOATIE"){
       beaconMode = parseBeaconMode(sval);
-    }
-
-    else if(key == "status"){
-      status = sval;
+      // beaconMode = sval;
     }
 
     else if (key == "DESIRED_RUDDER" ){
@@ -2292,7 +2287,7 @@ bool M300::buildReport()
     m_msgs << "serial output: " << serial_output << endl;
   }
 
-  m_msgs << "beacon mode: " << beaconMode << endl;
+  m_msgs << "beacon mode: " << beaconMode << " : " << status << endl;
   m_msgs << "vehicle name: " << m_vname << " Vehicle port: " << checkVehicle << endl;
   
   if ( m_rot_ctrl.getRotateInPlace() ) {
@@ -2329,8 +2324,6 @@ bool M300::buildReport()
     
     
     m_msgs << "------------------------------------------------------" << endl;
-    m_msgs << "status: " << status << endl;
-
   }
   list<string> summary_lines = m_ninja.getSummary();
   list<string>::iterator p;

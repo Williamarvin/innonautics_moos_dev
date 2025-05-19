@@ -27,6 +27,9 @@
 
 using namespace std;
 
+// Global scaling factor for thrust output (0.75 = 75%)
+float g_ThrustScalingFactor = 0.75f;
+
 // trim space in a string
 string trim_spaces(const string &str) {
     string result;
@@ -206,112 +209,6 @@ void M300::updateGPSData(double lat, double lon, double x, double y, double spee
   m_nav_x = x;
   m_nav_y = y;
 }
-
-// Reading input from pikhawk
-// void M300::commFloatie(){
-//       // memset(vehicle_buffer, 0, BUFFER_SIZE);
-//       ssize_t num_bytes = read(pik_port, vehicle_buffer, BUFFER_SIZE);
-
-//       // if gps not found, use fake gps
-//       if(!gpsFound){
-//         fakeGpsFloatie();
-//       }
-
-//       for (int i = 0; i < num_bytes; ++i) {
-//           mavlink_message_t msg;
-//           mavlink_status_t status;
-
-//           if (mavlink_parse_char(MAVLINK_COMM_0, vehicle_buffer[i], &msg, &status)) {
-//               // Message parsed successfully
-//               switch (msg.msgid) {
-
-//                 case MAVLINK_MSG_ID_GLOBAL_POSITION_INT:
-//                   {
-//                       mavlink_global_position_int_t packets;
-//                       mavlink_msg_global_position_int_decode(&msg, &packets);
-
-//                       double hdg = double((float(packets.hdg)/100));
-                      
-//                       Notify(m_nav_prefix+"_HEADING", hdg, "GPRMC");
-//                       Notify("GPS_HEADING", hdg, "GPRMC");
-
-//                       if (hdg > 360){
-//                         hdg = hdg - 360;
-//                       }
-
-//                       m_nav_hdg = hdg;
-//                       hdg_found = true;
-//                       // cout << "heading: " << packets.hdg << "relativealt" << packets.relative_alt << endl;
-//                   }
-
-//                   case MAVLINK_MSG_ID_RC_CHANNELS:
-//                   {
-//                     mavlink_rc_channels_raw_t packets;
-//                     mavlink_msg_rc_channels_raw_decode(&msg, &packets);       
-
-//                     // static_cast<int16_t>packets.chan1_raw // left
-//                     // static_cast<int16_t>packets.chan3_raw // right
-
-//                     // f_Thrust_L = ((packets.chan1_raw-1500)/500)*100 + 1500;
-//                     // f_Thrust_R = ((packets.chan3_raw-1500)/500)*100 + 1500;
-
-//                     f_Thrust_L = packets.chan1_raw;
-//                     f_Thrust_R = packets.chan3_raw;
-//                   }
-                  
-//                   case MAVLINK_MSG_ID_GPS_RAW_INT:
-//                   {
-//                     mavlink_gps_raw_int_t packet;
-//                     mavlink_msg_gps_raw_int_decode(&msg, &packet);
-                    
-//                     double x, y;
-//                     double dbl_lat = (float(packet.lat)/10000000);
-//                     double dbl_lon = (float(packet.lon)/10000000);
-//                     double speed = 0.5;
-
-//                     bool ok = m_geodesy.LatLong2LocalGrid(dbl_lat, dbl_lon, y, x); 
-
-//                     if(dbl_lat < 24 && dbl_lat > 22){
-//                         Notify(m_nav_prefix+"_LAT", dbl_lat, "GPRMC");
-//                         Notify(m_nav_prefix+"_LON", dbl_lon, "GPRMC");
-//                         Notify(m_nav_prefix+"_LONG", dbl_lon, "GPRMC");
-//                         Notify(m_gps_prefix+"_LAT", dbl_lat, "GPRMC");
-//                         Notify(m_gps_prefix+"_LON", dbl_lon, "GPRMC");
-//                         Notify(m_gps_prefix+"_LONG", dbl_lon, "GPRMC");      
-//                         Notify(m_nav_prefix+"_X", x, "GPRMC");
-//                         Notify(m_nav_prefix+"_Y", y, "GPRMC");
-//                         Notify(m_gps_prefix+"_X", x, "GPRMC");
-//                         Notify(m_gps_prefix+"_Y", y, "GPRMC");    
-//                         Notify(m_nav_prefix+"_SPEED", speed, "GPRMC");         
-                        
-//                         m_nav_spd = speed;
-//                         m_nav_x = x;
-//                         m_nav_y = y;
-                        
-//                         gpsFound = true;
-//                     }
-
-//                     else{
-//                       // if Gps out of range
-//                       // ignore GPS input
-//                     }
-//                   }
-
-//                   // Get actual thruster outputs
-//                   // case MAVLINK_MSG_ID_SERVO_OUTPUT_RAW:
-//                   // {
-//                   //     mavlink_servo_output_raw_t packet;
-//                   //     mavlink_msg_servo_output_raw_decode(&msg, &packet);
-//                   //     cout << "thruster: " << packet.servo1_raw << " " << packet.servo3_raw << endl; 
-//                   // }
-
-//                   // Add cases for other message types as needed
-//                   default:
-//                     break;
-//               }
-//           }
-//       }
-// }
 
 // Function to check if there is number in a string
 bool containsNumber(const string& str) {
@@ -758,6 +655,21 @@ void M300::thrusterSafety(){
     ssize_t bytesWritten = write(pik_port, onBoard_buffer, len);
 }
 
+int ScaleThrust(int input) {
+  if (input > 1500) {
+    // Forward
+    return 1500 + (int)(g_ThrustScalingFactor * (input - 1500));
+  } else if (input < 1500) {
+    // Reverse
+    return 1500 - (int)(g_ThrustScalingFactor * (1500 - input));
+  } else {
+    // Neutral
+    return 1500;
+  }
+}
+
+int test_remote = 0;
+
 // checks the global variable of automate, remote, and on board, and overrides depending on priority
 void M300::ThrustOutputPriority(){
   // Automate
@@ -766,20 +678,20 @@ void M300::ThrustOutputPriority(){
 
   // on board control
   if((o_Thrust_L >= 1525 && o_Thrust_L <= 2000) || (o_Thrust_R >= 1525 && o_Thrust_R <= 2000) || (o_Thrust_L <= 1475 && o_Thrust_L >= 1000) || (o_Thrust_R <= 1475 && o_Thrust_R >= 1000)){
-    sendServo(3, o_Thrust_L);
-    sendServo(1, o_Thrust_R);
+    sendServo(3, ScaleThrust(o_Thrust_L));
+    sendServo(1, ScaleThrust(o_Thrust_R));
   }
 
   // Remote 
   else if((f_Thrust_L >= 1525 && f_Thrust_L <= 2015) || (f_Thrust_R >= 1525 && f_Thrust_R <= 2015) || (f_Thrust_L <= 1475 && f_Thrust_L >= 1000) || (f_Thrust_R <= 1475 && f_Thrust_R >= 1000)){
-    sendServo(3, f_Thrust_L);
-    sendServo(1, f_Thrust_R);
+    sendServo(3, ScaleThrust(f_Thrust_L));
+    sendServo(1, ScaleThrust(f_Thrust_R));
   }
 
   // Automation
   else if((a_Thrust_L >= 1525 && a_Thrust_L <= 2000) || (a_Thrust_R >= 1525 && a_Thrust_R <= 2000) || (a_Thrust_L <= 1475 && a_Thrust_L >= 1000) || (a_Thrust_R <= 1475 && a_Thrust_R >= 1000)){
-    sendServo(3, a_Thrust_L);
-    sendServo(1, a_Thrust_R);
+    sendServo(3, ScaleThrust(a_Thrust_L));
+    sendServo(1, ScaleThrust(a_Thrust_R));
   }
 
   // if no input, stop

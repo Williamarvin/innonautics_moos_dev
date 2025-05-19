@@ -77,6 +77,7 @@ protected: // App Specific functions
   void fakeGpsFloatie();
   void fakeGpsBeacon();
   void ThrustOutputPriority();
+  void remoteControl();
   void updateGPSData(double lat, double lon, double x, double y, double speed);
 
 private: // Config variables

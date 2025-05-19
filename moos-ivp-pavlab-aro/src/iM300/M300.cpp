@@ -29,6 +29,8 @@ using namespace std;
 
 // Global scaling factor for thrust output (0.75 = 75%)
 float g_ThrustScalingFactor = 0.75f;
+bool controlMode = true;
+float controlNumber = 0;
 
 // trim space in a string
 string trim_spaces(const string &str) {
@@ -159,6 +161,19 @@ void M300::commFloatie() {
 
                   // f_Thrust_L = (((packets.chan1_raw - 1500)/500) * 100) + 1500;
                   // f_Thrust_R = (((packets.chan3_raw - 1500)/500) * 100) + 1500;
+
+                  // Control mode change
+                  controlNumber = packets.chan6_raw;
+                  
+                  // remote control
+                  if(packets.chan6_raw < 1200){
+                    controlMode = false;
+                  }
+
+                  // on board control
+                  else{
+                    controlMode = true;
+                  }
                   
                   break;
               }
@@ -182,6 +197,23 @@ void M300::commFloatie() {
                   }
                   break;
               }
+
+              // case MAVLINK_MSG_ID_RC_CHANNELS: {
+              //     mavlink_rc_channels_raw_t packets;
+              //     mavlink_msg_rc_channels_raw_decode(&msg, &packets);
+
+              //     controlNumber = packets.chan6_raw;
+                  
+              //     // remote control
+              //     if(packets.chan6_raw == -100){
+              //       controlMode = false;
+              //     }
+
+              //     // on board control
+              //     else{
+              //       controlMode = true;
+              //     }
+              // }
 
               default:
                   break;
@@ -677,16 +709,16 @@ void M300::ThrustOutputPriority(){
   a_Thrust_R = MapToMavlink(m_thrust.getThrustRight());
 
   // on board control
-  if((o_Thrust_L >= 1525 && o_Thrust_L <= 2000) || (o_Thrust_R >= 1525 && o_Thrust_R <= 2000) || (o_Thrust_L <= 1475 && o_Thrust_L >= 1000) || (o_Thrust_R <= 1475 && o_Thrust_R >= 1000)){
+  if((o_Thrust_L >= 1505 && o_Thrust_L <= 2000) || (o_Thrust_R >= 1505 && o_Thrust_R <= 2000) || (o_Thrust_L <= 1495 && o_Thrust_L >= 1000) || (o_Thrust_R <= 1495 && o_Thrust_R >= 1000)){
     sendServo(3, ScaleThrust(o_Thrust_L));
     sendServo(1, ScaleThrust(o_Thrust_R));
   }
 
   // Remote 
-  else if((f_Thrust_L >= 1525 && f_Thrust_L <= 2015) || (f_Thrust_R >= 1525 && f_Thrust_R <= 2015) || (f_Thrust_L <= 1475 && f_Thrust_L >= 1000) || (f_Thrust_R <= 1475 && f_Thrust_R >= 1000)){
-    sendServo(3, ScaleThrust(f_Thrust_L));
-    sendServo(1, ScaleThrust(f_Thrust_R));
-  }
+  // else if((f_Thrust_L >= 1525 && f_Thrust_L <= 2015) || (f_Thrust_R >= 1525 && f_Thrust_R <= 2015) || (f_Thrust_L <= 1475 && f_Thrust_L >= 1000) || (f_Thrust_R <= 1475 && f_Thrust_R >= 1000)){
+  //   sendServo(3, ScaleThrust(f_Thrust_L));
+  //   sendServo(1, ScaleThrust(f_Thrust_R));
+  // }
 
   // Automation
   else if((a_Thrust_L >= 1525 && a_Thrust_L <= 2000) || (a_Thrust_R >= 1525 && a_Thrust_R <= 2000) || (a_Thrust_L <= 1475 && a_Thrust_L >= 1000) || (a_Thrust_R <= 1475 && a_Thrust_R >= 1000)){
@@ -698,6 +730,18 @@ void M300::ThrustOutputPriority(){
   else{
     sendServo(3, 1500);
     sendServo(1, 1500);
+  }
+}
+
+void M300::remoteControl(){
+  // Remote control switch
+  if((f_Thrust_L >= 1505 && f_Thrust_L <= 2015) || (f_Thrust_R >= 1505 && f_Thrust_R <= 2015) || (f_Thrust_L <= 1495 && f_Thrust_L >= 1000) || (f_Thrust_R <= 1495 && f_Thrust_R >= 1000)){
+    // sendServo(3, ScaleThrust(f_Thrust_L));
+    // sendServo(1, ScaleThrust(f_Thrust_R));
+  }
+  else{
+    sendServo(3, 0);
+    sendServo(1, 0);
   }
 }
 
@@ -1122,9 +1166,18 @@ bool M300::Iterate()
   // if vehicle is floatie and vehicle is connected
   if(checkVehicle == true && m_vname == "floatie") {
       sendMessagesToSocket();
-      ThrustOutputPriority();
       commFloatie();
       setFloatieMode();
+
+      // Remote control
+      if(controlMode == false){
+        // remoteControl();
+        // Go through remote directly
+      }
+      // Software control (on board and automation control)
+      else{
+        ThrustOutputPriority();
+      }
 
       // Check for on board control even if no pikhawk
       if(onBoard == false || board_port == -1){
@@ -2193,6 +2246,7 @@ bool M300::buildReport()
     m_msgs << "Remote: " << "thrust: " << f_Thrust_L << " " << f_Thrust_R << endl;
     m_msgs << "Automation: " << a_Thrust_L << " " << a_Thrust_R << endl;
     m_msgs << "gps found: " << gpsFound << " heading found: " << hdg_found << endl;
+    m_msgs << "Control Mode: " << controlMode << endl;
   }
 
   else if (m_vname == "beacon"){
